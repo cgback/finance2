@@ -1,25 +1,33 @@
 package model
 
 import (
-	"errors"
+	"context"
 	"fmt"
+	"github.com/apache/rocketmq-client-go/v2"
+	"github.com/apache/rocketmq-client-go/v2/primitive"
 	g "github.com/doug-martin/goqu/v9"
 	_ "github.com/doug-martin/goqu/v9/dialect/mysql"
+	"github.com/go-redis/redis/v8"
 	"github.com/jmoiron/sqlx"
-	"reportapi/contrib/helper"
+	"lotteryinfo/contrib/helper"
+	"lotteryinfo/contrib/tracerr"
 	"runtime"
 	"strings"
 	"time"
 )
 
 type MetaTable struct {
-	MerchantTD *sqlx.DB
-	Program    string
+	MerchantTD   *sqlx.DB
+	MerchantPika *redis.Client
+	MerchantMQ   rocketmq.Producer
+	Program      string
+	Prefix       string
 }
 
 var (
 	loc     *time.Location
 	meta    *MetaTable
+	ctx     = context.Background()
 	dialect = g.Dialect("mysql")
 )
 
@@ -31,6 +39,7 @@ func Constructor(mt *MetaTable) {
 
 func pushLog(err error, code string) error {
 
+	fmt.Println(err)
 	_, file, line, _ := runtime.Caller(1)
 	paths := strings.Split(file, "/")
 	l := len(paths)
@@ -38,27 +47,28 @@ func pushLog(err error, code string) error {
 		file = paths[l-2] + "/" + paths[l-1]
 	}
 	path := fmt.Sprintf("%s:%d", file, line)
-
-	ts := time.Now()
 	id := helper.GenId()
-
-	fields := g.Record{
+	ts := time.Now()
+	data := map[string]string{
 		"id":       id,
-		"content":  err.Error(),
-		"project":  meta.Program,
+		"content":  tracerr.SprintSource(err, 2, 2),
 		"flags":    code,
 		"filename": path,
-		"ts":       ts.In(loc).UnixMilli(),
-	}
-	query, _, _ := dialect.Insert("goerror").Rows(&fields).ToSQL()
-	//fmt.Println(query)
-	_, err1 := meta.MerchantTD.Exec(query)
-	if err1 != nil {
-		fmt.Println("insert SMS = ", err1.Error(), fields)
+		"_index":   fmt.Sprintf("%s_%s_%04d%02d", meta.Prefix, meta.Program, ts.Year(), ts.Month()),
 	}
 
-	note := fmt.Sprintf("Hệ thống lỗi %s", id)
-	return errors.New(note)
+	payload, _ := helper.JsonMarshal(data)
+	err = meta.MerchantMQ.SendAsync(ctx,
+		func(c context.Context, result *primitive.SendResult, e error) {
+			if e != nil {
+				fmt.Printf("send message error: %s\n", e.Error())
+			}
+		}, primitive.NewMessage("zinc_fluent_log", payload))
+	if err != nil {
+		fmt.Printf("rocket SendAsync payload[%s] error[%s]", string(payload), err.Error())
+	}
+
+	return fmt.Errorf("系统错误 %s", id)
 }
 
 func Close() {

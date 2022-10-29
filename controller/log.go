@@ -2,8 +2,8 @@ package controller
 
 import (
 	"github.com/valyala/fasthttp"
-	"reportapi/contrib/helper"
-	"reportapi/model"
+	"lotteryinfo/contrib/helper"
+	"lotteryinfo/model"
 )
 
 type LogController struct{}

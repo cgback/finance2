@@ -3,7 +3,7 @@ package middleware
 import (
 	"errors"
 	"github.com/valyala/fasthttp"
-	"reportapi/contrib/session"
+	"lotteryinfo/contrib/session"
 )
 
 var allows = map[string]bool{

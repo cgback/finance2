@@ -5,7 +5,7 @@ import (
 	"runtime/debug"
 	"time"
 
-	"reportapi/controller"
+	"lotteryinfo/controller"
 
 	"github.com/buaazp/fasthttprouter"
 	"github.com/valyala/fasthttp"
