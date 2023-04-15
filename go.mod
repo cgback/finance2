@@ -1,4 +1,4 @@
-module lotteryinfo
+module finance
 
 go 1.19
 

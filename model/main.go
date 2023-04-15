@@ -2,6 +2,8 @@ package model
 
 import (
 	"context"
+	"finance/contrib/helper"
+	"finance/contrib/tracerr"
 	"fmt"
 	"github.com/apache/rocketmq-client-go/v2"
 	"github.com/apache/rocketmq-client-go/v2/primitive"
@@ -9,8 +11,6 @@ import (
 	_ "github.com/doug-martin/goqu/v9/dialect/mysql"
 	"github.com/go-redis/redis/v8"
 	"github.com/jmoiron/sqlx"
-	"lotteryinfo/contrib/helper"
-	"lotteryinfo/contrib/tracerr"
 	"runtime"
 	"strings"
 	"time"

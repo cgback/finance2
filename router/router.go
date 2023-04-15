@@ -5,7 +5,7 @@ import (
 	"runtime/debug"
 	"time"
 
-	"lotteryinfo/controller"
+	"finance/controller"
 
 	"github.com/buaazp/fasthttprouter"
 	"github.com/valyala/fasthttp"

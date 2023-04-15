@@ -1,15 +1,15 @@
 package main
 
 import (
+	"finance/contrib/apollo"
+	"finance/contrib/conn"
+	"finance/middleware"
+	"finance/model"
+	"finance/router"
 	"fmt"
 	"github.com/apache/rocketmq-client-go/v2"
 	"github.com/apache/rocketmq-client-go/v2/producer"
 	"log"
-	"lotteryinfo/contrib/apollo"
-	"lotteryinfo/contrib/conn"
-	"lotteryinfo/middleware"
-	"lotteryinfo/model"
-	"lotteryinfo/router"
 	"os"
 	"strings"
 

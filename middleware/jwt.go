@@ -2,8 +2,8 @@ package middleware
 
 import (
 	"errors"
+	"finance/contrib/session"
 	"github.com/valyala/fasthttp"
-	"lotteryinfo/contrib/session"
 )
 
 var allows = map[string]bool{
