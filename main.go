@@ -7,20 +7,16 @@ import (
 	"finance/model"
 	"finance/router"
 	"fmt"
-	"github.com/apache/rocketmq-client-go/v2"
-	"github.com/apache/rocketmq-client-go/v2/producer"
 	"log"
 	"os"
+	"path/filepath"
 	"strings"
+
+	"github.com/apache/rocketmq-client-go/v2"
+	"github.com/apache/rocketmq-client-go/v2/producer"
 
 	"github.com/valyala/fasthttp"
 	_ "go.uber.org/automaxprocs"
-)
-
-var (
-	gitReversion   = ""
-	buildTime      = ""
-	buildGoVersion = ""
 )
 
 func main() {
@@ -33,7 +29,7 @@ func main() {
 
 	cfg := conf{}
 	endpoints := strings.Split(os.Args[1], ",")
-	apollo.New(endpoints)
+	apollo.New(endpoints, ETCDName, ETCDPass)
 	err := apollo.ParseTomlStruct(os.Args[2], &cfg)
 	apollo.Close()
 	if err != nil {
@@ -66,8 +62,8 @@ func main() {
 		mt = nil
 	}()
 
-	bin := strings.Split(os.Args[0], "/")
-	mt.Program = bin[len(bin)-1]
+	mt.Program = filepath.Base(os.Args[0])
+
 	b := router.BuildInfo{
 		GitReversion:   gitReversion,
 		BuildTime:      buildTime,

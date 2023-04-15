@@ -7,14 +7,14 @@ import (
 
 	"finance/controller"
 
-	"github.com/buaazp/fasthttprouter"
+	"github.com/fasthttp/router"
 	"github.com/valyala/fasthttp"
 )
 
 var (
 	ApiTimeoutMsg = `{"status": "false","data":"服务器响应超时，请稍后重试"}`
 	ApiTimeout    = time.Second * 30
-	router        *fasthttprouter.Router
+	route         *router.Router
 	buildInfo     BuildInfo
 )
 
@@ -50,10 +50,10 @@ func Version(ctx *fasthttp.RequestCtx) {
 }
 
 // SetupRouter 设置路由列表
-func SetupRouter(b BuildInfo) *fasthttprouter.Router {
+func SetupRouter(b BuildInfo) *router.Router {
 
-	router = fasthttprouter.New()
-	router.PanicHandler = apiServerPanic
+	route = router.New()
+	route.PanicHandler = apiServerPanic
 
 	buildInfo = b
 
@@ -63,40 +63,40 @@ func SetupRouter(b BuildInfo) *fasthttprouter.Router {
 	get("/log/td/version", Version)
 	// 日志查询
 	get("/log/td/list", logCtl.List)
-	return router
+	return route
 }
 
 // get is a shortcut for router.GET(path string, handle fasthttp.RequestHandler)
 func get(path string, handle fasthttp.RequestHandler) {
-	router.GET(path, fasthttp.TimeoutHandler(handle, ApiTimeout, ApiTimeoutMsg))
+	route.GET(path, fasthttp.TimeoutHandler(handle, ApiTimeout, ApiTimeoutMsg))
 }
 
 // head is a shortcut for router.HEAD(path string, handle fasthttp.RequestHandler)
 func head(path string, handle fasthttp.RequestHandler) {
-	router.HEAD(path, fasthttp.TimeoutHandler(handle, ApiTimeout, ApiTimeoutMsg))
+	route.HEAD(path, fasthttp.TimeoutHandler(handle, ApiTimeout, ApiTimeoutMsg))
 }
 
 // options is a shortcut for router.OPTIONS(path string, handle fasthttp.RequestHandler)
 func options(path string, handle fasthttp.RequestHandler) {
-	router.OPTIONS(path, fasthttp.TimeoutHandler(handle, ApiTimeout, ApiTimeoutMsg))
+	route.OPTIONS(path, fasthttp.TimeoutHandler(handle, ApiTimeout, ApiTimeoutMsg))
 }
 
 // post is a shortcut for router.POST(path string, handle fasthttp.RequestHandler)
 func post(path string, handle fasthttp.RequestHandler) {
-	router.POST(path, fasthttp.TimeoutHandler(handle, ApiTimeout, ApiTimeoutMsg))
+	route.POST(path, fasthttp.TimeoutHandler(handle, ApiTimeout, ApiTimeoutMsg))
 }
 
 // put is a shortcut for router.PUT(path string, handle fasthttp.RequestHandler)
 func put(path string, handle fasthttp.RequestHandler) {
-	router.PUT(path, fasthttp.TimeoutHandler(handle, ApiTimeout, ApiTimeoutMsg))
+	route.PUT(path, fasthttp.TimeoutHandler(handle, ApiTimeout, ApiTimeoutMsg))
 }
 
 // patch is a shortcut for router.PATCH(path string, handle fasthttp.RequestHandler)
 func patch(path string, handle fasthttp.RequestHandler) {
-	router.PATCH(path, fasthttp.TimeoutHandler(handle, ApiTimeout, ApiTimeoutMsg))
+	route.PATCH(path, fasthttp.TimeoutHandler(handle, ApiTimeout, ApiTimeoutMsg))
 }
 
 // delete is a shortcut for router.DELETE(path string, handle fasthttp.RequestHandler)
 func delete(path string, handle fasthttp.RequestHandler) {
-	router.DELETE(path, fasthttp.TimeoutHandler(handle, ApiTimeout, ApiTimeoutMsg))
+	route.DELETE(path, fasthttp.TimeoutHandler(handle, ApiTimeout, ApiTimeoutMsg))
 }
