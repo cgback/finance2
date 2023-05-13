@@ -6,7 +6,6 @@ import (
 	"finance/contrib/tracerr"
 	"fmt"
 	"github.com/apache/rocketmq-client-go/v2"
-	"github.com/apache/rocketmq-client-go/v2/primitive"
 	g "github.com/doug-martin/goqu/v9"
 	_ "github.com/doug-martin/goqu/v9/dialect/mysql"
 	"github.com/go-redis/redis/v8"
@@ -17,7 +16,7 @@ import (
 )
 
 type MetaTable struct {
-	MerchantTD   *sqlx.DB
+	MerchantDB   *sqlx.DB
 	MerchantPika *redis.Client
 	MerchantMQ   rocketmq.Producer
 	Program      string
@@ -25,10 +24,11 @@ type MetaTable struct {
 }
 
 var (
-	loc     *time.Location
-	meta    *MetaTable
-	ctx     = context.Background()
-	dialect = g.Dialect("mysql")
+	loc             *time.Location
+	meta            *MetaTable
+	ctx             = context.Background()
+	dialect         = g.Dialect("mysql")
+	colsChannelType = helper.EnumFields(ChannelType{})
 )
 
 func Constructor(mt *MetaTable) {
@@ -39,7 +39,6 @@ func Constructor(mt *MetaTable) {
 
 func pushLog(err error, code string) error {
 
-	fmt.Println(err)
 	_, file, line, _ := runtime.Caller(1)
 	paths := strings.Split(file, "/")
 	l := len(paths)
@@ -47,6 +46,7 @@ func pushLog(err error, code string) error {
 		file = paths[l-2] + "/" + paths[l-1]
 	}
 	path := fmt.Sprintf("%s:%d", file, line)
+
 	id := helper.GenId()
 	ts := time.Now()
 	data := map[string]string{
@@ -56,19 +56,11 @@ func pushLog(err error, code string) error {
 		"filename": path,
 		"_index":   fmt.Sprintf("%s_%s_%04d%02d", meta.Prefix, meta.Program, ts.Year(), ts.Month()),
 	}
-
 	payload, _ := helper.JsonMarshal(data)
-	err = meta.MerchantMQ.SendAsync(ctx,
-		func(c context.Context, result *primitive.SendResult, e error) {
-			if e != nil {
-				fmt.Printf("send message error: %s\n", e.Error())
-			}
-		}, primitive.NewMessage("zinc_fluent_log", payload))
-	if err != nil {
-		fmt.Printf("rocket SendAsync payload[%s] error[%s]", string(payload), err.Error())
-	}
+	fmt.Println(string(payload))
+	_ = RocketSendAsync("zinc_fluent_log", payload)
 
-	return fmt.Errorf("系统错误 %s", id)
+	return fmt.Errorf("hệ thống lỗi %s", id)
 }
 
 func Close() {

@@ -6,16 +6,16 @@ import (
 	"github.com/valyala/fasthttp"
 )
 
-type LogController struct{}
+type ChannelTypeController struct{}
 
 // 日志列表
-func (that LogController) List(ctx *fasthttp.RequestCtx) {
+func (that ChannelTypeController) List(ctx *fasthttp.RequestCtx) {
 
-	s, err := model.LogList()
+	s, err := model.ChannelTypeList()
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
 		return
 	}
 
-	helper.PrintJson(ctx, true, s)
+	helper.Print(ctx, true, s)
 }

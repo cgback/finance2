@@ -58,11 +58,12 @@ func SetupRouter(b BuildInfo) *router.Router {
 	buildInfo = b
 
 	// 日志服务
-	logCtl := new(controller.LogController)
+	channelTypeCtl := new(controller.ChannelTypeController)
 
-	get("/log/td/version", Version)
-	// 日志查询
-	get("/log/td/list", logCtl.List)
+	get("/f2/version", Version)
+	// 渠道管理-列表
+	get("/f2/channel/type/list", channelTypeCtl.List)
+
 	return route
 }
 
