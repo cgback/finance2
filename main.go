@@ -3,6 +3,7 @@ package main
 import (
 	"finance/contrib/apollo"
 	"finance/contrib/conn"
+	"finance/contrib/session"
 	"finance/middleware"
 	"finance/model"
 	"finance/router"
@@ -64,7 +65,7 @@ func main() {
 	}()
 
 	mt.Program = filepath.Base(os.Args[0])
-
+	session.New(mt.MerchantRedis, mt.Prefix)
 	b := router.BuildInfo{
 		GitReversion:   gitReversion,
 		BuildTime:      buildTime,
@@ -79,7 +80,7 @@ func main() {
 		MaxRequestBodySize: 51 * 1024 * 1024,
 	}
 	fmt.Printf("gitReversion = %s\r\nbuildGoVersion = %s\r\nbuildTime = %s\r\n", gitReversion, buildGoVersion, buildTime)
-	fmt.Println("finance2 running", cfg.Port)
+	fmt.Println("finance2 running", cfg.Port.Finance2)
 	if err := srv.ListenAndServe(cfg.Port.Finance2); err != nil {
 		log.Fatalf("Error in ListenAndServe: %s", err)
 	}
