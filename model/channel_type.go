@@ -12,7 +12,7 @@ import (
 func ChannelTypeList() ([]ChannelType, error) {
 
 	var data []ChannelType
-	query, _, _ := dialect.From("f2_channel_type").Select(colsChannelType...).Where(g.Ex{"state": 1}).ToSQL()
+	query, _, _ := dialect.From("f2_channel_type").Select(colsChannelType...).Where(g.Ex{}).ToSQL()
 	fmt.Println(query)
 	err := meta.MerchantDB.Select(&data, query)
 	if err != nil {
