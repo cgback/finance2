@@ -16,11 +16,11 @@ import (
 )
 
 type MetaTable struct {
-	MerchantDB   *sqlx.DB
-	MerchantPika *redis.Client
-	MerchantMQ   rocketmq.Producer
-	Program      string
-	Prefix       string
+	MerchantDB    *sqlx.DB
+	MerchantRedis *redis.Client
+	MerchantMQ    rocketmq.Producer
+	Program       string
+	Prefix        string
 }
 
 var (
@@ -34,7 +34,11 @@ var (
 func Constructor(mt *MetaTable) {
 
 	meta = mt
-	loc, _ = time.LoadLocation("Asia/Shanghai")
+	loc, _ = time.LoadLocation("Asia/Bangkok")
+	err := Lock(meta.Prefix + "_finance2_load")
+	if err == nil {
+		LoadChannelType()
+	}
 }
 
 func pushLog(err error, code string) error {

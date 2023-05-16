@@ -39,11 +39,11 @@ func main() {
 
 	mt := new(model.MetaTable)
 	mt.MerchantDB = conn.InitDB(cfg.Db.Masteren.Addr, cfg.Db.Masteren.MaxIdleConn, cfg.Db.Masteren.MaxOpenConn)
-	mt.MerchantPika = conn.InitRedisSentinel(cfg.Pika.Addr, cfg.Pika.Password, cfg.Pika.Sentinel, 0)
+	mt.MerchantRedis = conn.InitRedisSentinel(cfg.Redis.Addr, cfg.Redis.Password, cfg.Redis.Sentinel, 0)
 	mt.MerchantMQ, err = rocketmq.NewProducer(
 		producer.WithNameServer(cfg.Rocketmq),
 		producer.WithRetry(2),
-		producer.WithGroupName("merchant"),
+		producer.WithGroupName("finance2"),
 	)
 	if err != nil {
 		fmt.Printf("start NewProducer error: %s", err.Error())

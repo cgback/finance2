@@ -81,12 +81,6 @@ type conf struct {
 		Sentinel string   `toml:"sentinel"`
 		Db       int      `toml:"db"`
 	} `toml:"redis"`
-	Pika struct {
-		Addr     []string `toml:"addr"`
-		Password string   `toml:"password"`
-		Sentinel string   `toml:"sentinel"`
-		Db       int      `toml:"db"`
-	} `toml:"pika"`
 	Es struct {
 		Host     []string `toml:"host"`
 		Username string   `toml:"username"`
