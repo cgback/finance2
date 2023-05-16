@@ -115,9 +115,9 @@ type conf struct {
 		IPRPC       string `toml:"ip_rpc"`
 	} `toml:"port"`
 	Mongodb struct {
-		Url      []string `toml:"url"`
-		Username string   `toml:"username"`
-		Password string   `toml:"password"`
-		Db       string   `toml:"db"`
+		Url      string `toml:"url"`
+		Username string `toml:"username"`
+		Password string `toml:"password"`
+		Db       string `toml:"db"`
 	} `toml:"mongodb"`
 }
