@@ -3,6 +3,7 @@ package middleware
 import (
 	"errors"
 	"finance/contrib/session"
+	"fmt"
 	"github.com/valyala/fasthttp"
 )
 
@@ -22,6 +23,7 @@ var allows = map[string]bool{
 func CheckTokenMiddleware(ctx *fasthttp.RequestCtx) error {
 
 	path := string(ctx.Path())
+	fmt.Print(path)
 	if _, ok := allows[path]; ok {
 		return nil
 	}

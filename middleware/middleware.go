@@ -9,8 +9,7 @@ type middleware_t func(ctx *fasthttp.RequestCtx) error
 
 var MiddlewareList = []middleware_t{
 	//CorsMiddleware,
-	//CheckTokenMiddleware,
-
+	CheckTokenMiddleware,
 }
 
 func Use(next fasthttp.RequestHandler) fasthttp.RequestHandler {
