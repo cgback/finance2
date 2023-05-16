@@ -12,7 +12,7 @@ import (
 func ChannelTypeList() ([]ChannelType, error) {
 
 	var data []ChannelType
-	query, _, _ := dialect.From("tbl_channel_type").Select(colsChannelType...).Where(g.Ex{"state": 1}).ToSQL()
+	query, _, _ := dialect.From("f2_channel_type").Select(colsChannelType...).Where(g.Ex{"state": 1}).ToSQL()
 	fmt.Println(query)
 	err := meta.MerchantDB.Select(&data, query)
 	if err != nil {
@@ -28,7 +28,7 @@ func ChannelTypeUpdateState(id, state string) error {
 		"id": id,
 	}
 	data := ChannelType{}
-	query, _, _ := dialect.From("tbl_channel_type").Select(colsChannelType...).Where(ex).ToSQL()
+	query, _, _ := dialect.From("f2_channel_type").Select(colsChannelType...).Where(ex).ToSQL()
 	fmt.Println(query)
 	err := meta.MerchantDB.Get(&data, query)
 	if err != nil && err != sql.ErrNoRows {
@@ -46,7 +46,7 @@ func ChannelTypeUpdateState(id, state string) error {
 	record := g.Record{
 		"state": state,
 	}
-	query, _, _ = dialect.Update("tbl_channel_type").Set(record).Where(g.Ex{"id": id}).ToSQL()
+	query, _, _ = dialect.Update("f2_channel_type").Set(record).Where(g.Ex{"id": id}).ToSQL()
 	fmt.Println(query)
 	_, err = meta.MerchantDB.Exec(query)
 	if err != nil {
@@ -64,7 +64,7 @@ func ChannelTypeUpdateSort(id string, sort int) error {
 		"id": id,
 	}
 	data := ChannelType{}
-	query, _, _ := dialect.From("tbl_channel_type").Select(colsChannelType...).Where(ex).ToSQL()
+	query, _, _ := dialect.From("f2_channel_type").Select(colsChannelType...).Where(ex).ToSQL()
 	fmt.Println(query)
 	err := meta.MerchantDB.Get(&data, query)
 	if err != nil && err != sql.ErrNoRows {
@@ -82,7 +82,7 @@ func ChannelTypeUpdateSort(id string, sort int) error {
 	record := g.Record{
 		"sort": sort,
 	}
-	query, _, _ = dialect.Update("tbl_channel_type").Set(record).Where(g.Ex{"id": id}).ToSQL()
+	query, _, _ = dialect.Update("f2_channel_type").Set(record).Where(g.Ex{"id": id}).ToSQL()
 	fmt.Println(query)
 	_, err = meta.MerchantDB.Exec(query)
 	if err != nil {
