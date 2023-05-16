@@ -23,7 +23,7 @@ var allows = map[string]bool{
 func CheckTokenMiddleware(ctx *fasthttp.RequestCtx) error {
 
 	path := string(ctx.Path())
-	fmt.Print(path)
+	fmt.Println(path)
 	if _, ok := allows[path]; ok {
 		return nil
 	}

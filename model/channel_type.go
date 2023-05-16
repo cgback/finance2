@@ -19,6 +19,7 @@ func ChannelTypeList() ([]ChannelType, error) {
 		return data, pushLog(fmt.Errorf("%s,[%s]", err.Error(), query), helper.DBErr)
 	}
 
+	fmt.Printf("%#v\n", data)
 	return data, nil
 }
 
