@@ -22,7 +22,7 @@ import (
 func main() {
 
 	argc := len(os.Args)
-	if argc != 3 {
+	if argc != 4 {
 		fmt.Printf("%s <etcds> <cfgPath>\r\n", os.Args[0])
 		return
 	}
