@@ -3,6 +3,7 @@ package main
 import (
 	"finance/contrib/apollo"
 	"finance/contrib/conn"
+	"finance/contrib/helper"
 	"finance/contrib/session"
 	"finance/middleware"
 	"finance/model"
@@ -73,7 +74,7 @@ func main() {
 	}
 	app := router.SetupRouter(b)
 	srv := &fasthttp.Server{
-		Handler:            middleware.Use(app.Handler),
+		Handler:            middleware.Use(app.Handler, mt.Prefix, validateH5, validateHT, validateWEB, validateAndroid, validateIOS, true),
 		ReadTimeout:        router.ApiTimeout,
 		WriteTimeout:       router.ApiTimeout,
 		Name:               "finance2",
@@ -81,6 +82,7 @@ func main() {
 	}
 	fmt.Printf("gitReversion = %s\r\nbuildGoVersion = %s\r\nbuildTime = %s\r\n", gitReversion, buildGoVersion, buildTime)
 	fmt.Println("finance2 running", cfg.Port.Finance2)
+	helper.Use(validateH5, validateHT, validateWEB, validateAndroid, validateIOS, true)
 	if err := srv.ListenAndServe(cfg.Port.Finance2); err != nil {
 		log.Fatalf("Error in ListenAndServe: %s", err)
 	}

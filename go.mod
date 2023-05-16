@@ -30,7 +30,9 @@ require (
 	github.com/silenceper/pool v1.0.0
 	github.com/spaolacci/murmur3 v1.1.0
 	github.com/taosdata/driver-go/v2 v2.0.1-0.20220512023129-15f5b9c4b11c
+	github.com/twmb/murmur3 v1.1.7
 	github.com/valyala/fasthttp v1.45.0
+	github.com/valyala/fastjson v1.6.4
 	github.com/xxtea/xxtea-go v0.0.0-20170828040851-35c4b17eecf6
 	go.mongodb.org/mongo-driver v1.11.6
 	go.uber.org/automaxprocs v1.4.0
