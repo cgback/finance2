@@ -107,6 +107,7 @@ type conf struct {
 		PromoRPC    string `toml:"promo_rpc"`
 		Merchant    string `toml:"merchant"`
 		Finance     string `toml:"finance"`
+		Finance2    string `toml:"finance2"`
 		Sms         string `toml:"sms"`
 		Shorturl    string `toml:"shorturl"`
 		ShorturlRPC string `toml:"shorturl_rpc"`

@@ -74,12 +74,12 @@ func main() {
 		Handler:            middleware.Use(app.Handler),
 		ReadTimeout:        router.ApiTimeout,
 		WriteTimeout:       router.ApiTimeout,
-		Name:               "lotteryinfo",
+		Name:               "finance2",
 		MaxRequestBodySize: 51 * 1024 * 1024,
 	}
 	fmt.Printf("gitReversion = %s\r\nbuildGoVersion = %s\r\nbuildTime = %s\r\n", gitReversion, buildGoVersion, buildTime)
 	fmt.Println("finance2 running", cfg.Port)
-	if err := srv.ListenAndServe(cfg.Port.Finance); err != nil {
+	if err := srv.ListenAndServe(cfg.Port.Finance2); err != nil {
 		log.Fatalf("Error in ListenAndServe: %s", err)
 	}
 }
