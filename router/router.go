@@ -62,11 +62,11 @@ func SetupRouter(b BuildInfo) *router.Router {
 
 	get("/f2/version", Version)
 	// 渠道管理-列表
-	get("/f2/channel/type/list", channelTypeCtl.List)
+	get("/merchant/f2/channel/type/list", channelTypeCtl.List)
 	// 渠道管理-列表-更新状态
-	get("/f2/channel/type/updatestate", channelTypeCtl.UpdateState)
+	get("/merchant/f2/channel/type/updatestate", channelTypeCtl.UpdateState)
 	// 渠道管理-列表-修改排序
-	get("/f2/channel/type/updatesort", channelTypeCtl.UpdateSort)
+	get("/merchant/f2/channel/type/updatesort", channelTypeCtl.UpdateSort)
 
 	return route
 }
