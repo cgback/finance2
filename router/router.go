@@ -59,6 +59,9 @@ func SetupRouter(b BuildInfo) *router.Router {
 
 	// 日志服务
 	channelTypeCtl := new(controller.ChannelTypeController)
+	// 收款账号管理
+	bankCardCtl := new(controller.BankCardController)
+	usdtCtl := new(controller.UsdtController)
 
 	get("/f2/version", Version)
 	// 渠道管理-列表
@@ -67,7 +70,29 @@ func SetupRouter(b BuildInfo) *router.Router {
 	get("/merchant/f2/channel/type/updatestate", channelTypeCtl.UpdateState)
 	// 渠道管理-列表-修改排序
 	get("/merchant/f2/channel/type/updatesort", channelTypeCtl.UpdateSort)
-
+	// 渠道管理-收款账户管理
+	get("/merchant/f2/offline/bankcard/list", bankCardCtl.List)
+	// 渠道管理-收款账户管理-添加银行卡
+	post("/merchant/f2/offline/bankcard/insert", bankCardCtl.Insert)
+	// 渠道管理-收款账户管理-更新银行卡
+	post("/merchant/f2/offline/bankcard/update", bankCardCtl.Update)
+	// 渠道管理-收款账户管理-删除银行卡
+	get("/merchant/f2/offline/bankcard/delete", bankCardCtl.Delete)
+	// 渠道管理-收款账户管理-usdt汇率展示
+	get("/merchant/f2/offline/usdt/info", usdtCtl.Info)
+	// 渠道管理-收款账户管理-usdt汇率修改配置
+	post("/merchant/f2/offline/usdt/update", usdtCtl.Update)
+	// 渠道管理-收款账户管理-usdt设置-添加usdt收款账号
+	post("/merchant/f2/offline/usdt/insert", usdtCtl.Insert)
+	// 渠道管理-收款账户管理-usdt设置-展示usdt收款账号
+	post("/merchant/f2/offline/usdt/list", usdtCtl.List)
+	// 渠道管理-收款账户管理-usdt设置-展示usdt收款账号
+	post("/merchant/f2/offline/usdt/update/account", usdtCtl.UpdateAccount)
+	// 渠道管理-收款账户管理-usdt设置-展示usdt收款账号
+	get("/merchant/f2/offline/usdt/delete", usdtCtl.Delete)
+	// 渠道管理-收款账户管理-usdt设置-展示usdt收款账号
+	post("/merchant/f2/offline/usdt/updatestate", usdtCtl.UpdateState)
+	//
 	return route
 }
 

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"finance/contrib/apollo"
 	"finance/contrib/conn"
 	"finance/contrib/helper"
@@ -23,6 +24,7 @@ import (
 
 func main() {
 
+	var ctx = context.Background()
 	argc := len(os.Args)
 	if argc != 4 {
 		fmt.Printf("%s <etcds> <cfgPath>\r\n", os.Args[0])
@@ -43,6 +45,8 @@ func main() {
 	conn.Use(validateKey)
 	mt.MerchantDB = conn.InitDB(cfg.Db.Masteren.Addr, cfg.Db.Masteren.MaxIdleConn, cfg.Db.Masteren.MaxOpenConn)
 	mt.MerchantRedis = conn.InitRedisSentinel(cfg.Redis.Addr, cfg.Redis.Password, cfg.Redis.Sentinel, 0)
+	mt.MgCli, mt.MgDB = conn.InitMongo(ctx, cfg.Mongodb.Url, cfg.Mongodb.Username, cfg.Mongodb.Password, cfg.Mongodb.Db)
+
 	mt.MerchantMQ, err = rocketmq.NewProducer(
 		producer.WithNameServer(cfg.Rocketmq),
 		producer.WithRetry(2),
@@ -64,6 +68,11 @@ func main() {
 		model.Close()
 		mt = nil
 	}()
+
+	if os.Args[3] == "load" {
+		fmt.Println("load")
+		model.BankTypeUpdateCache()
+	}
 
 	mt.Program = filepath.Base(os.Args[0])
 	session.New(mt.MerchantRedis, mt.Prefix)

@@ -10,6 +10,9 @@ import (
 	_ "github.com/doug-martin/goqu/v9/dialect/mysql"
 	"github.com/go-redis/redis/v8"
 	"github.com/jmoiron/sqlx"
+	"github.com/qiniu/qmgo"
+	"github.com/valyala/fasthttp"
+	"github.com/valyala/fastjson"
 	"runtime"
 	"strings"
 	"time"
@@ -19,6 +22,8 @@ type MetaTable struct {
 	MerchantDB    *sqlx.DB
 	MerchantRedis *redis.Client
 	MerchantMQ    rocketmq.Producer
+	MgCli         *qmgo.Client
+	MgDB          *qmgo.Database
 	Program       string
 	Prefix        string
 }
@@ -28,7 +33,10 @@ var (
 	meta            *MetaTable
 	ctx             = context.Background()
 	dialect         = g.Dialect("mysql")
+	fc              *fasthttp.Client
 	colsChannelType = helper.EnumFields(ChannelType{})
+	colBankCard     = helper.EnumFields(Bankcard_t{})
+	coleBankTypes   = helper.EnumFields(TblBankTypes{})
 )
 
 func Constructor(mt *MetaTable) {
@@ -68,4 +76,32 @@ func pushLog(err error, code string) error {
 }
 
 func Close() {
+}
+
+func AdminToken(ctx *fasthttp.RequestCtx) (map[string]string, error) {
+
+	b := ctx.UserValue("token").([]byte)
+
+	var p fastjson.Parser
+
+	data := map[string]string{}
+	v, err := p.ParseBytes(b)
+	if err != nil {
+		return data, err
+	}
+
+	o, err := v.Object()
+	if err != nil {
+		return data, err
+	}
+
+	o.Visit(func(k []byte, v *fastjson.Value) {
+		key := string(k)
+		val, err := v.StringBytes()
+		if err == nil {
+			data[key] = string(val)
+		}
+	})
+
+	return data, nil
 }
