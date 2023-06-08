@@ -28,9 +28,9 @@ type Bankcard_t struct {
 	Fmax              string `db:"fmax" json:"fmax"`                               //最大金额
 	AmountList        string `db:"amount_list" json:"amount_list"`                 //金额列表
 	Discount          string `db:"discount" json:"discount"`                       //优惠
-	IsZone            string `db:"is_zone" json:"is_zone"`                         // 0 不是区间 1是区间
-	IsFast            string `db:"is_fast" json:"is_fast"`                         // 0 不是快捷 1是快捷
-	Cid               string `db:"cid" json:"cid"`                                 //1:QR Banking 2:MomoPay 3:ZaloPay 4:ViettelPay 5:Thẻ Cào 6:Offline 7:USDT
+	IsZone            int    `db:"is_zone" json:"is_zone"`                         // 0 不是区间 1是区间
+	IsFast            int    `db:"is_fast" json:"is_fast"`                         // 0 不是快捷 1是快捷
+	Cid               int    `db:"cid" json:"cid"`                                 //1:QR Banking 2:MomoPay 3:ZaloPay 4:ViettelPay 5:Thẻ Cào 6:Offline 7:USDT
 }
 
 // BankCardList 银行卡列表
