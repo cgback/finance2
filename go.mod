@@ -16,10 +16,12 @@ require (
 	github.com/go-redis/redis/v8 v8.11.4
 	github.com/go-sql-driver/mysql v1.6.0
 	github.com/goccy/go-json v0.7.10
+	github.com/hprose/hprose-golang/v3 v3.0.10
 	github.com/ip2location/ip2location-go/v9 v9.5.0
 	github.com/ipipdotnet/ipdb-go v1.3.1
 	github.com/jmoiron/sqlx v1.3.4
 	github.com/logrusorgru/aurora v2.0.3+incompatible
+	github.com/lucacasonato/mqtt v0.2.0
 	github.com/minio/md5-simd v1.1.2
 	github.com/modern-go/reflect2 v1.0.2
 	github.com/nats-io/nats.go v1.13.1-0.20220121202836-972a071d373d
@@ -30,6 +32,7 @@ require (
 	github.com/silenceper/pool v1.0.0
 	github.com/spaolacci/murmur3 v1.1.0
 	github.com/taosdata/driver-go/v2 v2.0.1-0.20220512023129-15f5b9c4b11c
+	github.com/tenfyzhong/cityhash v0.0.0-20181130044406-4c2731b5918c
 	github.com/twmb/murmur3 v1.1.7
 	github.com/valyala/fasthttp v1.45.0
 	github.com/valyala/fastjson v1.6.4
@@ -43,6 +46,7 @@ require (
 
 require (
 	github.com/aead/chacha20 v0.0.0-20180709150244-8b13a72661da // indirect
+	github.com/andot/complexconv v1.0.0 // indirect
 	github.com/andybalholm/brotli v1.0.5 // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
 	github.com/chenzhuoyu/base64x v0.0.0-20221115062448-fe3a3abad311 // indirect
@@ -53,6 +57,7 @@ require (
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/dustin/go-humanize v1.0.0 // indirect
+	github.com/eclipse/paho.mqtt.golang v1.2.0 // indirect
 	github.com/emirpasic/gods v1.12.0 // indirect
 	github.com/go-playground/locales v0.13.0 // indirect
 	github.com/go-playground/universal-translator v0.17.0 // indirect

@@ -10,6 +10,7 @@ import (
 	"finance/model"
 	"finance/router"
 	"fmt"
+	"github.com/lucacasonato/mqtt"
 	"log"
 	"os"
 	"path/filepath"
@@ -61,7 +62,24 @@ func main() {
 		fmt.Printf("start producer error: %s", err.Error())
 		os.Exit(1)
 	}
+	mt.MerchantMqtt, err = mqtt.NewClient(mqtt.ClientOptions{
+		// required
+		Servers: cfg.Nats.Servers,
 
+		// optional
+		ClientID:      helper.GenId(),
+		Username:      cfg.Nats.Username,
+		Password:      cfg.Nats.Password,
+		AutoReconnect: true,
+	})
+	if err != nil {
+		panic(err)
+	}
+
+	err = mt.MerchantMqtt.Connect(ctx)
+	if err != nil {
+		panic(err)
+	}
 	model.Constructor(mt)
 
 	defer func() {

@@ -5,6 +5,8 @@ import (
 	"finance/contrib/helper"
 	"finance/contrib/tracerr"
 	"fmt"
+	"github.com/lucacasonato/mqtt"
+
 	"github.com/apache/rocketmq-client-go/v2"
 	g "github.com/doug-martin/goqu/v9"
 	_ "github.com/doug-martin/goqu/v9/dialect/mysql"
@@ -24,19 +26,25 @@ type MetaTable struct {
 	MerchantMQ    rocketmq.Producer
 	MgCli         *qmgo.Client
 	MgDB          *qmgo.Database
+	MerchantMqtt  *mqtt.Client
 	Program       string
 	Prefix        string
 }
 
 var (
-	loc             *time.Location
-	meta            *MetaTable
-	ctx             = context.Background()
-	dialect         = g.Dialect("mysql")
-	fc              *fasthttp.Client
-	colsChannelType = helper.EnumFields(ChannelType{})
-	colBankCard     = helper.EnumFields(Bankcard_t{})
-	coleBankTypes   = helper.EnumFields(TblBankTypes{})
+	loc                     *time.Location
+	meta                    *MetaTable
+	ctx                     = context.Background()
+	dialect                 = g.Dialect("mysql")
+	fc                      *fasthttp.Client
+	colsChannelType         = helper.EnumFields(ChannelType{})
+	colBankCard             = helper.EnumFields(Bankcard_t{})
+	coleBankTypes           = helper.EnumFields(TblBankTypes{})
+	colsVirtualWallet       = helper.EnumFields(VirtualWallet_t{})
+	colPayment              = helper.EnumFields(Payment_t{})
+	colsMemberVirtualWallet = helper.EnumFields(MemberVirtualWallet{})
+	colsMember              = helper.EnumFields(Member{})
+	colsMemberInfo          = helper.EnumFields(MemberInfo{})
 )
 
 func Constructor(mt *MetaTable) {
@@ -104,4 +112,23 @@ func AdminToken(ctx *fasthttp.RequestCtx) (map[string]string, error) {
 	})
 
 	return data, nil
+}
+
+func PushWithdrawNotify(format, username, amount string) error {
+
+	ts := time.Now()
+	msg := fmt.Sprintf(format, username, amount, username, amount, username, amount)
+	msg = strings.TrimSpace(msg)
+
+	topic := fmt.Sprintf("%s/merchant", meta.Prefix)
+	err := meta.MerchantMqtt.Publish(ctx, topic, []byte(msg), mqtt.AtLeastOnce)
+	if err != nil {
+		fmt.Println("failed", time.Since(ts), err.Error())
+		fmt.Println("merchantNats.Publish finance = ", err.Error())
+		return err
+	}
+
+	fmt.Println("success", time.Since(ts))
+
+	return nil
 }

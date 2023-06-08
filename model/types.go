@@ -46,3 +46,43 @@ type StbAdminLogs struct {
 	Ts        int64     `bson:"ts" json:"ts"`
 	CreatedAt time.Time `json:"created_at" bson:"created_at"` // ts 用于删除老记录
 }
+
+// FPay f_payment表名
+type FPay struct {
+	CateID    string `db:"cate_id" redis:"cate_id" json:"cate_id"`          //渠道ID
+	ChannelID string `db:"channel_id" redis:"channel_id" json:"channel_id"` //通道id
+	Comment   string `db:"comment" redis:"comment" json:"comment"`          //
+	CreatedAt string `db:"created_at" redis:"created_at" json:"created_at"` //创建时间
+	Et        string `db:"et" redis:"et" json:"et"`                         //结束时间
+	Fmax      string `db:"fmax" redis:"fmax" json:"fmax"`                   //最大支付金额
+	Fmin      string `db:"fmin" redis:"fmin" json:"fmin"`                   //最小支付金额
+	Gateway   string `db:"gateway" redis:"gateway" json:"gateway"`          //支付网关
+	ID        string `db:"id" redis:"id" json:"id"`                         //
+	Quota     string `db:"quota" redis:"quota" json:"quota"`                //每天限额
+	Amount    string `db:"amount" redis:"amount" json:"amount"`             //每天限额
+	Sort      string `db:"sort" redis:"sort" json:"sort"`                   //
+	St        string `db:"st" redis:"st" json:"st"`                         //开始时间
+	State     string `db:"state" redis:"state" json:"state"`                //0:关闭1:开启
+	Devices   string `db:"devices" redis:"devices" json:"devices"`          //设备号
+}
+
+type Payment_t struct {
+	CateID      string `db:"cate_id" redis:"cate_id" json:"cate_id"`                //渠道ID
+	ChannelID   string `db:"channel_id" redis:"channel_id" json:"channel_id"`       //通道id
+	ChannelName string `redis:"channel_name" json:"channel_name"`                   //通道id
+	PaymentName string `db:"payment_name" redis:"payment_name" json:"payment_name"` //子通道名称
+	Comment     string `db:"comment" redis:"comment" json:"comment"`                //
+	CreatedAt   string `db:"created_at" redis:"created_at" json:"created_at"`       //创建时间
+	Et          string `db:"et" redis:"et" json:"et"`                               //结束时间
+	Fmax        string `db:"fmax" redis:"fmax" json:"fmax"`                         //最大支付金额
+	Fmin        string `db:"fmin" redis:"fmin" json:"fmin"`                         //最小支付金额
+	Gateway     string `db:"gateway" redis:"gateway" json:"gateway"`                //支付网关
+	ID          string `db:"id" redis:"id" json:"id"`                               //
+	Quota       string `db:"quota" redis:"quota" json:"quota"`                      //每天限额
+	Amount      string `db:"amount" redis:"amount" json:"amount"`                   //每天限额
+	Sort        string `db:"sort" redis:"sort" json:"sort"`                         //
+	St          string `db:"st" redis:"st" json:"st"`                               //开始时间
+	State       string `db:"state" redis:"state" json:"state"`                      //0:关闭1:开启
+	Devices     string `db:"devices" redis:"devices" json:"devices"`                //设备号
+	AmountList  string `db:"amount_list" redis:"amount_list" json:"amount_list"`    // 固定金额列表
+}

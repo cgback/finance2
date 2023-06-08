@@ -433,38 +433,39 @@ func UsdtWithdrawUserInsert(amount, rate string, fCtx *fasthttp.RequestCtx) (str
 		return "", errors.New(helper.WithdrawBan)
 	}
 
-	var vipt []Vip_t
-
-	ex := g.Ex{
-		"cate_id":    13,
-		"channel_id": 7,
-		"state":      "1",
-		"vip":        mb.Level,
-	}
-	query, _, _ = dialect.From("f_vip").Select(colVip...).Where(ex).ToSQL()
-	err = meta.MerchantDB.Select(&vipt, query)
-	if err != nil {
-		return "", errors.New(helper.NoPayChannel)
-	}
-
-	if len(vipt) == 0 {
-		return "", errors.New(helper.NoPayChannel)
-	}
+	//TODO
+	//var vipt []Vip_t
+	//
+	//ex := g.Ex{
+	//	"cate_id":    13,
+	//	"channel_id": 7,
+	//	"state":      "1",
+	//	"vip":        mb.Level,
+	//}
+	//query, _, _ = dialect.From("f_vip").Select(colVip...).Where(ex).ToSQL()
+	//err = meta.MerchantDB.Select(&vipt, query)
+	//if err != nil {
+	//	return "", errors.New(helper.NoPayChannel)
+	//}
+	//
+	//if len(vipt) == 0 {
+	//	return "", errors.New(helper.NoPayChannel)
+	//}
 
 	withdrawAmount, err := decimal.NewFromString(amount)
 	if err != nil {
 		return "", errors.New(helper.FormatErr)
 	}
 
-	fmin, _ := decimal.NewFromString(vipt[0].Fmin)
-	if fmin.Cmp(withdrawAmount) > 0 {
-		return "", errors.New(helper.AmountErr)
-	}
-
-	fmax, _ := decimal.NewFromString(vipt[0].Fmax)
-	if fmax.Cmp(withdrawAmount) < 0 {
-		return "", errors.New(helper.AmountErr)
-	}
+	//fmin, _ := decimal.NewFromString(vipt[0].Fmin)
+	//if fmin.Cmp(withdrawAmount) > 0 {
+	//	return "", errors.New(helper.AmountErr)
+	//}
+	//
+	//fmax, _ := decimal.NewFromString(vipt[0].Fmax)
+	//if fmax.Cmp(withdrawAmount) < 0 {
+	//	return "", errors.New(helper.AmountErr)
+	//}
 
 	// 检查上次提现成功到现在的存款流水是否满足 未满足的返回流水未达标
 	_, err = rpcCheckFlow(mb.Username)
@@ -628,7 +629,7 @@ func UsdtWithdrawInsert(mv MemberVirtualWallet, amount, rate, withdrawID, confir
 		"receive_at":          receiveAt,
 		"confirm_uid":         confirmUid,
 		"confirm_name":        confirmName,
-		"wallet_flag":         MemberWallet,
+		"wallet_flag":         1,
 		"level":               member.Level,
 		"tester":              member.Tester,
 		"balance":             userAmount.Sub(withdrawAmount).String(),

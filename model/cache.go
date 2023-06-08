@@ -133,3 +133,116 @@ func BankTypeUpdateCache() error {
 	}
 	return nil
 }
+
+// CachePayment 获取支付方式
+func CachePayment(id string) (FPay, error) {
+
+	m := FPay{}
+	var cols []string
+
+	pipe := meta.MerchantRedis.TxPipeline()
+	defer pipe.Close()
+
+	for _, val := range colPayment {
+		cols = append(cols, val.(string))
+	}
+
+	pkey := meta.Prefix + ":p:" + id
+	// 需要执行的命令
+	exists := pipe.Exists(ctx, pkey)
+	rs := pipe.HMGet(ctx, pkey, cols...)
+
+	_, err := pipe.Exec(ctx)
+	if err != nil {
+		return m, err
+	}
+
+	if exists.Val() == 0 {
+		return m, errors.New(helper.RedisErr)
+	}
+
+	err = rs.Scan(&m)
+	if err != nil {
+		return m, err
+	}
+	return m, nil
+}
+
+// 限制用户存款频率
+func cacheDepositProcessing(uid string, now int64) error {
+
+	pipe := meta.MerchantRedis.TxPipeline()
+	defer pipe.Close()
+
+	// 检查是否被手动锁定
+	manual_lock_key := fmt.Sprintf("%s:finance:mlock:%s", meta.Prefix, uid)
+	automatic_lock_key := fmt.Sprintf("%s:finance:alock:%s", meta.Prefix, uid)
+
+	exists := pipe.Exists(ctx, manual_lock_key)
+
+	// 检查是否被自动锁定
+	rs := pipe.ZRevRangeWithScores(ctx, automatic_lock_key, 0, -1)
+	_, err := pipe.Exec(ctx)
+	if err != nil {
+		return pushLog(err, helper.RedisErr)
+	}
+
+	if exists.Val() != 0 {
+		return errors.New(helper.NoChannelErr)
+	}
+
+	recs, err := rs.Result()
+	if err != nil {
+		return pushLog(err, helper.RedisErr)
+	}
+
+	num := len(recs)
+	if num < 10 {
+		return nil
+	}
+
+	// 十笔 订单 锁定 5 分钟
+	if num == 20 && now < int64(recs[0].Score)+5*60 {
+		// 最后一笔订单的时间
+		return errors.New(helper.EmptyOrder30MinsBlock)
+	}
+
+	// 超出10笔 每隔五笔限制24小时
+	if num > 10 && num%5 == 0 && now < int64(recs[0].Score)+24*60*60 {
+		return errors.New(helper.EmptyOrder5HoursBlock)
+	}
+
+	return nil
+}
+
+func cacheDepositProcessingInsert(uid, depositId string, now int64) error {
+
+	automatic_lock_key := fmt.Sprintf("%s:finance:alock:%s", meta.Prefix, uid)
+
+	z := redis.Z{
+		Score:  float64(now),
+		Member: depositId,
+	}
+	return meta.MerchantRedis.ZAdd(ctx, automatic_lock_key, &z).Err()
+}
+
+// CacheDepositProcessingRem 清除未未成功的订单计数
+func CacheDepositProcessingRem(uid string) error {
+
+	automatic_lock_key := fmt.Sprintf("%s:finance:alock:%s", meta.Prefix, uid)
+	return meta.MerchantRedis.Unlink(ctx, automatic_lock_key).Err()
+}
+
+func withLock(id string) error {
+
+	val := fmt.Sprintf("%s:%s%s", meta.Prefix, defaultRedisKeyPrefix, id)
+	ok, err := meta.MerchantRedis.SetNX(ctx, val, "1", 120*time.Second).Result()
+	if err != nil {
+		return pushLog(err, helper.RedisErr)
+	}
+	if !ok {
+		return errors.New(helper.RequestBusy)
+	}
+
+	return nil
+}
