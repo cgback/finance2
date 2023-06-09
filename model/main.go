@@ -6,6 +6,7 @@ import (
 	"finance/contrib/tracerr"
 	"fmt"
 	"github.com/lucacasonato/mqtt"
+	"math/rand"
 
 	"github.com/apache/rocketmq-client-go/v2"
 	g "github.com/doug-martin/goqu/v9"
@@ -38,13 +39,14 @@ var (
 	dialect                 = g.Dialect("mysql")
 	fc                      *fasthttp.Client
 	colsChannelType         = helper.EnumFields(ChannelType{})
-	colBankCard             = helper.EnumFields(Bankcard_t{})
+	colsBankCard            = helper.EnumFields(Bankcard_t{})
 	coleBankTypes           = helper.EnumFields(TblBankTypes{})
 	colsVirtualWallet       = helper.EnumFields(VirtualWallet_t{})
-	colPayment              = helper.EnumFields(Payment_t{})
+	colsPayment             = helper.EnumFields(Payment_t{})
 	colsMemberVirtualWallet = helper.EnumFields(MemberVirtualWallet{})
 	colsMember              = helper.EnumFields(Member{})
 	colsMemberInfo          = helper.EnumFields(MemberInfo{})
+	colsDeposit             = helper.EnumFields(Deposit{})
 )
 
 func Constructor(mt *MetaTable) {
@@ -114,7 +116,7 @@ func AdminToken(ctx *fasthttp.RequestCtx) (map[string]string, error) {
 	return data, nil
 }
 
-func PushWithdrawNotify(format, username, amount string) error {
+func pushWithdrawNotify(format, username, amount string) error {
 
 	ts := time.Now()
 	msg := fmt.Sprintf(format, username, amount, username, amount, username, amount)
@@ -128,7 +130,11 @@ func PushWithdrawNotify(format, username, amount string) error {
 		return err
 	}
 
-	fmt.Println("success", time.Since(ts))
-
 	return nil
+}
+
+func randSliceValue(xs []int) int {
+
+	rand.Seed(time.Now().Unix())
+	return xs[rand.Intn(len(xs))]
 }

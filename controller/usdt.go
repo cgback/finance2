@@ -28,15 +28,19 @@ func (that *UsdtController) Update(ctx *fasthttp.RequestCtx) {
 	depositUsdtRate := string(ctx.PostArgs().Peek("deposit_usdt_rate"))
 	withdrawUsdtRate := string(ctx.PostArgs().Peek("withdraw_usdt_rate"))
 	code := string(ctx.PostArgs().Peek("code"))
-	_, err := strconv.ParseFloat(depositUsdtRate, 64)
-	if err != nil {
-		helper.Print(ctx, false, helper.ParamErr)
-		return
+	if depositUsdtRate != "" {
+		_, err := strconv.ParseFloat(depositUsdtRate, 64)
+		if err != nil {
+			helper.Print(ctx, false, helper.ParamErr)
+			return
+		}
 	}
-	_, err = strconv.ParseFloat(withdrawUsdtRate, 64)
-	if err != nil {
-		helper.Print(ctx, false, helper.ParamErr)
-		return
+	if withdrawUsdtRate != "" {
+		_, err := strconv.ParseFloat(withdrawUsdtRate, 64)
+		if err != nil {
+			helper.Print(ctx, false, helper.ParamErr)
+			return
+		}
 	}
 	admin, err := model.AdminToken(ctx)
 	if err != nil || len(admin["id"]) < 1 {

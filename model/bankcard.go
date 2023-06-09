@@ -40,7 +40,7 @@ func BankCardList(ex g.Ex) ([]Bankcard_t, error) {
 
 	ex["prefix"] = meta.Prefix
 
-	query, _, _ := dialect.From("f2_bankcards").Select(colBankCard...).Where(ex).ToSQL()
+	query, _, _ := dialect.From("f2_bankcards").Select(colsBankCard...).Where(ex).ToSQL()
 	err := meta.MerchantDB.Select(&data, query)
 	if err != nil {
 		return data, pushLog(err, helper.DBErr)
@@ -56,7 +56,7 @@ func BankCardByCol(val string) (Bankcard_t, error) {
 		"banklcard_no": val,
 		"prefix":       meta.Prefix,
 	}
-	query, _, _ := dialect.From("f2_bankcards").Select(colBankCard...).Where(ex).ToSQL()
+	query, _, _ := dialect.From("f2_bankcards").Select(colsBankCard...).Where(ex).ToSQL()
 	err := meta.MerchantDB.Get(&bc, query)
 	if err != nil && err != sql.ErrNoRows {
 		return bc, pushLog(err, helper.DBErr)
@@ -151,7 +151,7 @@ func BankCardByID(id string) (Bankcard_t, error) {
 	ex := g.Ex{
 		"id": id,
 	}
-	query, _, _ := dialect.From("f2_bankcards").Select(colBankCard...).Where(ex).ToSQL()
+	query, _, _ := dialect.From("f2_bankcards").Select(colsBankCard...).Where(ex).ToSQL()
 	err := meta.MerchantDB.Get(&bc, query)
 	if err != nil && err != sql.ErrNoRows {
 		return bc, pushLog(err, helper.DBErr)
@@ -201,4 +201,55 @@ func BankCardDelete(id, adminName string) error {
 	AdminLogInsert(ChannelModel, contentLog, DeleteOp, adminName)
 
 	return nil
+}
+
+func BankCardBackendById(bid string) (Bankcard_t, error) {
+
+	bc := Bankcard_t{
+		Id: bid,
+	}
+	key := meta.Prefix + ":offlineBankcard:" + bid
+	re := meta.MerchantRedis.HMGet(ctx, key, "account", "cardno", "name", "cid")
+	if re.Err() != nil {
+		return bc, errors.New(helper.RecordNotExistErr)
+	}
+	scope := re.Val()
+	if account, ok := scope[0].(string); !ok {
+		return bc, errors.New(helper.TunnelMinLimitErr)
+	} else {
+		bc.AccountName = account
+	}
+
+	if cardno, ok := scope[1].(string); !ok {
+		return bc, errors.New(helper.TunnelMaxLimitErr)
+	} else {
+		bc.BanklcardNo = cardno
+	}
+
+	if cardname, ok := scope[2].(string); !ok {
+		return bc, errors.New(helper.TunnelMaxLimitErr)
+	} else {
+		bc.BanklcardName = cardname
+	}
+
+	if cid, ok := scope[3].(string); !ok {
+		return bc, errors.New(helper.TunnelMaxLimitErr)
+	} else {
+		bc.ChannelBankId = cid
+	}
+
+	return bc, nil
+}
+
+func BankCardBackend() (Bankcard_t, error) {
+
+	bc := Bankcard_t{}
+	key := meta.Prefix + ":offlineBankcard"
+	res, err := meta.MerchantRedis.RPopLPush(ctx, key, key).Result()
+	if err != nil {
+		return bc, errors.New(helper.RecordNotExistErr)
+	}
+
+	helper.JsonUnmarshal([]byte(res), &bc)
+	return bc, nil
 }

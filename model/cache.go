@@ -143,7 +143,7 @@ func CachePayment(id string) (FPay, error) {
 	pipe := meta.MerchantRedis.TxPipeline()
 	defer pipe.Close()
 
-	for _, val := range colPayment {
+	for _, val := range colsPayment {
 		cols = append(cols, val.(string))
 	}
 
@@ -245,4 +245,17 @@ func withLock(id string) error {
 	}
 
 	return nil
+}
+
+// depositLock 锁定充值订单 防止并发多充钱
+func depositLock(id string) error {
+
+	key := fmt.Sprintf(depositOrderLockKey, id)
+	return Lock(key)
+}
+
+// depositUnLock 解锁充值订单
+func depositUnLock(id string) {
+	key := fmt.Sprintf(depositOrderLockKey, id)
+	Unlock(key)
 }

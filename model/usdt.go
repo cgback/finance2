@@ -59,30 +59,34 @@ type MemberVirtualWallet struct {
 
 func UsdtUpdate(depositUsdtRate, withdrawUsdtRate, adminName string) error {
 
-	query := fmt.Sprintf(`insert into f_config(name, content,prefix) values ('%s', '%s','%s') on duplicate key update name = '%s', content = '%s',prefix= '%s'`, "deposit_usdt_rate", depositUsdtRate, meta.Prefix, "deposit_usdt_rate", depositUsdtRate, meta.Prefix)
-	_, err := meta.MerchantDB.Exec(query)
-	if err != nil {
-		return errors.New(helper.DBErr)
+	if depositUsdtRate != "" {
+		query := fmt.Sprintf(`insert into f_config(name, content,prefix) values ('%s', '%s','%s') on duplicate key update name = '%s', content = '%s',prefix= '%s'`, "deposit_usdt_rate", depositUsdtRate, meta.Prefix, "deposit_usdt_rate", depositUsdtRate, meta.Prefix)
+		_, err := meta.MerchantDB.Exec(query)
+		if err != nil {
+			return errors.New(helper.DBErr)
+		}
+		err = meta.MerchantRedis.HSet(ctx, meta.Prefix+":usdt", "deposit_usdt_rate", depositUsdtRate).Err()
+		if err != nil {
+			return errors.New(helper.RedisErr)
+		}
+		contentLog := fmt.Sprintf("渠道管理-USDT汇率管理-修改:后台账号:%s【%s为:%s", adminName, "充值汇率", depositUsdtRate)
+		AdminLogInsert(ChannelModel, contentLog, SetOp, adminName)
 	}
 
-	query = fmt.Sprintf(`insert into f_config(name, content,prefix) values ('%s', '%s','%s') on duplicate key update name = '%s', content = '%s',prefix= '%s'`, "withdraw_usdt_rate", withdrawUsdtRate, meta.Prefix, "withdraw_usdt_rate", withdrawUsdtRate, meta.Prefix)
-	_, err = meta.MerchantDB.Exec(query)
-	if err != nil {
-		return errors.New(helper.DBErr)
+	if withdrawUsdtRate != "" {
+		query := fmt.Sprintf(`insert into f_config(name, content,prefix) values ('%s', '%s','%s') on duplicate key update name = '%s', content = '%s',prefix= '%s'`, "withdraw_usdt_rate", withdrawUsdtRate, meta.Prefix, "withdraw_usdt_rate", withdrawUsdtRate, meta.Prefix)
+		_, err := meta.MerchantDB.Exec(query)
+		if err != nil {
+			return errors.New(helper.DBErr)
+		}
+		err = meta.MerchantRedis.HSet(ctx, meta.Prefix+":usdt", "withdraw_usdt_rate", withdrawUsdtRate).Err()
+		if err != nil {
+			return errors.New(helper.RedisErr)
+		}
+		contentLog := fmt.Sprintf("渠道管理-USDT汇率管理-修改:后台账号:%s【%s为:%s", adminName, "提现汇率", withdrawUsdtRate)
+		AdminLogInsert(ChannelModel, contentLog, SetOp, adminName)
 	}
 
-	err = meta.MerchantRedis.HSet(ctx, meta.Prefix+":usdt", "deposit_usdt_rate", depositUsdtRate, "withdraw_usdt_rate", withdrawUsdtRate).Err()
-	if err != nil {
-		return errors.New(helper.RedisErr)
-	}
-
-	fieldMap := map[string]string{
-		"deposit_usdt_rate":  "充值汇率",
-		"withdraw_usdt_rate": "提现汇率",
-	}
-
-	contentLog := fmt.Sprintf("渠道管理-USDT汇率管理-修改:后台账号:%s【%s为:%s】与 【%s为:%s】", adminName, fieldMap["deposit_usdt_rate"], depositUsdtRate, fieldMap["withdraw_usdt_rate"], withdrawUsdtRate)
-	AdminLogInsert(ChannelModel, contentLog, SetOp, adminName)
 	return nil
 }
 
@@ -433,39 +437,31 @@ func UsdtWithdrawUserInsert(amount, rate string, fCtx *fasthttp.RequestCtx) (str
 		return "", errors.New(helper.WithdrawBan)
 	}
 
-	//TODO
-	//var vipt []Vip_t
-	//
-	//ex := g.Ex{
-	//	"cate_id":    13,
-	//	"channel_id": 7,
-	//	"state":      "1",
-	//	"vip":        mb.Level,
-	//}
-	//query, _, _ = dialect.From("f_vip").Select(colVip...).Where(ex).ToSQL()
-	//err = meta.MerchantDB.Select(&vipt, query)
-	//if err != nil {
-	//	return "", errors.New(helper.NoPayChannel)
-	//}
-	//
-	//if len(vipt) == 0 {
-	//	return "", errors.New(helper.NoPayChannel)
-	//}
+	var vw VirtualWallet_t
+
+	ex := g.Ex{
+		"state": "1",
+	}
+	query, _, _ = dialect.From("f_virtual_wallet").Select(colsVirtualWallet...).Where(ex).ToSQL()
+	err = meta.MerchantDB.Get(&vw, query)
+	if err != nil {
+		return "", errors.New(helper.NoPayChannel)
+	}
 
 	withdrawAmount, err := decimal.NewFromString(amount)
 	if err != nil {
 		return "", errors.New(helper.FormatErr)
 	}
 
-	//fmin, _ := decimal.NewFromString(vipt[0].Fmin)
-	//if fmin.Cmp(withdrawAmount) > 0 {
-	//	return "", errors.New(helper.AmountErr)
-	//}
-	//
-	//fmax, _ := decimal.NewFromString(vipt[0].Fmax)
-	//if fmax.Cmp(withdrawAmount) < 0 {
-	//	return "", errors.New(helper.AmountErr)
-	//}
+	fmin := decimal.NewFromFloat(vw.MinAmount)
+	if fmin.Cmp(withdrawAmount) > 0 {
+		return "", errors.New(helper.AmountErr)
+	}
+
+	fmax := decimal.NewFromFloat(vw.MaxAmount)
+	if fmax.Cmp(withdrawAmount) < 0 {
+		return "", errors.New(helper.AmountErr)
+	}
 
 	// 检查上次提现成功到现在的存款流水是否满足 未满足的返回流水未达标
 	_, err = rpcCheckFlow(mb.Username)
@@ -530,7 +526,7 @@ func UsdtWithdrawUserInsert(amount, rate string, fCtx *fasthttp.RequestCtx) (str
 		state = WithdrawSuccess
 	}
 	// 记录提款单
-	err = UsdtWithdrawInsert(mVWallet, amount, rate, withdrawId, "0", adminName, receiveAt, state, fCtx.Time(), mb)
+	err = usdtWithdrawInsert(mVWallet, amount, rate, withdrawId, "0", adminName, receiveAt, state, fCtx.Time(), mb)
 	if err != nil {
 		return "", err
 	}
@@ -538,7 +534,7 @@ func UsdtWithdrawUserInsert(amount, rate string, fCtx *fasthttp.RequestCtx) (str
 	if mb.Tester == "1" {
 
 		// 发送消息通知
-		_ = PushWithdrawNotify(withdrawReviewFmt, mb.Username, amount)
+		_ = pushWithdrawNotify(withdrawReviewFmt, mb.Username, amount)
 	}
 
 	if mb.Tester == "0" {
@@ -555,7 +551,7 @@ func UsdtWithdrawUserInsert(amount, rate string, fCtx *fasthttp.RequestCtx) (str
 	return withdrawId, nil
 }
 
-func UsdtWithdrawInsert(mv MemberVirtualWallet, amount, rate, withdrawID, confirmUid, confirmName string, receiveAt int64, state int, ts time.Time, member Member) error {
+func usdtWithdrawInsert(mv MemberVirtualWallet, amount, rate, withdrawID, confirmUid, confirmName string, receiveAt int64, state int, ts time.Time, member Member) error {
 
 	// lock and defer unlock
 	lk := fmt.Sprintf("w:%s", member.Username)

@@ -13,7 +13,12 @@ const (
 )
 
 var (
-	LockTimeout = 20 * time.Second
+	LockTimeout   = 20 * time.Second
+	paymentLogTag = "payment_log"
+	// 通过redis锁定提款订单的key
+	depositOrderLockKey = "d:order:%s"
+	// 通过redis锁定提款订单的key
+	withdrawOrderLockKey = "w:order:%s"
 )
 
 // 取款状态
@@ -36,3 +41,12 @@ const (
 	DepositCancelled  = 363 //存款已取消
 	DepositReviewing  = 364 //存款审核中
 )
+
+var StateDesMap = map[int]string{
+	DepositSuccess:   "通过",
+	DepositCancelled: "拒绝",
+}
+var OpDesMap = map[int]string{
+	DepositSuccess:   PassOp,
+	DepositCancelled: RejectOp,
+}

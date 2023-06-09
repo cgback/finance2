@@ -1,6 +1,9 @@
 package model
 
-import "time"
+import (
+	"database/sql"
+	"time"
+)
 
 // 结构体定义
 type ChannelType struct {
@@ -85,4 +88,58 @@ type Payment_t struct {
 	State       string `db:"state" redis:"state" json:"state"`                      //0:关闭1:开启
 	Devices     string `db:"devices" redis:"devices" json:"devices"`                //设备号
 	AmountList  string `db:"amount_list" redis:"amount_list" json:"amount_list"`    // 固定金额列表
+}
+
+// Deposit 存款
+type Deposit struct {
+	ID              string  `db:"id" json:"id" redis:"id"`                                              //
+	Prefix          string  `db:"prefix" json:"prefix" redis:"prefix"`                                  //转账后的金额
+	OID             string  `db:"oid" json:"oid" redis:"oid"`                                           //转账前的金额
+	UID             string  `db:"uid" json:"uid" redis:"uid"`                                           //用户ID
+	Username        string  `db:"username" json:"username" redis:"username"`                            //用户名
+	ChannelID       string  `db:"channel_id" json:"channel_id" redis:"channel_id"`                      //
+	CID             string  `db:"cid" json:"cid" redis:"cid"`                                           //分类ID
+	PID             string  `db:"pid" json:"pid" redis:"pid"`                                           //用户ID
+	FinanceType     int     `db:"finance_type" json:"finance_type" redis:"finance_type"`                // 财务类型 441=充值 443=代客充值 445=代理充值
+	Amount          float64 `db:"amount" json:"amount" redis:"amount"`                                  //金额
+	USDTFinalAmount float64 `db:"usdt_final_amount" json:"usdt_final_amount" redis:"usdt_final_amount"` // 到账金额
+	USDTApplyAmount float64 `db:"usdt_apply_amount" json:"usdt_apply_amount" redis:"usdt_apply_amount"` // 提单金额
+	Rate            float64 `db:"rate" json:"rate" redis:"rate"`                                        // 汇率
+	State           int     `db:"state" json:"state" redis:"state"`                                     //0:待确认:1存款成功2:已取消
+	Automatic       int     `db:"automatic" json:"automatic" redis:"automatic"`                         //1:自动转账2:脚本确认3:人工确认
+	CreatedAt       int64   `db:"created_at" json:"created_at" redis:"created_at"`                      //
+	CreatedUID      string  `db:"created_uid" json:"created_uid" redis:"created_uid"`                   //创建人的ID
+	CreatedName     string  `db:"created_name" json:"created_name" redis:"created_name"`                //创建人的名字
+	ReviewRemark    string  `db:"review_remark" json:"review_remark" redis:"review_remark"`             //审核备注
+	ConfirmAt       int64   `db:"confirm_at" json:"confirm_at" redis:"confirm_at"`                      //确认时间
+	ConfirmUID      string  `db:"confirm_uid" json:"confirm_uid" redis:"confirm_uid"`                   //手动确认人id
+	ConfirmName     string  `db:"confirm_name" json:"confirm_name" redis:"confirm_name"`                //手动确认人名字
+	ProtocolType    string  `db:"protocol_type" json:"protocol_type" redis:"protocol_type"`             //地址类型 trc20 erc20
+	Address         string  `db:"address" json:"address" redis:"address"`                               //收款地址
+	HashID          string  `db:"hash_id" json:"hash_id" redis:"hash_id"`                               //区块链订单号
+	Flag            int     `db:"flag" json:"flag" redis:"flag"`                                        // 1 三方订单 2 三方usdt订单 3 线下转卡订单 4 线下转usdt订单
+	BankcardID      string  `db:"bankcard_id" json:"bankcard_id" redis:"bankcard_id"`                   // 线下转卡 收款银行卡id
+	ManualRemark    string  `db:"manual_remark" json:"manual_remark" redis:"manual_remark"`             // 线下转卡订单附言
+	BankCode        string  `db:"bank_code" json:"bank_code" redis:"bank_code"`                         // 银行编号
+	BankNo          string  `db:"bank_no" json:"bank_no" redis:"bank_no"`                               // 银行卡号
+	ParentUID       string  `db:"parent_uid" json:"parent_uid" redis:"parent_uid"`                      // 上级uid
+	ParentName      string  `db:"parent_name" json:"parent_name" redis:"parent_name"`                   //上级代理名
+	TopUID          string  `db:"top_uid" json:"top_uid" redis:"top_uid"`                               // 总代uid
+	TopName         string  `db:"top_name" json:"top_name" redis:"top_name"`                            // 总代用户名
+	Level           int     `db:"level" json:"level" redis:"level"`                                     //会员等级
+	Discount        float64 `db:"discount" json:"discount" redis:"discount"`                            // 存款优惠/存款手续费
+	GroupName       string  `db:"-" json:"group_name" redis:"group_name"`                               //团队名称
+	SuccessTime     int     `db:"success_time" json:"success_time"`                                     //该用户第几笔成功的订单
+}
+
+// 存款数据
+type FDepositData struct {
+	T   int64             `json:"t"`
+	D   []Deposit         `json:"d"`
+	Agg map[string]string `json:"agg"`
+}
+
+type dataTotal struct {
+	T sql.NullInt64   `json:"t"`
+	S sql.NullFloat64 `json:"s"`
 }
