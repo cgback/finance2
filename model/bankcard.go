@@ -34,7 +34,7 @@ type Bankcard_t struct {
 }
 
 // BankCardList 银行卡列表
-func BankCardList(ex g.Ex) ([]Bankcard_t, error) {
+func BankCardList(ex g.Ex, vip string) ([]Bankcard_t, error) {
 
 	var data []Bankcard_t
 
@@ -100,7 +100,7 @@ func BankCardUpdateCache() error {
 		"state": "1",
 		"flags": "1",
 	}
-	res, err := BankCardList(ex)
+	res, err := BankCardList(ex, "")
 	if err != nil {
 		fmt.Println("BankCardUpdateCache err = ", err)
 		return err

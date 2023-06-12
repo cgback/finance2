@@ -80,6 +80,7 @@ func SetupRouter(b BuildInfo) *router.Router {
 	post("/merchant/f2/offline/bankcard/update", bankCardCtl.Update)
 	// 渠道管理-收款账户管理-删除银行卡
 	get("/merchant/f2/offline/bankcard/delete", bankCardCtl.Delete)
+
 	// 渠道管理-收款账户管理-usdt汇率展示
 	get("/merchant/f2/offline/usdt/info", usdtCtl.Info)
 	// 渠道管理-收款账户管理-usdt汇率修改配置
@@ -94,6 +95,7 @@ func SetupRouter(b BuildInfo) *router.Router {
 	get("/merchant/f2/offline/usdt/delete", usdtCtl.Delete)
 	// 渠道管理-收款账户管理-usdt设置-展示usdt收款账号
 	post("/merchant/f2/offline/usdt/updatestate", usdtCtl.UpdateState)
+
 	// [商户后台] 风控管理-风控配置-接单控制-关闭自动派单
 	get("/merchant/f2/risks/close", risksCtl.CloseAuto)
 	// [商户后台] 风控管理-风控配置-接单控制-开启自动派单

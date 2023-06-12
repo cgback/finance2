@@ -18,22 +18,26 @@ func (that *BankCardController) List(ctx *fasthttp.RequestCtx) {
 
 	banklcardNo := string(ctx.QueryArgs().Peek("card_no"))
 	accounName := string(ctx.QueryArgs().Peek("real_name"))
-	bankId := string(ctx.QueryArgs().Peek("bank_id"))
+	state := string(ctx.QueryArgs().Peek("state"))
+	vip := string(ctx.QueryArgs().Peek("vip"))
 
 	ex := g.Ex{}
 
 	if helper.CtypeDigit(banklcardNo) {
 		ex["banklcard_no"] = banklcardNo
 	}
-	if helper.CtypeDigit(bankId) {
-		ex["channel_bank_id"] = bankId
+	if helper.CtypeDigit(state) {
+		ex["state"] = state
+	}
+	if helper.CtypeDigit(state) {
+		ex["state"] = state
 	}
 
 	if accounName != "" {
 		ex["account_name"] = accounName
 	}
 
-	data, err := model.BankCardList(ex)
+	data, err := model.BankCardList(ex, vip)
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
 		return
