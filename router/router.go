@@ -62,6 +62,8 @@ func SetupRouter(b BuildInfo) *router.Router {
 	// 收款账号管理
 	bankCardCtl := new(controller.BankCardController)
 	usdtCtl := new(controller.UsdtController)
+	//风控管理
+	risksCtl := new(controller.RisksController)
 
 	get("/f2/version", Version)
 	// 渠道管理-列表
@@ -92,7 +94,27 @@ func SetupRouter(b BuildInfo) *router.Router {
 	get("/merchant/f2/offline/usdt/delete", usdtCtl.Delete)
 	// 渠道管理-收款账户管理-usdt设置-展示usdt收款账号
 	post("/merchant/f2/offline/usdt/updatestate", usdtCtl.UpdateState)
-	//
+	// [商户后台] 风控管理-风控配置-接单控制-关闭自动派单
+	get("/merchant/f2/risks/close", risksCtl.CloseAuto)
+	// [商户后台] 风控管理-风控配置-接单控制-开启自动派单
+	get("/merchant/f2/risks/open", risksCtl.OpenAuto)
+	// [商户后台] 风控管理-风控配置-获取自动派单状态
+	get("/merchant/f2/risks/state", risksCtl.State)
+	// [商户后台] 风控管理-风控配置-获取自动派单人员的列表
+	get("/merchant/f2/risks/list", risksCtl.List)
+	// [商户后台] 风控管理-风控配置-设置接单数量
+	get("/merchant/f2/risks/setnumer", risksCtl.SetNumber)
+	// [商户后台] 风控管理-风控配置-领取人列表
+	get("/merchant/f2/risks/receives", risksCtl.Receives)
+	// [商户后台] 风控管理-风控配置-领取人数量
+	get("/merchant/f2/risks/number", risksCtl.Number)
+	// [商户后台] 风控管理-风控配置-设置同设备号注册数量
+	post("/merchant/f2/risks/setregmax", risksCtl.SetRegMax)
+	// [商户后台] 风控管理-风控配置-获取同设备号注册数量
+	get("/merchant/f2/risks/regmax", risksCtl.RegMax)
+	// [商户后台] 风控管理-风控配置-每日提现验证码开启关闭控制按钮
+	get("/merchant/f2/risks/check/daily", risksCtl.EnableMod)
+
 	return route
 }
 

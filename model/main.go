@@ -2,6 +2,7 @@ package model
 
 import (
 	"context"
+	"database/sql"
 	"finance/contrib/helper"
 	"finance/contrib/tracerr"
 	"fmt"
@@ -137,4 +138,17 @@ func randSliceValue(xs []int) int {
 
 	rand.Seed(time.Now().Unix())
 	return xs[rand.Intn(len(xs))]
+}
+
+// 获取admin的name
+func AdminGetName(id string) (string, error) {
+
+	var name string
+	query, _, _ := dialect.From("tbl_admins").Select("name").Where(g.Ex{"id": id}).ToSQL()
+	err := meta.MerchantDB.Get(&name, query)
+	if err != nil && err != sql.ErrNoRows {
+		return name, pushLog(err, helper.DBErr)
+	}
+
+	return name, nil
 }
