@@ -66,7 +66,7 @@ func Constructor(mt *MetaTable, payRPC string) {
 		LoadChannelType()
 	}
 
-	data, err := rpcDepositChannelList("91419797731905570")
+	data, err := rpcDepositChannelList("91408276484425095")
 	if err != nil {
 		_ = pushLog(err, helper.GetRPCErr)
 	}
