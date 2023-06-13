@@ -44,3 +44,15 @@ func rpcCheckFlow(username string) (bool, error) {
 
 	return ok, nil
 }
+
+// merchantID nvn支付配置中的app_id
+func rpcDepositChannelList(merchantID string) ([]TenantChannel, error) {
+
+	var data []TenantChannel
+	err := meta.MerchantRPC.Call("/pay/deposit/channel/list", merchantID, &data)
+	if err != nil {
+		return nil, err
+	}
+
+	return data, nil
+}

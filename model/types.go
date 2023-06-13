@@ -5,6 +5,23 @@ import (
 	"time"
 )
 
+type TenantChannel struct {
+	ID               string `db:"id" json:"id" cbor:"id"`
+	TopID            string `db:"top_id" json:"top_id" cbor:"top_id"`                                     //总商户id
+	TopName          string `db:"top_name" json:"top_name" cbor:"top_name"`                               //总商户名
+	ParentID         string `db:"parent_id" json:"parent_id" cbor:"parent_id"`                            //上级商户id
+	ParentName       string `db:"parent_name" json:"parent_name" cbor:"parent_name"`                      //上级商户名
+	TenantID         string `db:"tenant_id" json:"tenant_id" cbor:"tenant_id"`                            // 商户id
+	TenantName       string `db:"tenant_name" json:"tenant_name" cbor:"tenant_name"`                      //商户名
+	Flags            string `db:"flags" json:"flags" cbor:"flags"`                                        //商户类型
+	ChannelType      string `db:"channel_type" json:"channel_type" cbor:"channel_type"`                   //通道类型
+	ThirdChannelID   string `db:"third_channel_id" json:"third_channel_id" cbor:"third_channel_id"`       //三方通道ID
+	ThirdChannelName string `db:"third_channel_name" json:"third_channel_name" cbor:"third_channel_name"` //三方通道名
+	MinAmount        string `db:"min_amount" json:"min_amount" cbor:"min_amount"`                         // 通道限额最小值
+	MaxAmount        string `db:"max_amount" json:"max_amount" cbor:"max_amount"`                         // 通道限额，最大值
+	State            string `db:"state" json:"state" cbor:"state"`                                        // 1启用 0禁用
+}
+
 // 结构体定义
 type ChannelType struct {
 	ID    string `db:"id" json:"id"`
