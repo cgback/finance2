@@ -15,6 +15,7 @@ import (
 	"github.com/go-redis/redis/v8"
 	"github.com/jmoiron/sqlx"
 	"github.com/qiniu/qmgo"
+	rycli "github.com/ryrpc/client"
 	"github.com/valyala/fasthttp"
 	"github.com/valyala/fastjson"
 	"runtime"
@@ -29,8 +30,10 @@ type MetaTable struct {
 	MgCli         *qmgo.Client
 	MgDB          *qmgo.Database
 	MerchantMqtt  *mqtt.Client
+	MerchantRPC   *rycli.Client
 	Program       string
 	Prefix        string
+	PayRPC        string
 }
 
 var (
@@ -50,10 +53,14 @@ var (
 	colsDeposit             = helper.EnumFields(Deposit{})
 )
 
-func Constructor(mt *MetaTable) {
+func Constructor(mt *MetaTable, payRPC string) {
 
 	meta = mt
 	loc, _ = time.LoadLocation("Asia/Bangkok")
+
+	meta.MerchantRPC.SetBaseURL(payRPC)
+	meta.MerchantRPC.SetClientTimeout(12 * time.Second)
+
 	err := Lock(meta.Prefix + "_finance2_load")
 	if err == nil {
 		LoadChannelType()

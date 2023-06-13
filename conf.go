@@ -11,6 +11,7 @@ type conf struct {
 	AutoCommission bool     `toml:"auto_commission"`
 	Sock5          string   `toml:"sock5"`
 	RPC            string   `toml:"rpc"`
+	PayRPC         string   `toml:"pay_rpc"`
 	Fcallback      string   `toml:"fcallback"`
 	IndexURL       string   `toml:"index_url"`
 	AutoPayLimit   string   `toml:"autoPayLimit"`

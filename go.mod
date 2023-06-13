@@ -28,6 +28,7 @@ require (
 	github.com/olivere/elastic/v7 v7.0.32
 	github.com/pelletier/go-toml v1.9.5
 	github.com/qiniu/qmgo v1.1.7
+	github.com/ryrpc/client v0.0.0-20230606100248-a633718d7e71
 	github.com/shopspring/decimal v1.3.1
 	github.com/silenceper/pool v1.0.0
 	github.com/spaolacci/murmur3 v1.1.0
@@ -59,6 +60,7 @@ require (
 	github.com/dustin/go-humanize v1.0.0 // indirect
 	github.com/eclipse/paho.mqtt.golang v1.4.2 // indirect
 	github.com/emirpasic/gods v1.18.1 // indirect
+	github.com/fxamacker/cbor/v2 v2.4.0 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.2 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
@@ -102,6 +104,7 @@ require (
 	github.com/tmc/grpc-websocket-proxy v0.0.0-20201229170055-e5319fda7802 // indirect
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
+	github.com/x448/float16 v0.8.4 // indirect
 	github.com/xdg-go/pbkdf2 v1.0.0 // indirect
 	github.com/xdg-go/scram v1.1.2 // indirect
 	github.com/xdg-go/stringprep v1.0.4 // indirect

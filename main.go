@@ -11,6 +11,7 @@ import (
 	"finance/router"
 	"fmt"
 	"github.com/lucacasonato/mqtt"
+	rycli "github.com/ryrpc/client"
 	"log"
 	"os"
 	"path/filepath"
@@ -43,6 +44,8 @@ func main() {
 	}
 
 	mt := new(model.MetaTable)
+	mt.Prefix = cfg.Prefix
+	mt.PayRPC = cfg.PayRPC
 	conn.Use(validateKey)
 	mt.MerchantDB = conn.InitDB(cfg.Db.Masteren.Addr, cfg.Db.Masteren.MaxIdleConn, cfg.Db.Masteren.MaxOpenConn)
 	mt.MerchantRedis = conn.InitRedisSentinel(cfg.Redis.Addr, cfg.Redis.Password, cfg.Redis.Sentinel, 0)
@@ -80,7 +83,9 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	model.Constructor(mt)
+
+	mt.MerchantRPC = rycli.NewClient()
+	model.Constructor(mt, cfg.PayRPC)
 
 	defer func() {
 		model.Close()
