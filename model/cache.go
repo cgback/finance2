@@ -16,7 +16,7 @@ func CacheRefreshPaymentOfflineBanks() error {
 		"state": "1",
 		"flags": "1",
 	}
-	res, err := BankCardList(ex)
+	res, err := BankCardList(ex, "")
 	if err != nil {
 		fmt.Println("BankCardUpdateCache err = ", err)
 		return err
