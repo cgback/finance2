@@ -24,21 +24,7 @@ type cateStateParam struct {
 // List 财务管理-渠道管理-列表
 func (that *CateController) List(ctx *fasthttp.RequestCtx) {
 
-	param := cateListParam{}
-	err := validator.Bind(ctx, &param)
-	if err != nil {
-		helper.Print(ctx, false, helper.ParamErr)
-		return
-	}
-
-	if param.CateName != "" {
-		if !validator.CheckStringCHNAlnum(param.CateName) || !validator.CheckStringLength(param.CateName, 1, 20) {
-			helper.Print(ctx, false, helper.CateNameErr)
-			return
-		}
-	}
-
-	data, err := model.CateList(param.CateName, param.All)
+	data, err := model.CateList()
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
 		return
@@ -79,14 +65,6 @@ func (that *CateController) UpdateState(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	/*
-		keyword := "开启"
-		if param.State == "0" {
-			keyword = "关闭"
-		}
-		content := fmt.Sprintf("%s【商户ID: %s ；渠道名称: %s】", keyword, cate.MerchantId, cate.Name)
-		defer model.SystemLogWrite(content, ctx)
-	*/
 	err = model.CateSet(param.ID, param.State)
 	if err != nil {
 		helper.Print(ctx, false, err.Error())

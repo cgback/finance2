@@ -71,34 +71,12 @@ func CateIDAndNameByCIDS(cids []string) (map[string]CateIDAndName, error) {
 	return res, nil
 }
 
-func CateList(name, all string) ([]Category, error) {
+func CateList() ([]Category, error) {
 
 	var data []Category
 
-	// 新增渠道时用
-	if all == "1" {
-		cond := g.Ex{
-			"state":  "1",
-			"prefix": meta.Prefix,
-		}
-		query, _, _ := dialect.From("f_category").Select(colCate...).Where(cond).ToSQL()
-		err := meta.MerchantDB.Select(&data, query)
-		if err != nil {
-			return data, pushLog(err, helper.DBErr)
-		}
-
-		return data, nil
-	}
-
-	ex := g.Ex{
-		"prefix": meta.Prefix,
-	}
-
-	if name != "" {
-		ex["name"] = name
-	}
-
-	query, _, _ := dialect.From("f_category").Select(colCate...).Where(ex).ToSQL()
+	cond := g.Ex{}
+	query, _, _ := dialect.From("f_category").Select(colCate...).Where(cond).ToSQL()
 	err := meta.MerchantDB.Select(&data, query)
 	if err != nil {
 		return data, pushLog(err, helper.DBErr)

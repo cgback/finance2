@@ -32,6 +32,7 @@ type paymentListParam struct {
 	Et        string `rule:"time" msg:"et error" name:"et"`                              // 结束时间
 	Vip       string `rule:"digit" default:"0" msg:"vip error" name:"vip"`               //vip等级
 	State     string `rule:"none" default:"" msg:"state error" name:"state"`             // 0关闭1开启
+	Flag      string `rule:"digit" default:"0" msg:"flag error" name:"flag"`             //1充值2提现
 }
 
 type chanStateParam struct {
