@@ -87,24 +87,31 @@ type FPay struct {
 }
 
 type Payment_t struct {
+	ID          string `db:"id" redis:"id" json:"id"`                               //id
 	CateID      string `db:"cate_id" redis:"cate_id" json:"cate_id"`                //渠道ID
-	ChannelID   string `db:"channel_id" redis:"channel_id" json:"channel_id"`       //通道id
+	ChannelID   string `db:"channel_id" redis:"channel_id" json:"channel_id"`       //支付方式id
 	ChannelName string `redis:"channel_name" json:"channel_name"`                   //通道id
-	PaymentName string `db:"payment_name" redis:"payment_name" json:"payment_name"` //子通道名称
-	Comment     string `db:"comment" redis:"comment" json:"comment"`                //
-	CreatedAt   string `db:"created_at" redis:"created_at" json:"created_at"`       //创建时间
-	Et          string `db:"et" redis:"et" json:"et"`                               //结束时间
+	PaymentName string `db:"payment_name" redis:"payment_name" json:"payment_name"` //通道名称
 	Fmax        string `db:"fmax" redis:"fmax" json:"fmax"`                         //最大支付金额
 	Fmin        string `db:"fmin" redis:"fmin" json:"fmin"`                         //最小支付金额
-	Gateway     string `db:"gateway" redis:"gateway" json:"gateway"`                //支付网关
-	ID          string `db:"id" redis:"id" json:"id"`                               //
-	Quota       string `db:"quota" redis:"quota" json:"quota"`                      //每天限额
-	Amount      string `db:"amount" redis:"amount" json:"amount"`                   //每天限额
-	Sort        string `db:"sort" redis:"sort" json:"sort"`                         //
-	St          string `db:"st" redis:"st" json:"st"`                               //开始时间
-	State       string `db:"state" redis:"state" json:"state"`                      //0:关闭1:开启
-	Devices     string `db:"devices" redis:"devices" json:"devices"`                //设备号
 	AmountList  string `db:"amount_list" redis:"amount_list" json:"amount_list"`    // 固定金额列表
+	Et          string `db:"et" redis:"et" json:"et"`                               //结束时间
+	St          string `db:"st" redis:"st" json:"st"`                               //开始时间
+	CreatedAt   string `db:"created_at" redis:"created_at" json:"created_at"`       //创建时间
+	State       string `db:"state" redis:"state" json:"state"`                      //0:关闭1:开启
+	Sort        string `db:"sort" redis:"sort" json:"sort"`                         //排序
+	Comment     string `db:"comment" redis:"comment" json:"comment"`                //备注
+	VipList     string `db:"vip_list" redis:"vip_list" json:"vip_list"`             //vip等级
+	Discount    string `db:"discount" redis:"discount" json:"discount"`             //优惠
+	UpdatedAt   string `db:"updated_at" redis:"updated_at" json:"updated_at"`       //更新时间
+	Name        string `db:"name" redis:"name" json:"name"`                         //前端展示名称
+	UpdatedName string `db:"updated_name" redis:"updated_name" json:"updated_name"` //更新人
+	IsZone      string `db:"is_zone" redis:"is_zone" json:"is_zone"`                //0没有1有区间
+	IsFast      string `db:"is_fast" redis:"is_fast" json:"is_fast"`                //快捷金额是否开启
+	Flag        string `db:"flag" redis:"flag" json:"flag"`                         //1三方通道2离线通道
+	WebImg      string `db:"web_img" redis:"web_img" json:"web_img"`                //web端说明
+	H5Img       string `db:"h5_img" redis:"h5_img" json:"h5_img"`                   //h5端说明
+	AppImg      string `db:"app_img" redis:"app_img" json:"app_img"`                //App端说明
 }
 
 // Deposit 存款
@@ -159,4 +166,14 @@ type FDepositData struct {
 type dataTotal struct {
 	T sql.NullInt64   `json:"t"`
 	S sql.NullFloat64 `json:"s"`
+}
+
+type Tunnel_t struct {
+	ID         string `db:"id" json:"id"`                    //
+	Name       string `db:"name" json:"name"`                //
+	Sort       int    `db:"sort" json:"sort"`                //排序
+	PromoState string `db:"promo_state"  json:"promo_state"` //存款优化开关
+	//Content    string `db:"content"  json:"content"`         //存款优化开关
+	PromoDiscount string `db:"promo_discount" json:"promo_discount"` // 存款优惠比例
+	IsLastSuccess string `json:"is_last_success"`
 }

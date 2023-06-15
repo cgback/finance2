@@ -61,17 +61,36 @@ func SetupRouter(b BuildInfo) *router.Router {
 	channelTypeCtl := new(controller.ChannelTypeController)
 	// 收款账号管理
 	bankCardCtl := new(controller.BankCardController)
+	// 收款usdt账号管理
 	usdtCtl := new(controller.UsdtController)
 	//风控管理
 	risksCtl := new(controller.RisksController)
+	//通道管理
+	paymentCtl := new(controller.PaymentController)
+	//渠道管理
+	cateCtl := new(controller.CateController)
 
 	get("/f2/version", Version)
-	// 渠道管理-列表
+
+	//财务管理-渠道列表
+	post("/merchant/f2/cate/list", cateCtl.List)
+	//财务管理-渠道状态修改
+	post("/merchant/f2/cate/update/state", cateCtl.UpdateState)
+
+	//  财务管理-渠道管理-通道管理-修改
+	post("/merchant/f2/payment/update", paymentCtl.Update)
+	// 财务管理-渠道管理-通道管理-列表
+	get("/merchant/f2/payment/list", paymentCtl.List)
+	//  财务管理-渠道管理-通道管理-启用/停用
+	post("/merchant/f2/payment/update/state", paymentCtl.UpdateState)
+
+	// 渠道管理-支付方式列表
 	get("/merchant/f2/channel/type/list", channelTypeCtl.List)
-	// 渠道管理-列表-更新状态
+	// 渠道管理-支付方式列表-更新状态
 	get("/merchant/f2/channel/type/updatestate", channelTypeCtl.UpdateState)
-	// 渠道管理-列表-修改排序
+	// 渠道管理-支付方式列表-修改排序
 	get("/merchant/f2/channel/type/updatesort", channelTypeCtl.UpdateSort)
+
 	// 渠道管理-收款账户管理
 	get("/merchant/f2/offline/bankcard/list", bankCardCtl.List)
 	// 渠道管理-收款账户管理-添加银行卡

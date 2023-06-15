@@ -119,3 +119,16 @@ func LoadChannelType() {
 		_, _ = pipe.Exec(ctx)
 	}
 }
+
+// 获取三方通道
+func TunnelByID(id string) (ChannelType, error) {
+
+	tunnel := ChannelType{}
+	query, _, _ := dialect.From("f2_channel_type").Select(colsChannelType...).Where(g.Ex{"id": id}).ToSQL()
+	err := meta.MerchantDB.Get(&tunnel, query)
+	if err != nil && err != sql.ErrNoRows {
+		return tunnel, pushLog(err, helper.DBErr)
+	}
+
+	return tunnel, nil
+}

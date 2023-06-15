@@ -42,7 +42,9 @@ var (
 	ctx                     = context.Background()
 	dialect                 = g.Dialect("mysql")
 	fc                      *fasthttp.Client
+	colCate                 = helper.EnumFields(Category{})
 	colsChannelType         = helper.EnumFields(ChannelType{})
+	colPayment              = helper.EnumFields(Payment_t{})
 	colsBankCard            = helper.EnumFields(Bankcard_t{})
 	coleBankTypes           = helper.EnumFields(TblBankTypes{})
 	colsVirtualWallet       = helper.EnumFields(VirtualWallet_t{})

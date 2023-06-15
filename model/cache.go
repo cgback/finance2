@@ -6,6 +6,8 @@ import (
 	"fmt"
 	g "github.com/doug-martin/goqu/v9"
 	"github.com/go-redis/redis/v8"
+	"github.com/jmoiron/sqlx"
+	"github.com/valyala/fastjson"
 	"sort"
 	"time"
 )
@@ -258,4 +260,256 @@ func depositLock(id string) error {
 func depositUnLock(id string) {
 	key := fmt.Sprintf(depositOrderLockKey, id)
 	Unlock(key)
+}
+
+func CacheRefreshPayment(id string) error {
+
+	val, err := ChanByID(id)
+	if err != nil {
+		return err
+	}
+
+	pipe := meta.MerchantRedis.TxPipeline()
+	defer pipe.Close()
+
+	value := map[string]interface{}{
+		"cate_id":      val.CateID,
+		"channel_id":   val.ChannelID,
+		"payment_name": val.PaymentName,
+		"comment":      val.Comment,
+		"created_at":   val.CreatedAt,
+		"et":           val.Et,
+		"fmax":         val.Fmax,
+		"fmin":         val.Fmin,
+		"sort":         val.Sort,
+		"st":           val.St,
+		"state":        val.State,
+		"amount_list":  val.AmountList,
+	}
+	pkey := meta.Prefix + ":p:" + id
+	pipe.Unlink(ctx, pkey)
+	pipe.HMSet(ctx, pkey, value)
+	pipe.Persist(ctx, pkey)
+	_, err = pipe.Exec(ctx)
+	if err != nil {
+		return pushLog(err, helper.RedisErr)
+	}
+
+	return nil
+}
+
+// 自己的银行
+func CacheRefreshOfflinePaymentBanks(id string) error {
+
+	ex := g.Ex{
+		"state": "1",
+		"flags": "1",
+	}
+	res, err := BankCardList(ex, "")
+	if err != nil {
+		fmt.Println("BankCardUpdateCache err = ", err)
+		return err
+	}
+
+	if len(res) == 0 {
+		fmt.Println("BankCardUpdateCache len(res) = 0")
+		return nil
+	}
+
+	pipe := meta.MerchantRedis.TxPipeline()
+	defer pipe.Close()
+
+	bkey := meta.Prefix + ":BK:" + id
+	pipe.Unlink(ctx, bkey)
+	if len(res) > 0 {
+
+		for k, v := range res {
+			bt, err := getBankTypeByCode(bankCodeMap[v.ChannelBankId])
+			if err == nil {
+				res[k].BanklcardName = bt.ShortName
+				res[k].Logo = bt.Logo
+			}
+		}
+		sort.SliceStable(res, func(i, j int) bool {
+			if res[i].DailyMaxAmount < res[j].DailyMaxAmount {
+				return true
+			}
+
+			return false
+		})
+
+		s, err := helper.JsonMarshal(res)
+		if err != nil {
+			return errors.New(helper.FormatErr)
+		}
+
+		pipe.Set(ctx, bkey, string(s), 999999*time.Hour)
+		pipe.Persist(ctx, bkey)
+	}
+
+	_, err = pipe.Exec(ctx)
+	if err != nil {
+		return pushLog(err, helper.RedisErr)
+	}
+	return nil
+
+	return nil
+}
+
+// 三方的通道银行
+func CacheRefreshPaymentBanks(id string) error {
+
+	return nil
+}
+
+func Create(level string) {
+
+	var (
+		cIds       []string
+		paymentIds []string
+		tunnels    []Tunnel_t
+		tunnelSort []Tunnel_t
+		payments   []Payment_t
+	)
+
+	fmt.Println("Create p:" + level)
+	//删除key
+	meta.MerchantRedis.Unlink(ctx, meta.Prefix+":p:"+level).Result()
+
+	tunnelData_temp, err := meta.MerchantRedis.Get(ctx, meta.Prefix+":tunnel:All").Bytes()
+	if err != nil {
+		fmt.Println("tunnel:All = ", err.Error())
+		return
+	}
+
+	helper.JsonUnmarshal(tunnelData_temp, &tunnelSort)
+	fmt.Println("JsonUnmarshal tunnelSort = ", tunnelSort)
+
+	ex := g.Ex{
+		"id":     paymentIds,
+		"state":  "1",
+		"prefix": meta.Prefix,
+	}
+	query, _, _ := dialect.From("f_payment").Select(colPayment...).Where(ex).ToSQL()
+	queryIn, args, err := sqlx.In(query)
+	if err != nil {
+		fmt.Println("2", err.Error())
+		return
+	}
+
+	err = meta.MerchantDB.Select(&payments, queryIn, args...)
+	if err != nil {
+		fmt.Println("3", err.Error())
+		return
+	}
+
+	for _, val := range payments {
+		if level == "1" {
+			CacheRefreshPaymentBanks(val.ID)
+		}
+		cIds = append(cIds, val.ChannelID)
+	}
+
+	ex = g.Ex{
+		"id":     cIds,
+		"prefix": meta.Prefix,
+	}
+	query, _, _ = dialect.From("f2_channel_type").Select(colsChannelType...).Where(ex).ToSQL()
+	queryIn, args, err = sqlx.In(query)
+	if err != nil {
+		fmt.Println("4", err.Error())
+		return
+	}
+
+	err = meta.MerchantDB.Select(&tunnels, queryIn, args...)
+	if err != nil {
+		fmt.Println("5", err.Error())
+		return
+	}
+
+	pipe := meta.MerchantRedis.TxPipeline()
+
+	for _, val := range payments {
+		pipe.Unlink(ctx, meta.Prefix+":p:"+val.ID)
+		pipe.Unlink(ctx, meta.Prefix+":p:"+level+":"+val.ChannelID)
+	}
+
+	for _, val := range tunnels {
+		value, _ := helper.JsonMarshal(val)
+		vv := new(redis.Z)
+
+		vv.Member = string(value)
+		for _, v := range tunnelSort {
+
+			if val.ID == v.ID {
+				vv.Score = float64(v.Sort)
+			}
+
+		}
+		pipe.ZAdd(ctx, meta.Prefix+":p:"+level, vv)
+		vv = nil
+	}
+
+	pipe.Persist(ctx, meta.Prefix+":p:"+level)
+
+	for _, val := range payments {
+
+		value := map[string]interface{}{
+			"id":           val.ID,
+			"cate_id":      val.CateID,
+			"channel_id":   val.ChannelID,
+			"fmax":         val.Fmax,
+			"fmin":         val.Fmin,
+			"amount_list":  val.AmountList,
+			"et":           val.Et,
+			"st":           val.St,
+			"payment_name": val.PaymentName,
+			"created_at":   val.CreatedAt,
+
+			"state":   val.State,
+			"sort":    val.Sort,
+			"comment": val.Comment,
+		}
+		pipe.LPush(ctx, meta.Prefix+":p:"+level+":"+val.ChannelID, val.ID)
+		pipe.HMSet(ctx, meta.Prefix+":p:"+val.ID, value)
+		pipe.Persist(ctx, meta.Prefix+":p:"+val.ID)
+	}
+
+	_, err = pipe.Exec(ctx)
+	pipe.Close()
+
+	fmt.Println("err = ", err)
+	fmt.Println("tunnels = ", tunnels)
+	fmt.Println("payments = ", payments)
+	fmt.Println("paymentIds = ", paymentIds)
+}
+
+func cateToRedis() error {
+
+	var a = &fastjson.Arena{}
+
+	var cate []Category
+	ex := g.Ex{
+		"prefix": meta.Prefix,
+	}
+	query, _, _ := dialect.From("f_category").Select("*").Where(ex).Order(g.C("id").Asc()).ToSQL()
+	err := meta.MerchantDB.Select(&cate, query)
+
+	if err != nil || len(cate) < 1 {
+		return err
+	}
+
+	obj := a.NewObject()
+
+	for _, v := range cate {
+		val := a.NewString(v.Name)
+
+		obj.Set(v.ID, val)
+	}
+
+	b := obj.String()
+
+	key := meta.Prefix + ":f:category"
+	err = meta.MerchantRedis.Set(ctx, key, b, 0).Err()
+	return err
 }
