@@ -349,3 +349,21 @@ func DepositUpPointReviewSuccess(did, uid, name, remark string, state int) error
 
 	return nil
 }
+
+// 获取用户上笔订单存款
+func depositLast(uid string) (Deposit, error) {
+
+	ex := g.Ex{
+		"uid":    uid,
+		"state":  DepositSuccess,
+		"amount": g.Op{"gt": 0},
+	}
+	var order Deposit
+	query, _, _ := dialect.From("tbl_deposit").Select(colsDeposit...).Where(ex).Order(g.I("confirm_at").Desc()).Limit(1).ToSQL()
+	err := meta.MerchantDB.Get(&order, query)
+	if err != nil && err != sql.ErrNoRows {
+		return order, pushLog(err, helper.DBErr)
+	}
+
+	return order, nil
+}

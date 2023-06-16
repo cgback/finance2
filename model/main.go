@@ -24,16 +24,19 @@ import (
 )
 
 type MetaTable struct {
-	MerchantDB    *sqlx.DB
-	MerchantRedis *redis.Client
-	MerchantMQ    rocketmq.Producer
-	MgCli         *qmgo.Client
-	MgDB          *qmgo.Database
-	MerchantMqtt  *mqtt.Client
-	MerchantRPC   *rycli.Client
-	Program       string
-	Prefix        string
-	PayRPC        string
+	MerchantDB     *sqlx.DB
+	MerchantRedis  *redis.Client
+	MerchantMQ     rocketmq.Producer
+	MgCli          *qmgo.Client
+	MgDB           *qmgo.Database
+	MerchantMqtt   *mqtt.Client
+	MerchantRPC    *rycli.Client
+	Program        string
+	Prefix         string
+	PayRPC         string
+	Finance        map[string]map[string]interface{}
+	FcallbackInner string
+	IsDirect       int
 }
 
 var (
@@ -42,6 +45,7 @@ var (
 	ctx                     = context.Background()
 	dialect                 = g.Dialect("mysql")
 	fc                      *fasthttp.Client
+	vnPay                   Payment
 	colCate                 = helper.EnumFields(Category{})
 	colsChannelType         = helper.EnumFields(ChannelType{})
 	colPayment              = helper.EnumFields(Payment_t{})
@@ -74,6 +78,7 @@ func Constructor(mt *MetaTable, payRPC string) {
 	}
 
 	fmt.Printf("%#v \r\n", data)
+	NewPayment()
 }
 
 func pushLog(err error, code string) error {

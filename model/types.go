@@ -67,7 +67,7 @@ type StbAdminLogs struct {
 	CreatedAt time.Time `json:"created_at" bson:"created_at"` // ts 用于删除老记录
 }
 
-// FPay f_payment表名
+// f_payment表名
 type FPay struct {
 	CateID    string `db:"cate_id" redis:"cate_id" json:"cate_id"`          //渠道ID
 	ChannelID string `db:"channel_id" redis:"channel_id" json:"channel_id"` //通道id
@@ -176,4 +176,56 @@ type Tunnel_t struct {
 	//Content    string `db:"content"  json:"content"`         //存款优化开关
 	PromoDiscount string `db:"promo_discount" json:"promo_discount"` // 存款优惠比例
 	IsLastSuccess string `json:"is_last_success"`
+}
+
+// paymentDepositResp 存款
+type paymentDepositResp struct {
+	Addr       string                 // 三方返回的充值地址
+	QrCode     string                 // 充值二维码地址
+	PayCode    string                 // 附言信息
+	Account    string                 // 收款卡号
+	BankCode   string                 // 收款银行编码
+	BankLogo   string                 // 收款银行Logo
+	CardHolder string                 // 持卡人
+	OrderID    string                 // 三方的订单号, 如果三方没有返回订单号, 这个值则为入参id(即我方订单号)
+	Data       map[string]interface{} // 向三方发起http请求的参数以及response data
+	IsForm     string
+	UseLink    int //使用地址跳转或重新发起请求 0：使用链接跳转  1：使用订单号重新发起请求
+}
+
+type CallbackLog struct {
+	OrderId      string `json:"order_id"`
+	RequestURI   string `json:"requestURI"`
+	RequestBody  string `json:"requestBody"`
+	Error        string `json:"error"`
+	ResponseBody string `json:"responseBody"`
+	Index        string `json:"_index"`
+}
+
+type WithdrawAutoParam struct {
+	OrderID     string    // 订单id
+	Amount      string    // 金额
+	BankID      string    // 银行id
+	BankCode    string    // 银行
+	CardNumber  string    // 银行卡号
+	CardName    string    // 持卡人姓名
+	Ts          time.Time // 时间
+	PaymentID   string    // 提现渠道信息
+	BankAddress string    // 开户支行
+}
+
+// paymentWithdrawalRsp 取款
+type paymentWithdrawalRsp struct {
+	OrderID string // 三方的订单号, 如果三方没有返回订单号, 这个值则为入参id(即我方订单号)
+}
+
+// 订单回调response
+type paymentCallbackResp struct {
+	OrderID string // 我方订单号
+	State   int    // 订单状态
+	Amount  string // 订单金额
+	PayAt   string //支付时间时间戳(毫秒)
+	Cent    int64  // 数据数值差异倍数
+	Sign    string // 签名(g7的签名校验需要)
+	Resp    interface{}
 }

@@ -132,3 +132,37 @@ func TunnelByID(id string) (ChannelType, error) {
 
 	return tunnel, nil
 }
+
+func ChannelTypeById(id string) (map[string]string, error) {
+
+	key := meta.Prefix + ":p:c:t:" + id
+	field := []string{"promo_state", "sort", "name", "id"}
+	res := map[string]string{}
+
+	pipe := meta.MerchantRedis.Pipeline()
+	ex_temp := pipe.Exists(ctx, key)
+	rs_temp := pipe.HMGet(ctx, key, field...)
+	_, err := pipe.Exec(ctx)
+	pipe.Close()
+
+	if err != nil {
+		return res, errors.New(helper.RedisErr)
+	}
+
+	if ex_temp.Val() == 0 {
+		return res, errors.New(helper.RecordNotExistErr)
+	}
+
+	recs := rs_temp.Val()
+
+	for k, v := range field {
+
+		if val, ok := recs[k].(string); ok {
+			res[v] = val
+		} else {
+			res[v] = ""
+		}
+	}
+
+	return res, nil
+}

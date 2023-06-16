@@ -14,31 +14,6 @@ import (
 
 type ManualController struct{}
 
-// Manual 发起线下转卡
-func (that *ManualController) Pay(ctx *fasthttp.RequestCtx) {
-
-	amount := string(ctx.PostArgs().Peek("amount"))
-	bid := string(ctx.PostArgs().Peek("bid"))
-
-	if !helper.CtypeDigit(amount) {
-		helper.Print(ctx, false, helper.AmountErr)
-		return
-	}
-
-	if !helper.CtypeDigit(bid) {
-		helper.Print(ctx, false, helper.BankcardIDErr)
-		return
-	}
-
-	res, err := model.ManualPay(ctx, "766870294997073616", amount, bid)
-	if err != nil {
-		helper.Print(ctx, false, err.Error())
-		return
-	}
-
-	helper.PrintJson(ctx, true, res)
-}
-
 // Offline 线下转卡 入款订单或者审核列表
 func (that *ManualController) List(ctx *fasthttp.RequestCtx) {
 

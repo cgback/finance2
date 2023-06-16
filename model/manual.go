@@ -16,7 +16,7 @@ import (
 )
 
 // Manual 调用与pid对应的渠道, 发起充值(代付)请求
-func ManualPay(fctx *fasthttp.RequestCtx, paymentID, amount, bid string) (string, error) {
+func OfflinePay(fctx *fasthttp.RequestCtx, paymentID, amount, bid string) (string, error) {
 
 	res := map[string]string{}
 	user, err := MemberCache(fctx)

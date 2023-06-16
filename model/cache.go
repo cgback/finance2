@@ -7,6 +7,7 @@ import (
 	g "github.com/doug-martin/goqu/v9"
 	"github.com/go-redis/redis/v8"
 	"github.com/jmoiron/sqlx"
+	"github.com/valyala/fasthttp"
 	"github.com/valyala/fastjson"
 	"sort"
 	"time"
@@ -512,4 +513,187 @@ func cateToRedis() error {
 	key := meta.Prefix + ":f:category"
 	err = meta.MerchantRedis.Set(ctx, key, b, 0).Err()
 	return err
+}
+
+func Tunnel(fctx *fasthttp.RequestCtx, id string) (string, error) {
+
+	a := &fastjson.Arena{}
+
+	u, err := MemberCache(fctx)
+	if err != nil {
+		return "", err
+	}
+	key := fmt.Sprintf("%s:p:%d:%s", meta.Prefix, u.Level, id)
+	//sip := helper.FromRequest(fctx)
+	//if strings.Count(sip, ":") >= 2 {
+	//	key = fmt.Sprintf("p:%d:%s", 9, id)
+	//}
+	lastDepositPaymentKey := fmt.Sprintf("%s:uldp:%s", meta.Prefix, u.Username)
+	var lastDepositPayment string
+
+	paymentIds, err := meta.MerchantRedis.LRange(ctx, key, 0, -1).Result()
+	if err != nil {
+		fmt.Println("SMembers = ", err.Error())
+		return "[]", nil
+	}
+
+	pipe := meta.MerchantRedis.TxPipeline()
+	defer pipe.Close()
+
+	ll := len(paymentIds)
+	rs := make([]*redis.SliceCmd, ll)
+	re := make([]*redis.SliceCmd, ll)
+	bk := make([]*redis.StringCmd, ll)
+
+	exists := pipe.Exists(ctx, fmt.Sprintf("%s:DL:%s", meta.Prefix, u.UID))
+	for i, v := range paymentIds {
+		rs[i] = pipe.HMGet(ctx, meta.Prefix+":p:"+v, "id", "fmin", "fmax", "et", "st", "amount_list", "payment_name", "sort")
+		re[i] = pipe.HMGet(ctx, meta.Prefix+":pr:"+v+":"+fmt.Sprintf(`%d`, u.Level), "fmin", "fmax")
+		bk[i] = pipe.Get(ctx, meta.Prefix+":BK:"+v)
+	}
+	exists2 := pipe.Exists(ctx, lastDepositPaymentKey)
+
+	pipe.Exec(ctx)
+
+	// 如果会员被锁定不返回渠道
+	if exists.Val() != 0 {
+		return "[]", pushLog(err, helper.RedisErr)
+	}
+	if exists2.Val() == 1 {
+		lastDeposit := meta.MerchantRedis.Get(ctx, lastDepositPaymentKey)
+		lastDepositPayment, _ = lastDeposit.Result()
+	} else if u.FirstDepositAt > 0 {
+		d, _ := depositLast(u.UID)
+		lastDepositPayment = d.ChannelID
+		meta.MerchantRedis.Set(ctx, lastDepositPaymentKey, lastDepositPayment, 100*time.Hour).Err()
+	}
+
+	arr := a.NewArray()
+
+	for i := 0; i < ll; i++ {
+
+		var (
+			fmin, fmax string
+			ok         bool
+			m          Payment_t
+		)
+
+		scope := re[i].Val()
+		if fmin, ok = scope[0].(string); !ok {
+			return "", errors.New(helper.TunnelMinLimitErr)
+		}
+
+		if fmax, ok = scope[1].(string); !ok {
+			return "", errors.New(helper.TunnelMaxLimitErr)
+		}
+
+		if err := rs[i].Scan(&m); err != nil {
+			return "", pushLog(err, helper.RedisErr)
+		}
+
+		obj := fastjson.MustParse(`{"id":"0","bank":[], "fmin":"0","fmax":"0", "amount_list": "","sort":"0","payment_name":""}`)
+		obj.Set("id", fastjson.MustParse(fmt.Sprintf(`"%s"`, m.ID)))
+		obj.Set("fmin", fastjson.MustParse(fmt.Sprintf(`"%s"`, fmin)))
+		obj.Set("fmax", fastjson.MustParse(fmt.Sprintf(`"%s"`, fmax)))
+		obj.Set("sort", fastjson.MustParse(fmt.Sprintf(`"%s"`, m.Sort)))
+		obj.Set("payment_name", fastjson.MustParse(fmt.Sprintf(`"%s"`, m.PaymentName)))
+		obj.Set("amount_list", fastjson.MustParse(fmt.Sprintf(`"%s"`, m.AmountList)))
+		if m.ID == lastDepositPayment {
+			obj.Set("is_last_success", fastjson.MustParse("1"))
+		} else {
+			obj.Set("is_last_success", fastjson.MustParse("0"))
+		}
+		if m.ID == "779402438062874469" {
+			//是usdt的话要添加usdt的账号
+			usdtRate, err := UsdtInfo()
+			if err == nil {
+
+				obj.Set("rate", fastjson.MustParse(fmt.Sprintf(`"%s"`, usdtRate["deposit_usdt_rate"])))
+				usdtAccountsKey := meta.Prefix + ":offline:usdt:one"
+				usdtid, err := meta.MerchantRedis.Get(ctx, usdtAccountsKey).Result()
+				idkey := fmt.Sprintf("%s:%s", usdtAccountsKey, usdtid)
+				fields := []string{"qr_img", "protocol", "min_amount", "max_amount", "wallet_addr"}
+				result, err := meta.MerchantRedis.HMGet(ctx, idkey, fields...).Result()
+				if err != nil {
+					fmt.Println("Error:", err)
+				}
+
+				for j, field := range result {
+					if field != nil {
+						obj.Set(fields[j], fastjson.MustParse(fmt.Sprintf(`"%s"`, field.(string))))
+					}
+					if fields[j] == "max_amount" {
+						obj.Set("fmax", fastjson.MustParse(fmt.Sprintf(`"%s"`, field.(string))))
+					}
+					if fields[j] == "min_amount" {
+						obj.Set("fmin", fastjson.MustParse(fmt.Sprintf(`"%s"`, field.(string))))
+					}
+				}
+			}
+		}
+		banks := bk[i].Val()
+		if len(banks) > 0 {
+			obj.Set("bank", fastjson.MustParse(banks))
+		}
+
+		arr.SetArrayItem(i, obj)
+		obj = nil
+	}
+	str := arr.String()
+
+	return str, nil
+}
+
+func Cate(fctx *fasthttp.RequestCtx) (string, error) {
+
+	m, err := MemberCache(fctx)
+	if err != nil {
+		return "", err
+	}
+	var lastDepositChannel string
+	key := fmt.Sprintf("%s:p:%d", meta.Prefix, m.Level)
+	lastDepositKey := fmt.Sprintf("%s:uld:%s", meta.Prefix, m.Username)
+	pipe := meta.MerchantRedis.Pipeline()
+	exists := pipe.Exists(ctx, fmt.Sprintf("%s:DL:%s", meta.Prefix, m.UID))
+
+	recs_temp := pipe.ZRange(ctx, key, 0, -1)
+	exists2 := pipe.Exists(ctx, lastDepositKey)
+
+	_, err = pipe.Exec(ctx)
+	pipe.Close()
+	if err != nil {
+		return "[]", pushLog(err, helper.RedisErr)
+	}
+	// 如果会员被锁定不返回通道
+	if exists.Val() != 0 {
+		return "[]", nil
+	}
+	if exists2.Val() == 1 {
+		lastDeposit := meta.MerchantRedis.Get(ctx, lastDepositKey)
+		lastDepositChannel, _ = lastDeposit.Result()
+	} else if m.FirstDepositAt > 0 {
+		d, _ := depositLast(m.UID)
+		lastDepositChannel = d.ChannelID
+		meta.MerchantRedis.Set(ctx, lastDepositKey, lastDepositChannel, 100*time.Hour).Err()
+	}
+
+	a := new(fastjson.Arena)
+	obj := a.NewArray()
+	recs := recs_temp.Val()
+
+	for i, value := range recs {
+		val := fastjson.MustParse(value)
+		id := val.GetStringBytes("id")
+		if lastDepositChannel != "" && string(id) == lastDepositChannel {
+			val.Set("is_last_success", fastjson.MustParse("1"))
+		} else {
+			val.Set("is_last_success", fastjson.MustParse("0"))
+		}
+		obj.SetArrayItem(i, val)
+	}
+
+	str := obj.String()
+	a = nil
+
+	return str, nil
 }
