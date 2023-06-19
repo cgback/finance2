@@ -377,13 +377,13 @@ func Create(level string) {
 	//删除key
 	meta.MerchantRedis.Unlink(ctx, meta.Prefix+":p:"+level).Result()
 
-	tunnelData_temp, err := meta.MerchantRedis.Get(ctx, meta.Prefix+":tunnel:All").Bytes()
+	tunneldataTemp, err := meta.MerchantRedis.Get(ctx, meta.Prefix+":tunnel:All").Bytes()
 	if err != nil {
 		fmt.Println("tunnel:All = ", err.Error())
 		return
 	}
 
-	helper.JsonUnmarshal(tunnelData_temp, &tunnelSort)
+	helper.JsonUnmarshal(tunneldataTemp, &tunnelSort)
 	fmt.Println("JsonUnmarshal tunnelSort = ", tunnelSort)
 
 	ex := g.Ex{
@@ -391,7 +391,7 @@ func Create(level string) {
 		"state":  "1",
 		"prefix": meta.Prefix,
 	}
-	query, _, _ := dialect.From("f_payment").Select(colPayment...).Where(ex).ToSQL()
+	query, _, _ := dialect.From("f2_payment").Select(colPayment...).Where(ex).ToSQL()
 	queryIn, args, err := sqlx.In(query)
 	if err != nil {
 		fmt.Println("2", err.Error())
@@ -493,7 +493,7 @@ func cateToRedis() error {
 	ex := g.Ex{
 		"prefix": meta.Prefix,
 	}
-	query, _, _ := dialect.From("f_category").Select("*").Where(ex).Order(g.C("id").Asc()).ToSQL()
+	query, _, _ := dialect.From("f2_category").Select("*").Where(ex).Order(g.C("id").Asc()).ToSQL()
 	err := meta.MerchantDB.Select(&cate, query)
 
 	if err != nil || len(cate) < 1 {

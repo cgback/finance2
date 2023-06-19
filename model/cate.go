@@ -5,6 +5,7 @@ import (
 	"errors"
 	"finance/contrib/helper"
 	g "github.com/doug-martin/goqu/v9"
+	"strings"
 )
 
 type Category struct {
@@ -76,7 +77,7 @@ func CateList() ([]Category, error) {
 	var data []Category
 
 	cond := g.Ex{}
-	query, _, _ := dialect.From("f_category").Select(colCate...).Where(cond).ToSQL()
+	query, _, _ := dialect.From("f2_category").Select(colCate...).Where(cond).ToSQL()
 	err := meta.MerchantDB.Select(&data, query)
 	if err != nil {
 		return data, pushLog(err, helper.DBErr)
@@ -123,17 +124,24 @@ func CateSet(id, state string) error {
 		return errors.New(helper.TransErr)
 	}
 
-	var levels []string
+	var pl []Payment_t
+	lm := map[string]struct{}{}
 	ex = g.Ex{
-		"prefix":  meta.Prefix,
 		"cate_id": id,
 	}
-	query, _, _ = dialect.From("f_vip").Select("vip").Where(ex).GroupBy("vip").ToSQL()
-	err = meta.MerchantDB.Select(&levels, query)
+	query, _, _ = dialect.From("f2_payment").Select(colsPayment...).Where(ex).ToSQL()
+	err = meta.MerchantDB.Select(&pl, query)
 	if err == nil {
-		for _, level := range levels {
-			Create(level)
+		for _, level := range pl {
+			ls := strings.Split(level.VipList, ",")
+			for _, l := range ls {
+				lm[l] = struct{}{}
+			}
 		}
+	}
+
+	for level, _ := range lm {
+		Create(level)
 	}
 
 	cateToRedis()

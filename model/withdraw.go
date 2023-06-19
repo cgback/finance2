@@ -1272,7 +1272,7 @@ func ChanWithdrawByCateID(cid string) (Payment_t, error) {
 		"channel_id": "7",
 		"prefix":     meta.Prefix,
 	}
-	query, _, _ := dialect.From("f_payment").Select(colPayment...).Where(ex).Limit(1).ToSQL()
+	query, _, _ := dialect.From("f2_payment").Select(colPayment...).Where(ex).Limit(1).ToSQL()
 	err := meta.MerchantDB.Get(&channel, query)
 	if err != nil && err != sql.ErrNoRows {
 		return channel, pushLog(err, helper.DBErr)
