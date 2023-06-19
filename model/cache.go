@@ -697,3 +697,21 @@ func Cate(fctx *fasthttp.RequestCtx) (string, error) {
 
 	return str, nil
 }
+
+// WithdrawLock 锁定提款订单
+// 订单因为外部因素(接口)导致的状态流转应该加锁
+func WithdrawLock(id string) error {
+
+	key := fmt.Sprintf(withdrawOrderLockKey, id)
+	err := Lock(key)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// WithdrawUnLock 解锁提款订单
+func WithdrawUnLock(id string) {
+	Unlock(fmt.Sprintf(withdrawOrderLockKey, id))
+}

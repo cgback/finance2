@@ -57,7 +57,9 @@ func SetupRouter(b BuildInfo) *router.Router {
 
 	buildInfo = b
 
-	// 日志服务
+	//充值
+	payCtl := new(controller.PayController)
+	// 支付方式
 	channelTypeCtl := new(controller.ChannelTypeController)
 	// 收款账号管理
 	bankCardCtl := new(controller.BankCardController)
@@ -69,8 +71,23 @@ func SetupRouter(b BuildInfo) *router.Router {
 	paymentCtl := new(controller.PaymentController)
 	//渠道管理
 	cateCtl := new(controller.CateController)
+	//线下充值
+	manualCtl := new(controller.ManualController)
+	//存款管理
+	depositCtl := new(controller.DepositController)
+	//提款管理
+	wdCtl := new(controller.WithdrawController)
 
 	get("/f2/version", Version)
+
+	// 前台充值方式
+	get("/merchant/f2/cate", payCtl.Cate)
+	// 前台充值通道
+	get("/merchant/f2/tunnel", payCtl.Tunnel)
+	// 前台充值
+	post("/merchant/f2/pay", payCtl.Pay)
+	// [前台] 线下转卡-发起存款
+	post("/merchant/f2/gen/code", manualCtl.GenCode)
 
 	//财务管理-渠道列表
 	post("/merchant/f2/cate/list", cateCtl.List)
@@ -99,6 +116,8 @@ func SetupRouter(b BuildInfo) *router.Router {
 	post("/merchant/f2/offline/bankcard/update", bankCardCtl.Update)
 	// 渠道管理-收款账户管理-删除银行卡
 	get("/merchant/f2/offline/bankcard/delete", bankCardCtl.Delete)
+	// 渠道管理-收款账户管理-添加银行卡充值说明
+	post("/merchant/f2/offline/bankcard/msg/insert", bankCardCtl.InsertMsg)
 
 	// 渠道管理-收款账户管理-usdt汇率展示
 	get("/merchant/f2/offline/usdt/info", usdtCtl.Info)
@@ -135,6 +154,55 @@ func SetupRouter(b BuildInfo) *router.Router {
 	get("/merchant/f2/risks/regmax", risksCtl.RegMax)
 	// [商户后台] 风控管理-风控配置-每日提现验证码开启关闭控制按钮
 	get("/merchant/f2/risks/check/daily", risksCtl.EnableMod)
+
+	// [商户后台] 会员列表-存款管理-存款信息
+	get("/merchant/f2/deposit/detail", depositCtl.Detail)
+	// [商户后台] 财务管理-存款管理-入款订单列表/补单审核列表
+	get("/merchant/f2/deposit/list", depositCtl.List)
+	// [商户后台] 财务管理-存款管理-历史记录
+	get("/merchant/f2/deposit/history", depositCtl.History)
+	// [商户后台] 财务管理-存款管理-存款补单
+	post("/merchant/f2/deposit/manual", depositCtl.Manual)
+	// [商户后台] 财务管理-存款管理-补单审核
+	post("/merchant/f2/deposit/review", depositCtl.Review)
+	// [商户后台] 财务管理-存款管理-USDT存款
+	post("/merchant/f2/deposit/usdt/list", depositCtl.USDTList)
+	// [商户后台] 财务管理-存款管理-线下转卡-入款订单
+	post("/merchant/f2/manual/list", manualCtl.List)
+
+	// [商户后台] 财务管理-提款管理-会员列表-提款
+	post("/merchant/f2/withdraw/memberlist", wdCtl.MemberWithdrawList)
+	// [商户后台] 财务管理-提款管理-提款列表
+	post("/merchant/f2/withdraw/financelist", wdCtl.FinanceReviewList)
+	// [商户后台] 财务管理-提款管理-提款历史记录
+	post("/merchant/f2/withdraw/historylist", wdCtl.HistoryList)
+	// [商户后台] 财务管理-提款管理-拒绝
+	post("/merchant/f2/withdraw/reject", wdCtl.ReviewReject)
+	// [商户后台] 财务管理-提款管理-人工出款（手动代付， 手动出款）
+	post("/merchant/f2/withdraw/review", wdCtl.Review)
+	// [商户后台] 财务管理-提款管理-代付失败
+	post("/merchant/f2/withdraw/automatic/failed", wdCtl.AutomaticFailed)
+
+	// [商户后台] 风控管理-提款审核-待领取列表
+	post("/merchant/f2/withdraw/waitreceive", wdCtl.RiskWaitConfirmList)
+	// [商户后台] 风控管理-提款审核-待领取列表-银行卡交易记录统计
+	post("/merchant/f2/withdraw/cardrecord", wdCtl.BankCardWithdrawRecord)
+	// [商户后台] 风控管理-提款审核-待审核列表
+	post("/merchant/f2/withdraw/waitreview", wdCtl.RiskReviewList)
+	// [商户后台] 风控管理-提款审核-待审核列表-通过
+	post("/merchant/f2/withdraw/reviewpass", wdCtl.RiskReview)
+	// [商户后台] 风控管理-提款审核-待审核列表-拒绝
+	post("/merchant/f2/withdraw/reviewreject", wdCtl.RiskReviewReject)
+	// [商户后台] 风控管理-提款审核-待审核列表-挂起
+	post("/merchant/f2/withdraw/hangup", wdCtl.HangUp)
+	// [商户后台] 风控管理-提款审核-挂起列表
+	post("/merchant/f2/withdraw/hanguplist", wdCtl.HangUpList)
+	// [商户后台] 风控管理-提款审核-待审核列表-修改领取人
+	post("/merchant/f2/withdraw/receiveupdate", wdCtl.ConfirmNameUpdate)
+	// [商户后台] 风控管理-提款审核-挂起列表-领取
+	post("/merchant/f2/withdraw/receive", wdCtl.ConfirmName)
+	// [商户后台] 风控管理-提款审核-历史记录列表
+	post("/merchant/f2/withdraw/riskhistory", wdCtl.RiskHistory)
 
 	return route
 }

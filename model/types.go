@@ -229,3 +229,106 @@ type paymentCallbackResp struct {
 	Sign    string // 签名(g7的签名校验需要)
 	Resp    interface{}
 }
+
+// FWithdrawData 取款数据
+type FWithdrawData struct {
+	T   int64      `json:"t"`
+	D   []Withdraw `json:"d"`
+	Agg Withdraw   `json:"agg"`
+}
+
+// Withdraw 会员提款表
+type Withdraw struct {
+	ID                string  `db:"id"                  json:"id"                 redis:"id"`
+	Prefix            string  `db:"prefix"              json:"prefix"             redis:"prefix"`
+	BID               string  `db:"bid"                 json:"bid"                redis:"bid"`                  //  下发的银行卡或虚拟钱包的ID
+	Flag              int     `db:"flag"                json:"flag"               redis:"flag"`                 //  1=银行卡,2=虚拟钱包
+	OID               string  `db:"oid"                 json:"oid"                redis:"oid"`                  //  三方ID
+	UID               string  `db:"uid"                 json:"uid"                redis:"uid"`                  //
+	ParentUID         string  `db:"parent_uid"          json:"parent_uid"         redis:"parent_uid"`           //  上级uid
+	ParentName        string  `db:"parent_name"         json:"parent_name"        redis:"parent_name"`          // 上级代理名
+	Username          string  `db:"username"            json:"username"           redis:"username"`             //
+	PID               string  `db:"pid"                 json:"pid"                redis:"pid"`                  //  paymendID
+	Amount            float64 `db:"amount"              json:"amount"             redis:"amount"`               // 提款金额
+	State             int     `db:"state"               json:"state"              redis:"state"`                // 371:审核中 372:审核拒绝 373:出款中 374:提款成功 375:出款失败 376:异常订单 377:代付失败
+	Automatic         int     `db:"automatic"           json:"automatic"          redis:"automatic"`            // 是否自动出款:0=手工,1=自动
+	BankName          string  `db:"bank_name"           json:"bank_name"          redis:"bank_name"`            // 出款卡的银行名称
+	RealName          string  `db:"real_name"           json:"real_name"          redis:"real_name"`            // 出款卡的开户人
+	CardNo            string  `db:"card_no"             json:"card_no"            redis:"card_no"`              // 出款卡的卡号
+	CreatedAt         int64   `db:"created_at"          json:"created_at"         redis:"created_at"`           //
+	ConfirmAt         int64   `db:"confirm_at"          json:"confirm_at"         redis:"confirm_at"`           // 确认时间
+	ConfirmUID        string  `db:"confirm_uid"         json:"confirm_uid"        redis:"confirm_uid"`          // 手动确认人uid
+	ReviewRemark      string  `db:"review_remark"       json:"review_remark"      redis:"review_remark"`        // 审核备注
+	WithdrawAt        int64   `db:"withdraw_at"         json:"withdraw_at"        redis:"withdraw_at"`          // 出款时间
+	ConfirmName       string  `db:"confirm_name"        json:"confirm_name"       redis:"confirm_name"`         // 手动确认人名字
+	WithdrawUID       string  `db:"withdraw_uid"        json:"withdraw_uid"       redis:"withdraw_uid"`         // 出款人的ID
+	WithdrawName      string  `db:"withdraw_name"       json:"withdraw_name"      redis:"withdraw_name"`        //  出款人的名字
+	WithdrawRemark    string  `db:"withdraw_remark"     json:"withdraw_remark"    redis:"withdraw_remark"`      // 出款备注
+	FinanceType       int     `db:"finance_type"        json:"finance_type"       redis:"finance_type"`         // 财务类型 156=提款 165=代客提款 167=代理提款
+	LastDepositAmount float64 `db:"last_deposit_amount" json:"last_deposit_amount" redis:"last_deposit_amount"` // 上笔成功存款金额
+	RealNameHash      string  `db:"real_name_hash"      json:"real_name_hash"     redis:"real_name_hash"`       // 真实姓名哈希
+	HangUpUID         string  `db:"hang_up_uid"         json:"hang_up_uid"        redis:"hang_up_uid"`          // 挂起人uid
+	HangUpRemark      string  `db:"hang_up_remark"      json:"hang_up_remark"     redis:"hang_up_remark"`       // 挂起备注
+	HangUpName        string  `db:"hang_up_name"        json:"hang_up_name"       redis:"hang_up_name"`         // 挂起人名字
+	RemarkID          int64   `db:"remark_id"           json:"remark_id"          redis:"remark_id"`            // 挂起原因ID
+	HangUpAt          int64   `db:"hang_up_at"          json:"hang_up_at"         redis:"hang_up_at"`           // 挂起时间
+	ReceiveAt         int64   `db:"receive_at"          json:"receive_at"         redis:"receive_at"`           // 领取时间
+	WalletFlag        int     `db:"wallet_flag"         json:"wallet_flag"        redis:"wallet_flag"`          // 钱包类型:1=中心钱包,2=佣金钱包
+	TopUID            string  `db:"top_uid"             json:"top_uid"            redis:"top_uid"`              // 总代uid
+	TopName           string  `db:"top_name"            json:"top_name"           redis:"top_name"`             // 总代用户名
+	Level             int     `db:"level"               json:"level"              redis:"level"`
+	Balance           string  `db:"balance"               json:"balance"              redis:"balance"`
+	VirtualCount      float64 `db:"virtual_count" json:"virtual_count"` //数量
+	VirtualRate       float64 `db:"virtual_rate" json:"virtual_rate"`   //汇率
+	Currency          int     `db:"currency" json:"currency"`           //币种1=usdt
+	Protocol          int     `db:"protocol" json:"protocol"`           //协议1=TRC20
+	Alias             string  `db:"alias" json:"alias"`                 //别名
+	WalletAddr        string  `db:"wallet_addr" json:"wallet_addr"`     //地址
+}
+
+type WithdrawListData struct {
+	T   int64          `json:"t"`
+	D   []withdrawCols `json:"d"`
+	Agg Withdraw       `json:"agg"`
+}
+
+type withdrawCols struct {
+	Withdraw
+	CateID             string  `json:"cate_id"`
+	CateName           string  `json:"cate_name"`
+	MemberBankName     string  `json:"member_bank_name"`
+	MemberBankNo       string  `json:"member_bank_no"`
+	MemberBankRealName string  `json:"member_bank_real_name"`
+	MemberBankAddress  string  `json:"member_bank_address"`
+	MemberRealName     string  `json:"member_real_name"`
+	MemberTags         string  `json:"member_tags"`
+	Balance            string  `db:"balance"     json:"balance"     redis:"balance"    ` //余额
+	LockAmount         float64 `db:"lock_amount" json:"lock_amount" redis:"lock_amount"` //锁定额度
+	LastDepositAt      int     `json:"last_deposit_at"`
+	FirstWithdraw      bool    `json:"first_withdraw"`
+}
+
+type MemberBankCard struct {
+	ID           string `db:"id" json:"id"`
+	UID          string `db:"uid" json:"uid"`
+	Username     string `db:"username" json:"username"`
+	BankAddress  string `db:"bank_address" json:"bank_address"`
+	BankID       string `db:"bank_id" json:"bank_id"`
+	BankBranch   string `db:"bank_branch_name" json:"bank_branch_name"`
+	State        int    `db:"state" json:"state"`
+	BankcardHash string `db:"bank_card_hash" json:"bank_card_hash"`
+	CreatedAt    uint64 `db:"created_at" json:"created_at"`
+}
+
+type StateNum struct {
+	T     int   `json:"t" db:"t"`
+	State int64 `json:"state" db:"state"`
+}
+
+type MemberDepositInfo struct {
+	Uid           string  `json:"uid" db:"uid"`
+	DepositAmount float64 `json:"deposit_amount" db:"deposit_amount"`
+	DepositAt     int     `json:"deposit_at" db:"deposit_at"`
+	Prefix        string  `json:"prefix" db:"prefix"`
+	Flags         int     `json:"flags" db:"flags"`
+}

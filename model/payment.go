@@ -28,9 +28,7 @@ func PaymentList(cateID, chanID string) ([]Payment_t, error) {
 
 	var data []Payment_t
 
-	ex := g.Ex{
-		"prefix": meta.Prefix,
-	}
+	ex := g.Ex{}
 
 	if cateID != "0" {
 		ex["cate_id"] = cateID
@@ -40,7 +38,7 @@ func PaymentList(cateID, chanID string) ([]Payment_t, error) {
 		ex["channel_id"] = chanID
 	}
 
-	query, _, _ := dialect.From("f_payment").Select(colPayment...).Where(ex).Order(g.C("cate_id").Desc()).ToSQL()
+	query, _, _ := dialect.From("f2_payment").Select(colPayment...).Where(ex).Order(g.C("cate_id").Desc()).ToSQL()
 
 	err := meta.MerchantDB.Select(&data, query)
 	if err != nil {
@@ -87,11 +85,44 @@ func ChannelUpdate(param map[string]string) error {
 	}
 
 	ex := g.Ex{
-		"prefix": meta.Prefix,
-		"id":     param["id"],
+		"id": param["id"],
 	}
 
-	query, _, _ := dialect.Update("f_payment").Set(record).Where(ex).ToSQL()
+	query, _, _ := dialect.Update("f2_payment").Set(record).Where(ex).ToSQL()
+	_, err = tx.Exec(query)
+	if err != nil {
+		_ = tx.Rollback()
+		return pushLog(err, helper.TransErr)
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return pushLog(err, helper.TransErr)
+	}
+
+	_ = CacheRefreshPayment(param["id"])
+
+	return nil
+}
+
+func ChannelUpdateImg(param map[string]string) error {
+
+	record := g.Record{
+		"web_img": param["web_img"],
+		"h5_img":  param["h5_img"],
+		"app_img": param["app_img"],
+	}
+
+	tx, err := meta.MerchantDB.Begin()
+	if err != nil {
+		return pushLog(err, helper.TransErr)
+	}
+
+	ex := g.Ex{
+		"id": param["id"],
+	}
+
+	query, _, _ := dialect.Update("f2_payment").Set(record).Where(ex).ToSQL()
 	_, err = tx.Exec(query)
 	if err != nil {
 		_ = tx.Rollback()
@@ -116,8 +147,7 @@ func ChannelSet(id, state string) error {
 	}
 
 	ex := g.Ex{
-		"prefix": meta.Prefix,
-		"id":     id,
+		"id": id,
 	}
 	query, _, _ := dialect.Update("f2_payment").Set(g.Record{"state": state}).Where(ex).ToSQL()
 	_, err = tx.Exec(query)
@@ -164,8 +194,7 @@ func ChanByID(id string) (Payment_t, error) {
 	var channel Payment_t
 
 	ex := g.Ex{
-		"id":     id,
-		"prefix": meta.Prefix,
+		"id": id,
 	}
 
 	query, _, _ := dialect.From("f2_payment").Select(colPayment...).Where(ex).ToSQL()
@@ -181,8 +210,7 @@ func ChanExistsByID(id string) (Payment_t, error) {
 
 	var channel Payment_t
 	ex := g.Ex{
-		"prefix": meta.Prefix,
-		"id":     id,
+		"id": id,
 	}
 	query, _, _ := dialect.From("f2_payment").Select(colPayment...).Where(ex).ToSQL()
 	err := meta.MerchantDB.Get(&channel, query)
@@ -191,4 +219,55 @@ func ChanExistsByID(id string) (Payment_t, error) {
 	}
 
 	return channel, nil
+}
+
+// 批量获取存款通道的渠道id和name
+func channelCateMap(pids []string) (map[string]CateIDAndName, error) {
+
+	var (
+		data []channelCate
+		pc   = make(map[string]string)
+		res  = make(map[string]CateIDAndName)
+	)
+
+	if len(pids) == 0 {
+		return res, nil
+	}
+
+	ex := g.Ex{
+		"id":     g.Op{"in": pids},
+		"prefix": meta.Prefix,
+	}
+	query, _, _ := dialect.From("f_payment").Select("id", "cate_id").Where(ex).ToSQL()
+	err := meta.MerchantDB.Select(&data, query)
+	if err != nil {
+		return res, pushLog(err, helper.DBErr)
+	}
+
+	if len(data) == 0 {
+		return res, nil
+	}
+
+	// 先查询pid对应的cate_id
+	var cids = make([]string, 0, len(data))
+	for _, v := range data {
+		if _, ok := pc[v.PaymentID]; !ok {
+			pc[v.PaymentID] = v.CateID
+		}
+		cids = append(cids, v.CateID)
+	}
+
+	// 通过cate_id查询cate_name
+	c, err := CateIDAndNameByCIDS(cids)
+	if err != nil {
+		return res, nil
+	}
+
+	for k, v := range pc {
+		if vv, ok := c[v]; ok {
+			res[k] = vv
+		}
+	}
+
+	return res, err
 }

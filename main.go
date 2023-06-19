@@ -14,6 +14,7 @@ import (
 	rycli "github.com/ryrpc/client"
 	"log"
 	"os"
+	"path"
 	"path/filepath"
 	"strings"
 
@@ -37,6 +38,7 @@ func main() {
 	endpoints := strings.Split(os.Args[1], ",")
 	apollo.New(endpoints, ETCDName, ETCDPass)
 	err := apollo.ParseTomlStruct(os.Args[2], &cfg)
+	content, err := apollo.ParseToml(path.Dir(os.Args[2])+"/finance.toml", false)
 	apollo.Close()
 	if err != nil {
 		fmt.Printf("ParseTomlStruct error: %s", err.Error())
@@ -50,6 +52,7 @@ func main() {
 	mt.MerchantDB = conn.InitDB(cfg.Db.Masteren.Addr, cfg.Db.Masteren.MaxIdleConn, cfg.Db.Masteren.MaxOpenConn)
 	mt.MerchantRedis = conn.InitRedisSentinel(cfg.Redis.Addr, cfg.Redis.Password, cfg.Redis.Sentinel, 0)
 	mt.MgCli, mt.MgDB = conn.InitMongo(ctx, cfg.Mongodb.Url, cfg.Mongodb.Username, cfg.Mongodb.Password, cfg.Mongodb.Db)
+	mt.MerchantTD = conn.InitTD(cfg.Td.Message.Addr, cfg.Td.Message.MaxIdleConn, cfg.Td.Message.MaxOpenConn)
 
 	mt.MerchantMQ, err = rocketmq.NewProducer(
 		producer.WithNameServer(cfg.Rocketmq),
@@ -85,6 +88,8 @@ func main() {
 	}
 
 	mt.MerchantRPC = rycli.NewClient()
+	mt.Finance = content
+
 	model.Constructor(mt, cfg.PayRPC)
 
 	defer func() {

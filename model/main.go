@@ -3,11 +3,15 @@ package model
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"finance/contrib/helper"
 	"finance/contrib/tracerr"
+	ryrpc "finance/rpc"
 	"fmt"
 	"github.com/lucacasonato/mqtt"
+	"github.com/shopspring/decimal"
 	"math/rand"
+	"strconv"
 
 	"github.com/apache/rocketmq-client-go/v2"
 	g "github.com/doug-martin/goqu/v9"
@@ -25,6 +29,7 @@ import (
 
 type MetaTable struct {
 	MerchantDB     *sqlx.DB
+	MerchantTD     *sqlx.DB
 	MerchantRedis  *redis.Client
 	MerchantMQ     rocketmq.Producer
 	MgCli          *qmgo.Client
@@ -46,6 +51,7 @@ var (
 	dialect                 = g.Dialect("mysql")
 	fc                      *fasthttp.Client
 	vnPay                   Payment
+	zero                    = decimal.NewFromInt(0)
 	colCate                 = helper.EnumFields(Category{})
 	colsChannelType         = helper.EnumFields(ChannelType{})
 	colPayment              = helper.EnumFields(Payment_t{})
@@ -57,27 +63,20 @@ var (
 	colsMember              = helper.EnumFields(Member{})
 	colsMemberInfo          = helper.EnumFields(MemberInfo{})
 	colsDeposit             = helper.EnumFields(Deposit{})
+	colsWithdraw            = helper.EnumFields(Withdraw{})
+	colsMemberBankcard      = helper.EnumFields(MemberBankCard{})
 )
 
 func Constructor(mt *MetaTable, payRPC string) {
 
 	meta = mt
 	loc, _ = time.LoadLocation("Asia/Bangkok")
-
-	meta.MerchantRPC.SetBaseURL(payRPC)
-	meta.MerchantRPC.SetClientTimeout(12 * time.Second)
+	ryrpc.Constructor(payRPC)
 
 	err := Lock(meta.Prefix + "_finance2_load")
 	if err == nil {
 		LoadChannelType()
 	}
-
-	data, err := rpcDepositChannelList("91408276484425095")
-	if err != nil {
-		_ = pushLog(err, helper.GetRPCErr)
-	}
-
-	fmt.Printf("%#v \r\n", data)
 	NewPayment()
 }
 
@@ -172,4 +171,108 @@ func AdminGetName(id string) (string, error) {
 	}
 
 	return name, nil
+}
+
+// TimeFormat 时间戳转化成string
+func TimeFormat(timestamp int64) string {
+
+	t := time.Unix(timestamp, 0).In(loc)
+	return t.Format("2006-01-02 15:04:05")
+}
+
+func tdInsert(tbl string, record g.Record) {
+
+	query, _, _ := dialect.Insert(tbl).Rows(record).ToSQL()
+	fmt.Println(query)
+	_, err := meta.MerchantTD.Exec(query)
+	if err != nil {
+		fmt.Println("update td = ", err.Error(), record)
+	}
+}
+
+func CheckSmsCaptcha(ip, ts, sid, phone, code string) (bool, error) {
+
+	key := fmt.Sprintf("%s:sms:%s%s", meta.Prefix, phone, sid)
+	cmd := meta.MerchantRedis.Get(ctx, key)
+	val, err := cmd.Result()
+	if err != nil && err != redis.Nil {
+		return false, pushLog(fmt.Errorf("CheckSmsCaptcha cmd : %s ,error : %s ", cmd.String(), err.Error()), helper.RedisErr)
+	}
+
+	if code == val {
+		its, _ := strconv.ParseInt(ts, 10, 64)
+		tdInsert("sms_log", g.Record{
+			"ts":         its,
+			"state":      "2",
+			"updated_at": time.Now().Unix(),
+		})
+		return true, nil
+	}
+
+	return false, errors.New(helper.CaptchaErr)
+}
+
+// WithdrawFind 查找单条提款记录, 订单不存在返回错误: OrderNotExist
+func WithdrawFind(id string) (Withdraw, error) {
+
+	w := Withdraw{}
+	query, _, _ := dialect.From("tbl_withdraw").Select(colsWithdraw...).Where(g.Ex{"id": id}).Limit(1).ToSQL()
+	err := meta.MerchantDB.Get(&w, query)
+	if err == sql.ErrNoRows {
+		return w, errors.New(helper.OrderNotExist)
+	}
+
+	if err != nil {
+		return w, pushLog(err, helper.DBErr)
+	}
+
+	return w, nil
+}
+
+func WithdrawGetBank(bid, username string) (MemberBankCard, error) {
+
+	bank := MemberBankCard{}
+	banks, err := MemberBankcardList(g.Ex{"username": username})
+	if err != nil && err != sql.ErrNoRows {
+		return bank, err
+	}
+
+	for _, v := range banks {
+		if v.ID == bid {
+			bank = v
+			break
+		}
+	}
+	if bank.ID != bid {
+		return bank, errors.New(helper.BankcardIDErr)
+	}
+
+	return bank, nil
+}
+
+// 获取银行卡成功失败的次数
+func WithdrawBanKCardNumber(bid string) (int, int) {
+
+	ex := g.Ex{
+		"bid":    bid,
+		"prefix": meta.Prefix,
+	}
+	var data []StateNum
+	var successNum int
+	var failNum int
+	query, _, _ := dialect.From("tbl_withdraw").Select(g.COUNT("id").As("t"), g.C("state").As("state")).Where(ex).ToSQL()
+	err := meta.MerchantDB.Select(&data, query)
+	if err != nil && err != sql.ErrNoRows {
+		return 0, 0
+	}
+	for _, v := range data {
+		if v.State == WithdrawSuccess {
+			successNum += v.T
+		}
+		if v.State == WithdrawReviewReject || v.State == WithdrawAbnormal || v.State == WithdrawFailed {
+			failNum += v.T
+		}
+	}
+
+	return successNum, failNum
 }

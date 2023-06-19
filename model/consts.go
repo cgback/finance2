@@ -50,3 +50,10 @@ var OpDesMap = map[int]string{
 	DepositSuccess:   PassOp,
 	DepositCancelled: RejectOp,
 }
+
+var defaultLevelWithdrawLimit = map[string]string{
+	"count_remain":   "7",
+	"max_remain":     "700000",
+	"withdraw_count": "7",
+	"withdraw_max":   "700000",
+}

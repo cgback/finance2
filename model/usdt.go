@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"finance/contrib/helper"
+	ryrpc "finance/rpc"
 	"fmt"
 	"github.com/tenfyzhong/cityhash"
 	"strconv"
@@ -464,7 +465,7 @@ func UsdtWithdrawUserInsert(amount, rate string, fCtx *fasthttp.RequestCtx) (str
 	}
 
 	// 检查上次提现成功到现在的存款流水是否满足 未满足的返回流水未达标
-	_, err = rpcCheckFlow(mb.Username)
+	_, err = ryrpc.CheckDepositFlow(mb.Username)
 	if err != nil {
 		fmt.Println("查询某个用户的流水:", err)
 		return "", err

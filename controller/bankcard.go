@@ -20,6 +20,8 @@ func (that *BankCardController) List(ctx *fasthttp.RequestCtx) {
 	accounName := string(ctx.QueryArgs().Peek("real_name"))
 	state := string(ctx.QueryArgs().Peek("state"))
 	vip := string(ctx.QueryArgs().Peek("vip"))
+	cid := string(ctx.QueryArgs().Peek("cid"))
+	flag := string(ctx.QueryArgs().Peek("flag"))
 
 	ex := g.Ex{}
 
@@ -31,6 +33,12 @@ func (that *BankCardController) List(ctx *fasthttp.RequestCtx) {
 	}
 	if helper.CtypeDigit(state) {
 		ex["state"] = state
+	}
+	if helper.CtypeDigit(cid) {
+		ex["cid"] = cid
+	}
+	if helper.CtypeDigit(flag) {
+		ex["flag"] = flag
 	}
 
 	if accounName != "" {
@@ -304,4 +312,39 @@ func (that *BankCardController) Update(ctx *fasthttp.RequestCtx) {
 		admin["name"], bankCard.BanklcardName, bankCard.BanklcardNo, bankCard.AccountName, bankCard.DailyMaxAmount)
 	model.AdminLogInsert(model.ChannelModel, contentLog, model.UpdateOp, admin["name"])
 	helper.Print(ctx, true, helper.Success)
+}
+
+func (that *BankCardController) InsertMsg(ctx *fasthttp.RequestCtx) {
+
+	cid := string(ctx.PostArgs().Peek("cid"))        //1QR Banking 2MomoPay 3ZaloPay 4ViettelPay 5Thẻ Cào 6Offline 7USDT
+	flags := string(ctx.PostArgs().Peek("flags"))    //1转卡 2转账
+	h5img := string(ctx.PostArgs().Peek("h5_img"))   //h5图片
+	webimg := string(ctx.PostArgs().Peek("web_img")) //web 图片
+	appimg := string(ctx.PostArgs().Peek("app_img")) //app 图片
+
+	fields := map[string]string{
+		"h5_img":  h5img,
+		"web_img": webimg,
+		"app_img": appimg,
+	}
+	if cid == "2" && flags == "1" {
+		fields["id"] = "766870294997073617"
+	}
+	if cid == "2" && flags == "2" {
+		fields["id"] = "766870294997073618"
+	}
+	if cid == "4" && flags == "1" {
+		fields["id"] = "766870294997073619"
+	}
+	if cid == "4" && flags == "2" {
+		fields["id"] = "766870294997073620"
+	}
+	if cid == "3" && flags == "1" {
+		fields["id"] = "766870294997073621"
+	}
+	err := model.ChannelUpdateImg(fields)
+	if err != nil {
+		helper.Print(ctx, false, err.Error())
+		return
+	}
 }
