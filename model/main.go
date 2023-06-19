@@ -276,3 +276,24 @@ func WithdrawBanKCardNumber(bid string) (int, int) {
 
 	return successNum, failNum
 }
+
+// 金额对比
+func compareAmount(compare, compared string, cent int64) error {
+
+	ca, err := decimal.NewFromString(compare)
+	if err != nil {
+		return errors.New("parse amount error")
+	}
+
+	ra, err := decimal.NewFromString(compared)
+	if err != nil {
+		return errors.New("parse amount error")
+	}
+
+	// 数据库的金额是k为单位 ra.Mul(decimal.NewFromInt(1000))
+	if ca.Cmp(ra.Mul(decimal.NewFromInt(cent))) != 0 {
+		return errors.New("invalid amount")
+	}
+
+	return nil
+}

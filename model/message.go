@@ -1,9 +1,12 @@
 package model
 
 import (
+	"context"
 	"finance/contrib/helper"
 	"fmt"
+	"github.com/apache/rocketmq-client-go/v2/primitive"
 	g "github.com/doug-martin/goqu/v9"
+	"strconv"
 	"time"
 )
 
@@ -81,4 +84,42 @@ func messageSend(msgID, title, content, sendName, prefix string, isTop, isVip, t
 	}
 
 	return nil
+}
+
+// 写入日志
+func paymentPushLog(data paymentTDLog) {
+
+	if data.Error == "" {
+		data.Level = "info"
+	} else {
+		data.Level = "error"
+	}
+
+	ts := time.Now()
+	l := map[string]string{
+		"username":      data.Username,
+		"lable":         paymentLogTag,
+		"order_id":      data.OrderID,
+		"level":         data.Level,
+		"error":         data.Error,
+		"response_body": data.ResponseBody,
+		"response_code": strconv.Itoa(data.ResponseCode),
+		"request_body":  data.RequestBody,
+		"request_url":   data.RequestURL,
+		"merchant":      data.Merchant,
+		"channel":       data.Channel,
+		"flag":          data.Flag,
+		"_index":        fmt.Sprintf("%s_payment_log_%04d%02d", meta.Prefix, ts.Year(), ts.Month()),
+	}
+
+	param, _ := helper.JsonMarshal(l)
+	err := meta.MerchantMQ.SendAsync(ctx,
+		func(c context.Context, result *primitive.SendResult, e error) {
+			if e != nil {
+				fmt.Printf("receive message error: %s\n", e.Error())
+			}
+		}, primitive.NewMessage("zinc_fluent_log", param))
+	if err != nil {
+		fmt.Printf("pushLog %#v\n%s", data, err.Error())
+	}
 }

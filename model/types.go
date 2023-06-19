@@ -332,3 +332,18 @@ type MemberDepositInfo struct {
 	Prefix        string  `json:"prefix" db:"prefix"`
 	Flags         int     `json:"flags" db:"flags"`
 }
+
+type paymentTDLog struct {
+	Merchant     string `db:"merchant"`
+	Channel      string `db:"channel"`
+	Flag         string `db:"flag"`
+	RequestURL   string `db:"request_url"`
+	RequestBody  string `db:"request_body"`
+	ResponseCode int    `db:"response_code"`
+	ResponseBody string `db:"response_body"`
+	Error        string `db:"error"`
+	Lable        string `db:"lable"`
+	Level        string `db:"level"`
+	OrderID      string `db:"order_id"`
+	Username     string `db:"username"`
+}

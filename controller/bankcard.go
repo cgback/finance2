@@ -57,8 +57,6 @@ func (that *BankCardController) List(ctx *fasthttp.RequestCtx) {
 // Insert 线下卡转卡 添加银行卡
 func (that *BankCardController) Insert(ctx *fasthttp.RequestCtx) {
 
-	//fmt.Println("BankCardController Insert = ", string(ctx.PostBody()))
-
 	bankId := string(ctx.PostArgs().Peek("bank_id"))
 	accountName := string(ctx.PostArgs().Peek("account_name"))
 	banklcardName := string(ctx.PostArgs().Peek("banklcard_name"))

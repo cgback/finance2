@@ -77,3 +77,9 @@ func (that *CateController) UpdateState(ctx *fasthttp.RequestCtx) {
 
 	helper.Print(ctx, true, helper.Success)
 }
+
+func (that *CateController) Cache(ctx *fasthttp.RequestCtx) {
+
+	data := model.CateListRedis()
+	helper.PrintJson(ctx, true, data)
+}

@@ -77,17 +77,30 @@ func SetupRouter(b BuildInfo) *router.Router {
 	depositCtl := new(controller.DepositController)
 	//提款管理
 	wdCtl := new(controller.WithdrawController)
+	cbCtl := new(controller.CallBackController)
 
 	get("/f2/version", Version)
-
+	// [callback] NVN 代付回调
+	post("/finance/callback/nvnw", cbCtl.NVNW)
+	// [callback] NVN 代收回调
+	post("/finance/callback/nvnd", cbCtl.NVND)
 	// 前台充值方式
-	get("/merchant/f2/cate", payCtl.Cate)
+	get("/f2/cate", payCtl.Cate)
 	// 前台充值通道
-	get("/merchant/f2/tunnel", payCtl.Tunnel)
+	get("/f2/tunnel", payCtl.Tunnel)
 	// 前台充值
-	post("/merchant/f2/pay", payCtl.Pay)
+	post("/f2/pay", payCtl.Pay)
 	// [前台] 线下转卡-发起存款
-	post("/merchant/f2/gen/code", manualCtl.GenCode)
+	post("/f2/gen/code", manualCtl.GenCode)
+
+	// [前台] 用户申请提现
+	post("/f2/withdraw", wdCtl.Withdraw)
+	// [前台] 用户提现剩余次数和额度
+	get("/f2/withdraw/limit", wdCtl.Limit)
+	// [前台] 获取正在处理中的提现订单
+	get("/f2/withdraw/processing", wdCtl.Processing)
+	// [前台] 渠道列表数据缓存
+	get("/f2/cate/cache", cateCtl.Cache)
 
 	//财务管理-渠道列表
 	post("/merchant/f2/cate/list", cateCtl.List)

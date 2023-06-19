@@ -57,3 +57,17 @@ var defaultLevelWithdrawLimit = map[string]string{
 	"withdraw_count": "7",
 	"withdraw_max":   "700000",
 }
+
+// 后台上下分审核状态
+const (
+	AdjustReviewing    = 256 //后台调整审核中
+	AdjustReviewPass   = 257 //后台调整审核通过
+	AdjustReviewReject = 258 //后台调整审核不通过
+)
+
+// 后台上下分状态
+const (
+	AdjustFailed      = 261 //上下分失败
+	AdjustSuccess     = 262 //上下分成功
+	AdjustPlatDealing = 263 //上分场馆处理中
+)

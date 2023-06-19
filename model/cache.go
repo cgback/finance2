@@ -715,3 +715,13 @@ func WithdrawLock(id string) error {
 func WithdrawUnLock(id string) {
 	Unlock(fmt.Sprintf(withdrawOrderLockKey, id))
 }
+
+func CateListRedis() string {
+
+	res, err := meta.MerchantRedis.Get(ctx, meta.Prefix+":f:category").Result()
+	if err == redis.Nil || err != nil {
+		return "{}"
+	}
+
+	return res
+}
