@@ -53,6 +53,7 @@ func main() {
 	mt.MerchantRedis = conn.InitRedisSentinel(cfg.Redis.Addr, cfg.Redis.Password, cfg.Redis.Sentinel, 0)
 	mt.MgCli, mt.MgDB = conn.InitMongo(ctx, cfg.Mongodb.Url, cfg.Mongodb.Username, cfg.Mongodb.Password, cfg.Mongodb.Db)
 	mt.MerchantTD = conn.InitTD(cfg.Td.Message.Addr, cfg.Td.Message.MaxIdleConn, cfg.Td.Message.MaxOpenConn)
+	mt.FcallbackInner = cfg.Fcallback
 
 	mt.MerchantMQ, err = rocketmq.NewProducer(
 		producer.WithNameServer(cfg.Rocketmq),

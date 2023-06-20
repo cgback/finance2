@@ -81,9 +81,9 @@ func SetupRouter(b BuildInfo) *router.Router {
 
 	get("/f2/version", Version)
 	// [callback] NVN 代付回调
-	post("/finance/callback/nvnw", cbCtl.NVNW)
+	post("/f2/callback/nvnw", cbCtl.NVNW)
 	// [callback] NVN 代收回调
-	post("/finance/callback/nvnd", cbCtl.NVND)
+	post("/f2/callback/nvnd", cbCtl.NVND)
 	// 前台充值方式
 	get("/f2/cate", payCtl.Cate)
 	// 前台充值通道

@@ -731,25 +731,19 @@ func (that *WithdrawController) MemberWithdrawList(ctx *fasthttp.RequestCtx) {
 
 // FinanceReviewList 提款管理-财务审核
 func (that *WithdrawController) FinanceReviewList(ctx *fasthttp.RequestCtx) {
-	// 订单号
-	id := string(ctx.FormValue("id"))
-	startTime := string(ctx.FormValue("start_time"))
-	endTime := string(ctx.FormValue("end_time"))
-	maxAmount := string(ctx.FormValue("max_amount"))
-	minAmount := string(ctx.FormValue("min_amount"))
-	//会员账号
-	username := string(ctx.FormValue("username"))
-	//风控审核人
-	confirmName := string(ctx.FormValue("confirm_name"))
-	page, err := strconv.ParseUint(string(ctx.FormValue("page")), 10, 64)
-	if err != nil {
-		page = 1
-	}
 
-	pageSize, err := strconv.ParseUint(string(ctx.FormValue("page_size")), 10, 64)
-	if err != nil {
-		pageSize = 15
-	}
+	// 订单号
+	id := string(ctx.PostArgs().Peek("id"))
+	startTime := string(ctx.PostArgs().Peek("start_time"))
+	endTime := string(ctx.PostArgs().Peek("end_time"))
+	maxAmount := string(ctx.PostArgs().Peek("max_amount"))
+	minAmount := string(ctx.PostArgs().Peek("min_amount"))
+	//会员账号
+	username := string(ctx.PostArgs().Peek("username"))
+	//风控审核人
+	confirmName := string(ctx.PostArgs().Peek("confirm_name"))
+	page := ctx.PostArgs().GetUintOrZero("page")
+	pageSize := ctx.PostArgs().GetUintOrZero("page_size")
 
 	if startTime == "" || endTime == "" {
 		helper.Print(ctx, false, helper.DateTimeErr)

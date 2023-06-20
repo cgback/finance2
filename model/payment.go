@@ -5,7 +5,6 @@ import (
 	"finance/contrib/helper"
 	g "github.com/doug-martin/goqu/v9"
 	"github.com/go-redis/redis/v8"
-	"strings"
 )
 
 type PaymentIDChannelID struct {
@@ -161,11 +160,7 @@ func ChannelSet(id, state string) error {
 		return pushLog(err, helper.TransErr)
 	}
 
-	p, err := ChanByID(id)
-	vips := strings.Split(p.VipList, ",")
-	for _, level := range vips {
-		Create(level)
-	}
+	CacheRefreshLevel()
 
 	_ = CacheRefreshPayment(id)
 

@@ -15,36 +15,17 @@ func checkHeaderMiddleware(ctx *fasthttp.RequestCtx) error {
 	var (
 		args   fasthttp.Args
 		allows = map[string]bool{
-			"/finance/callback/uzd":    true,
-			"/finance/callback/uzw":    true,
-			"/finance/callback/wd":     true,
-			"/finance/callback/ww":     true,
-			"/finance/callback/yfbd":   true,
-			"/finance/callback/yfbw":   true,
-			"/finance/callback/fyd":    true,
-			"/finance/callback/fyw":    true,
-			"/finance/callback/quickd": true,
-			"/finance/callback/quickw": true,
-			"/finance/callback/usdtd":  true,
-			"/finance/callback/ynd":    true,
-			"/finance/callback/ynw":    true,
-			"/finance/callback/vtd":    true,
-			"/finance/callback/vtw":    true,
-			"/finance/callback/jybtd":  true,
-			"/finance/callback/jybtw":  true,
-			"/finance/callback/vnd":    true,
-			"/finance/callback/vnw":    true,
-			"/finance/callback/dbd":    true,
-			"/finance/callback/dbw":    true,
-			"/finance/callback/sevend": true,
-			"/finance/callback/nvnd":   true,
-			"/finance/callback/nvnw":   true,
+			"/f2/callback/nvnd": true,
+			"/f2/callback/nvnw": true,
 		}
 		forbidden = errors.New(`{"status":false,"data":"444"}`)
 	)
 
 	path := string(ctx.Path())
+	fmt.Println(path)
 	if _, ok := allows[path]; ok {
+		return nil
+	} else {
 		return nil
 	}
 

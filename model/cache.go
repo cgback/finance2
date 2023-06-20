@@ -1,15 +1,16 @@
 package model
 
 import (
+	"database/sql"
 	"errors"
 	"finance/contrib/helper"
 	"fmt"
 	g "github.com/doug-martin/goqu/v9"
 	"github.com/go-redis/redis/v8"
-	"github.com/jmoiron/sqlx"
 	"github.com/valyala/fasthttp"
 	"github.com/valyala/fastjson"
 	"sort"
+	"strings"
 	"time"
 )
 
@@ -363,95 +364,184 @@ func CacheRefreshPaymentBanks(id string) error {
 	return nil
 }
 
-func Create(level string) {
+//
+//func Create(level string) {
+//
+//	var (
+//		cIds       []string
+//		paymentIds []string
+//		tunnels    []Tunnel_t
+//		tunnelSort []Tunnel_t
+//		payments   []Payment_t
+//	)
+//
+//	fmt.Println("Create p:" + level)
+//	//删除key
+//	meta.MerchantRedis.Unlink(ctx, meta.Prefix+":p:"+level).Result()
+//
+//	tunneldataTemp, err := meta.MerchantRedis.Get(ctx, meta.Prefix+":tunnel:All").Bytes()
+//	if err != nil {
+//		fmt.Println("tunnel:All = ", err.Error())
+//		return
+//	}
+//
+//	helper.JsonUnmarshal(tunneldataTemp, &tunnelSort)
+//	fmt.Println("JsonUnmarshal tunnelSort = ", tunnelSort)
+//
+//	ex := g.Ex{
+//		"id":     paymentIds,
+//		"state":  "1",
+//		"prefix": meta.Prefix,
+//	}
+//	query, _, _ := dialect.From("f2_payment").Select(colPayment...).Where(ex).ToSQL()
+//	queryIn, args, err := sqlx.In(query)
+//	if err != nil {
+//		fmt.Println("2", err.Error())
+//		return
+//	}
+//
+//	err = meta.MerchantDB.Select(&payments, queryIn, args...)
+//	if err != nil {
+//		fmt.Println("3", err.Error())
+//		return
+//	}
+//
+//	for _, val := range payments {
+//		if level == "1" {
+//			CacheRefreshPaymentBanks(val.ID)
+//		}
+//		cIds = append(cIds, val.ChannelID)
+//	}
+//
+//	ex = g.Ex{
+//		"id":     cIds,
+//		"prefix": meta.Prefix,
+//	}
+//	query, _, _ = dialect.From("f2_channel_type").Select(colsChannelType...).Where(ex).ToSQL()
+//	queryIn, args, err = sqlx.In(query)
+//	if err != nil {
+//		fmt.Println("4", err.Error())
+//		return
+//	}
+//
+//	err = meta.MerchantDB.Select(&tunnels, queryIn, args...)
+//	if err != nil {
+//		fmt.Println("5", err.Error())
+//		return
+//	}
+//
+//	pipe := meta.MerchantRedis.TxPipeline()
+//
+//	for _, val := range payments {
+//		pipe.Unlink(ctx, meta.Prefix+":p:"+val.ID)
+//		pipe.Unlink(ctx, meta.Prefix+":p:"+level+":"+val.ChannelID)
+//	}
+//
+//	for _, val := range tunnels {
+//		value, _ := helper.JsonMarshal(val)
+//		vv := new(redis.Z)
+//
+//		vv.Member = string(value)
+//		for _, v := range tunnelSort {
+//
+//			if val.ID == v.ID {
+//				vv.Score = float64(v.Sort)
+//			}
+//
+//		}
+//		pipe.ZAdd(ctx, meta.Prefix+":p:"+level, vv)
+//		vv = nil
+//	}
+//
+//	pipe.Persist(ctx, meta.Prefix+":p:"+level)
+//
+//	for _, val := range payments {
+//
+//		value := map[string]interface{}{
+//			"id":           val.ID,
+//			"cate_id":      val.CateID,
+//			"channel_id":   val.ChannelID,
+//			"fmax":         val.Fmax,
+//			"fmin":         val.Fmin,
+//			"amount_list":  val.AmountList,
+//			"et":           val.Et,
+//			"st":           val.St,
+//			"payment_name": val.PaymentName,
+//			"created_at":   val.CreatedAt,
+//
+//			"state":   val.State,
+//			"sort":    val.Sort,
+//			"comment": val.Comment,
+//		}
+//		pipe.LPush(ctx, meta.Prefix+":p:"+level+":"+val.ChannelID, val.ID)
+//		pipe.HMSet(ctx, meta.Prefix+":p:"+val.ID, value)
+//		pipe.Persist(ctx, meta.Prefix+":p:"+val.ID)
+//	}
+//
+//	_, err = pipe.Exec(ctx)
+//	pipe.Close()
+//
+//	fmt.Println("err = ", err)
+//	fmt.Println("tunnels = ", tunnels)
+//	fmt.Println("payments = ", payments)
+//	fmt.Println("paymentIds = ", paymentIds)
+//}
+
+func CacheRefreshLevel() {
 
 	var (
-		cIds       []string
-		paymentIds []string
-		tunnels    []Tunnel_t
-		tunnelSort []Tunnel_t
-		payments   []Payment_t
+		tunnels  []ChannelType
+		payments []Payment_t
 	)
-
-	fmt.Println("Create p:" + level)
-	//删除key
-	meta.MerchantRedis.Unlink(ctx, meta.Prefix+":p:"+level).Result()
-
-	tunneldataTemp, err := meta.MerchantRedis.Get(ctx, meta.Prefix+":tunnel:All").Bytes()
-	if err != nil {
-		fmt.Println("tunnel:All = ", err.Error())
-		return
-	}
-
-	helper.JsonUnmarshal(tunneldataTemp, &tunnelSort)
-	fmt.Println("JsonUnmarshal tunnelSort = ", tunnelSort)
+	levelMap := map[string][]Payment_t{}
+	channelTypeMap := map[string]ChannelType{}
 
 	ex := g.Ex{
-		"id":     paymentIds,
-		"state":  "1",
-		"prefix": meta.Prefix,
+		"state":      "1",
+		"channel_id": g.Op{"neq": "101"},
 	}
 	query, _, _ := dialect.From("f2_payment").Select(colPayment...).Where(ex).ToSQL()
-	queryIn, args, err := sqlx.In(query)
-	if err != nil {
-		fmt.Println("2", err.Error())
+	err := meta.MerchantDB.Select(&payments, query)
+	if err != nil && err != sql.ErrNoRows {
 		return
 	}
 
-	err = meta.MerchantDB.Select(&payments, queryIn, args...)
-	if err != nil {
-		fmt.Println("3", err.Error())
-		return
-	}
-
+	//把所有通道按等级划分
 	for _, val := range payments {
-		if level == "1" {
-			CacheRefreshPaymentBanks(val.ID)
+		vipList := strings.Split(val.VipList, ",")
+		for _, level := range vipList {
+			if value, exists := levelMap[level]; !exists {
+				levelMap[level] = []Payment_t{val}
+			} else {
+				value = append(value, val)
+				levelMap[level] = value
+			}
 		}
-		cIds = append(cIds, val.ChannelID)
 	}
 
 	ex = g.Ex{
-		"id":     cIds,
-		"prefix": meta.Prefix,
+		"state": 1,
 	}
-	query, _, _ = dialect.From("f2_channel_type").Select(colsChannelType...).Where(ex).ToSQL()
-	queryIn, args, err = sqlx.In(query)
-	if err != nil {
-		fmt.Println("4", err.Error())
-		return
-	}
-
-	err = meta.MerchantDB.Select(&tunnels, queryIn, args...)
-	if err != nil {
-		fmt.Println("5", err.Error())
+	query, _, _ = dialect.From("f2_channel_type").Select(colsChannelType...).Where(ex).Order(g.C("sort").Asc()).ToSQL()
+	err = meta.MerchantDB.Select(&tunnels, query)
+	if err != nil && err != sql.ErrNoRows {
 		return
 	}
 
 	pipe := meta.MerchantRedis.TxPipeline()
 
-	for _, val := range payments {
-		pipe.Unlink(ctx, meta.Prefix+":p:"+val.ID)
-		pipe.Unlink(ctx, meta.Prefix+":p:"+level+":"+val.ChannelID)
-	}
-
 	for _, val := range tunnels {
-		value, _ := helper.JsonMarshal(val)
-		vv := new(redis.Z)
-
-		vv.Member = string(value)
-		for _, v := range tunnelSort {
-
-			if val.ID == v.ID {
-				vv.Score = float64(v.Sort)
-			}
-
+		channelTypeMap[val.ID] = val
+		value := map[string]interface{}{
+			"id":    val.ID,
+			"name":  val.Name,
+			"sort":  val.Sort,
+			"state": val.State,
+			"alias": val.Alias,
 		}
-		pipe.ZAdd(ctx, meta.Prefix+":p:"+level, vv)
-		vv = nil
+		pipe.HMSet(ctx, meta.Prefix+":f:c:"+val.ID, value)
+		pipe.Persist(ctx, meta.Prefix+":f:c:"+val.ID)
 	}
-
-	pipe.Persist(ctx, meta.Prefix+":p:"+level)
 
 	for _, val := range payments {
 
@@ -466,14 +556,35 @@ func Create(level string) {
 			"st":           val.St,
 			"payment_name": val.PaymentName,
 			"created_at":   val.CreatedAt,
-
-			"state":   val.State,
-			"sort":    val.Sort,
-			"comment": val.Comment,
+			"state":        val.State,
+			"sort":         val.Sort,
+			"comment":      val.Comment,
 		}
-		pipe.LPush(ctx, meta.Prefix+":p:"+level+":"+val.ChannelID, val.ID)
-		pipe.HMSet(ctx, meta.Prefix+":p:"+val.ID, value)
-		pipe.Persist(ctx, meta.Prefix+":p:"+val.ID)
+		pipe.HMSet(ctx, meta.Prefix+":f:p:"+val.ID, value)
+		pipe.Persist(ctx, meta.Prefix+":f:p:"+val.ID)
+	}
+	fmt.Println("========")
+	for level, val := range levelMap {
+		fmt.Println("level:", level)
+		var pidsTemp []string
+		cidsTemp := map[string]struct{}{}
+		for _, val2 := range val {
+			pidsTemp = append(pidsTemp, val2.ID)
+			cidsTemp[val2.ChannelID] = struct{}{}
+		}
+		var cids []string
+		for cid, _ := range cidsTemp {
+			cids = append(cids, cid)
+		}
+		if len(pidsTemp) > 0 {
+			pipe.Set(ctx, meta.Prefix+":f:p:lvl:"+level, strings.Join(pidsTemp, ","), 1*time.Hour)
+			pipe.Persist(ctx, meta.Prefix+":f:p:lvl:"+level)
+		}
+		fmt.Println(cids)
+		if len(cids) > 0 {
+			pipe.Set(ctx, meta.Prefix+":f:c:lvl:"+level, strings.Join(cids, ","), 1*time.Hour)
+			pipe.Persist(ctx, meta.Prefix+":f:c:lvl:"+level)
+		}
 	}
 
 	_, err = pipe.Exec(ctx)
@@ -482,7 +593,6 @@ func Create(level string) {
 	fmt.Println("err = ", err)
 	fmt.Println("tunnels = ", tunnels)
 	fmt.Println("payments = ", payments)
-	fmt.Println("paymentIds = ", paymentIds)
 }
 
 func cateToRedis() error {
@@ -651,18 +761,23 @@ func Cate(fctx *fasthttp.RequestCtx) (string, error) {
 		return "", err
 	}
 	var lastDepositChannel string
-	key := fmt.Sprintf("%s:p:%d", meta.Prefix, m.Level)
+	key := fmt.Sprintf("%s:f:c:lvl:%d", meta.Prefix, m.Level)
 	lastDepositKey := fmt.Sprintf("%s:uld:%s", meta.Prefix, m.Username)
 	pipe := meta.MerchantRedis.Pipeline()
 	exists := pipe.Exists(ctx, fmt.Sprintf("%s:DL:%s", meta.Prefix, m.UID))
 
-	recs_temp := pipe.ZRange(ctx, key, 0, -1)
+	recs_temp := pipe.Get(ctx, key)
 	exists2 := pipe.Exists(ctx, lastDepositKey)
 
 	_, err = pipe.Exec(ctx)
 	pipe.Close()
 	if err != nil {
 		return "[]", pushLog(err, helper.RedisErr)
+	}
+
+	recs_result, err := recs_temp.Result()
+	if err != nil {
+		return "[]", nil
 	}
 	// 如果会员被锁定不返回通道
 	if exists.Val() != 0 {
@@ -679,15 +794,28 @@ func Cate(fctx *fasthttp.RequestCtx) (string, error) {
 
 	a := new(fastjson.Arena)
 	obj := a.NewArray()
-	recs := recs_temp.Val()
-
+	recs := strings.Split(recs_result, ",")
 	for i, value := range recs {
-		val := fastjson.MustParse(value)
-		id := val.GetStringBytes("id")
-		if lastDepositChannel != "" && string(id) == lastDepositChannel {
-			val.Set("is_last_success", fastjson.MustParse("1"))
+
+		fmt.Println("value:", value)
+		val := fastjson.MustParse(`{"id":"0","name":"x", "is_last_success":"0"}`)
+		re := meta.MerchantRedis.HMGet(ctx, meta.Prefix+":f:c:"+value, "id", "name")
+		scope := re.Val()
+		if id, ok := scope[0].(string); !ok {
+			fmt.Println("scope:", scope)
+			continue
 		} else {
-			val.Set("is_last_success", fastjson.MustParse("0"))
+			if lastDepositChannel != "" && string(id) == lastDepositChannel {
+				val.Set("is_last_success", fastjson.MustParse("1"))
+			} else {
+				val.Set("is_last_success", fastjson.MustParse("0"))
+			}
+			val.Set("id", fastjson.MustParse(id))
+		}
+		if name, ok := scope[1].(string); !ok {
+			continue
+		} else {
+			val.Set("name", fastjson.MustParse(fmt.Sprintf(`"%s"`, name)))
 		}
 		obj.SetArrayItem(i, val)
 	}

@@ -73,9 +73,11 @@ func Constructor(mt *MetaTable, payRPC string) {
 	loc, _ = time.LoadLocation("Asia/Bangkok")
 	ryrpc.Constructor(payRPC)
 
-	err := Lock(meta.Prefix + "_finance2_load")
+	err := Lock(meta.Prefix + "_f2_load")
 	if err == nil {
 		LoadChannelType()
+		CacheRefreshLevel()
+		CateListRedis()
 	}
 	NewPayment()
 }

@@ -140,9 +140,7 @@ func CateSet(id, state string) error {
 		}
 	}
 
-	for level, _ := range lm {
-		Create(level)
-	}
+	CacheRefreshLevel()
 
 	cateToRedis()
 	return nil
