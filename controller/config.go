@@ -120,3 +120,49 @@ func (that *ConfigController) Withdraw(ctx *fasthttp.RequestCtx) {
 
 	helper.Print(ctx, true, helper.Success)
 }
+
+func (that *ConfigController) List(ctx *fasthttp.RequestCtx) {
+
+	flag := string(ctx.PostArgs().Peek("flag"))
+	username := string(ctx.PostArgs().Peek("username"))
+	if !helper.CtypeDigit(flag) || flag != "1" || flag != "0" {
+		helper.Print(ctx, false, helper.ParamErr)
+		return
+	}
+	res, err := model.MemberConfigList(flag, username)
+	if err != nil {
+		helper.Print(ctx, false, err.Error())
+		return
+	}
+
+	helper.Print(ctx, true, res)
+}
+
+func (that *ConfigController) Insert(ctx *fasthttp.RequestCtx) {
+
+	flag := string(ctx.PostArgs().Peek("flag"))
+	username := string(ctx.PostArgs().Peek("username"))
+	if !helper.CtypeDigit(flag) || flag != "1" || flag != "0" {
+		helper.Print(ctx, false, helper.ParamErr)
+		return
+	}
+	err := model.MemberConfigInsert(flag, username)
+	if err != nil {
+		helper.Print(ctx, false, err.Error())
+		return
+	}
+
+	helper.Print(ctx, true, helper.Success)
+}
+
+func (that *ConfigController) Delete(ctx *fasthttp.RequestCtx) {
+
+	id := string(ctx.PostArgs().Peek("id"))
+	err := model.MemberConfigDelete(id)
+	if err != nil {
+		helper.Print(ctx, false, err.Error())
+		return
+	}
+
+	helper.Print(ctx, true, helper.Success)
+}

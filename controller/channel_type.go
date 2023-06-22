@@ -24,8 +24,12 @@ func (that ChannelTypeController) UpdateState(ctx *fasthttp.RequestCtx) {
 
 	id := string(ctx.QueryArgs().Peek("id"))
 	state := string(ctx.QueryArgs().Peek("state"))
-
-	err := model.ChannelTypeUpdateState(id, state)
+	admin, err := model.AdminToken(ctx)
+	if err != nil || len(admin["id"]) < 1 {
+		helper.Print(ctx, false, helper.AccessTokenExpires)
+		return
+	}
+	err = model.ChannelTypeUpdateState(id, state, admin)
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
 		return

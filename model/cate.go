@@ -4,8 +4,8 @@ import (
 	"database/sql"
 	"errors"
 	"finance/contrib/helper"
+	"fmt"
 	g "github.com/doug-martin/goqu/v9"
-	"strings"
 )
 
 type Category struct {
@@ -29,12 +29,12 @@ func CateByID(id string) (Category, error) {
 
 	var cate Category
 	ex := g.Ex{
-		"prefix": meta.Prefix,
-		"id":     id,
+		"id": id,
 	}
 	query, _, _ := dialect.From("f2_category").Select(colCate...).Where(ex).ToSQL()
 	err := meta.MerchantDB.Get(&cate, query)
 	if err != nil && err != sql.ErrNoRows {
+		fmt.Println(err)
 		return cate, pushLog(err, helper.DBErr)
 	}
 
@@ -108,7 +108,6 @@ func CateSet(id, state string) error {
 	// 切换到关闭状态，旗下所有支付方式也将同时切换到关闭状态
 	if state == "0" {
 		ex = g.Ex{
-			"prefix":  meta.Prefix,
 			"cate_id": id,
 		}
 		query, _, _ = dialect.Update("f2_payment").Set(g.Record{"state": state}).Where(ex).ToSQL()
@@ -122,22 +121,6 @@ func CateSet(id, state string) error {
 	err = tx.Commit()
 	if err != nil {
 		return errors.New(helper.TransErr)
-	}
-
-	var pl []Payment_t
-	lm := map[string]struct{}{}
-	ex = g.Ex{
-		"cate_id": id,
-	}
-	query, _, _ = dialect.From("f2_payment").Select(colsPayment...).Where(ex).ToSQL()
-	err = meta.MerchantDB.Select(&pl, query)
-	if err == nil {
-		for _, level := range pl {
-			ls := strings.Split(level.VipList, ",")
-			for _, l := range ls {
-				lm[l] = struct{}{}
-			}
-		}
 	}
 
 	CacheRefreshLevel()

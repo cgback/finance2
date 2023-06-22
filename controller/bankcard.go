@@ -346,3 +346,34 @@ func (that *BankCardController) InsertMsg(ctx *fasthttp.RequestCtx) {
 		return
 	}
 }
+
+func (that *BankCardController) UpdateDiscount(ctx *fasthttp.RequestCtx) {
+
+	cid := string(ctx.PostArgs().Peek("cid"))           //1QR Banking 2MomoPay 3ZaloPay 4ViettelPay 5Thẻ Cào 6Offline 7USDT
+	flags := string(ctx.PostArgs().Peek("flags"))       //1转卡 2转账
+	discount := string(ctx.PostArgs().Peek("discount")) //优惠
+
+	fields := map[string]string{
+		"discount": discount,
+	}
+	if cid == "2" && flags == "1" {
+		fields["id"] = "766870294997073617"
+	}
+	if cid == "2" && flags == "2" {
+		fields["id"] = "766870294997073618"
+	}
+	if cid == "4" && flags == "1" {
+		fields["id"] = "766870294997073619"
+	}
+	if cid == "4" && flags == "2" {
+		fields["id"] = "766870294997073620"
+	}
+	if cid == "3" && flags == "1" {
+		fields["id"] = "766870294997073621"
+	}
+	err := model.ChannelUpdateDiscount(fields)
+	if err != nil {
+		helper.Print(ctx, false, err.Error())
+		return
+	}
+}

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	g "github.com/doug-martin/goqu/v9"
 	"github.com/go-redis/redis/v8"
+	"time"
 )
 
 func ChannelTypeList() ([]ChannelType, error) {
@@ -22,7 +23,7 @@ func ChannelTypeList() ([]ChannelType, error) {
 	return data, nil
 }
 
-func ChannelTypeUpdateState(id, state string) error {
+func ChannelTypeUpdateState(id, state string, admin map[string]string) error {
 
 	ex := g.Ex{
 		"id": id,
@@ -44,7 +45,10 @@ func ChannelTypeUpdateState(id, state string) error {
 	}
 
 	record := g.Record{
-		"state": state,
+		"state":        state,
+		"updated_at":   time.Now().Unix(),
+		"updated_name": admin["name"],
+		"updated_uid":  admin["id"],
 	}
 	query, _, _ = dialect.Update("f2_channel_type").Set(record).Where(g.Ex{"id": id}).ToSQL()
 	fmt.Println(query)

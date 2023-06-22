@@ -25,8 +25,6 @@ func checkHeaderMiddleware(ctx *fasthttp.RequestCtx) error {
 	fmt.Println(path)
 	if _, ok := allows[path]; ok {
 		return nil
-	} else {
-		return nil
 	}
 
 	device := string(ctx.Request.Header.Peek("d"))
@@ -97,8 +95,8 @@ func checkHeaderMiddleware(ctx *fasthttp.RequestCtx) error {
 			fmt.Println("POST DecodeString err = ", err.Error())
 			return forbidden
 		}
-
 		decryptData := xxtea.Decrypt(data, []byte(keys))
+
 		//decryptData := string(xxtea.Decrypt(data, []byte(keys)))
 		args.ParseBytes(decryptData)
 

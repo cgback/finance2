@@ -508,6 +508,7 @@ func CacheRefreshLevel() {
 
 	//把所有通道按等级划分
 	for _, val := range payments {
+		fmt.Println("val:", val)
 		vipList := strings.Split(val.VipList, ",")
 		for _, level := range vipList {
 			if value, exists := levelMap[level]; !exists {
@@ -570,26 +571,25 @@ func CacheRefreshLevel() {
 		pipe.HMSet(ctx, meta.Prefix+":f:p:"+val.ID, value)
 		pipe.Persist(ctx, meta.Prefix+":f:p:"+val.ID)
 	}
-	fmt.Println("========")
 	for level, val := range levelMap {
-		fmt.Println("level:", level)
 		var pidsTemp []string
-		cidsTemp := map[string]struct{}{}
+		cidsTemp := map[string]string{}
 		for _, val2 := range val {
 			pidsTemp = append(pidsTemp, val2.ID)
-			cidsTemp[val2.ChannelID] = struct{}{}
-			ckey := fmt.Sprintf("%s:f:lvl:c:%s:%s", meta.Prefix, level, val2.ChannelID)
-			pipe.LPush(ctx, ckey, val2.ID)
+			cidsTemp[val2.ChannelID] = val2.ID
+			pipe.Unlink(ctx, meta.Prefix+":f:c:p:"+level+":"+val2.ChannelID)
 		}
 		var cids []string
-		for cid, _ := range cidsTemp {
+		for cid, pid := range cidsTemp {
 			cids = append(cids, cid)
+
+			pipe.LPush(ctx, meta.Prefix+":f:c:p:"+level+":"+cid, pid, 1*time.Hour)
+			pipe.Persist(ctx, meta.Prefix+":f:c:p:"+level+":"+cid)
 		}
 		if len(pidsTemp) > 0 {
 			pipe.Set(ctx, meta.Prefix+":f:p:lvl:"+level, strings.Join(pidsTemp, ","), 1*time.Hour)
 			pipe.Persist(ctx, meta.Prefix+":f:p:lvl:"+level)
 		}
-		fmt.Println(cids)
 		if len(cids) > 0 {
 			pipe.Set(ctx, meta.Prefix+":f:c:lvl:"+level, strings.Join(cids, ","), 1*time.Hour)
 			pipe.Persist(ctx, meta.Prefix+":f:c:lvl:"+level)
@@ -643,7 +643,7 @@ func Tunnel(fctx *fasthttp.RequestCtx, id string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	key := fmt.Sprintf("%s:f:lvl:c:%d:%s", meta.Prefix, u.Level, id)
+	key := fmt.Sprintf("%s:f:c:p:%d:%s", meta.Prefix, u.Level, id)
 	lastDepositPaymentKey := fmt.Sprintf("%s:uldp:%s", meta.Prefix, u.Username)
 	var lastDepositPayment string
 

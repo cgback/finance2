@@ -2,24 +2,12 @@ package controller
 
 import (
 	"finance/contrib/helper"
-	"finance/contrib/validator"
 	"finance/model"
 	"fmt"
 	"github.com/valyala/fasthttp"
 )
 
 type CateController struct{}
-
-type cateListParam struct {
-	All      string `rule:"digit" min:"0" max:"1" default:"0" msg:"all error" name:"all"` // 商户id
-	CateName string `rule:"none" msg:"cate_name error" name:"cate_name"`                  // 渠道名称
-}
-
-type cateStateParam struct {
-	ID    string `rule:"digit" default:"0" msg:"id error" name:"id"`
-	State string `rule:"digit" min:"0" max:"1" msg:"state error" name:"state"` // 0:关闭1:开启
-	Code  string `rule:"digit" msg:"code error" name:"code"`                   // 动态验证码
-}
 
 // List 财务管理-渠道管理-列表
 func (that *CateController) List(ctx *fasthttp.RequestCtx) {
@@ -36,20 +24,15 @@ func (that *CateController) List(ctx *fasthttp.RequestCtx) {
 // UpdateState 财务管理-渠道管理-启用/停用
 func (that *CateController) UpdateState(ctx *fasthttp.RequestCtx) {
 
-	param := cateStateParam{}
-	err := validator.Bind(ctx, &param)
-	if err != nil {
-		helper.Print(ctx, false, helper.ParamErr)
-		return
-	}
-
+	id := string(ctx.PostArgs().Peek("id"))
+	state := string(ctx.PostArgs().Peek("state"))
 	admin, err := model.AdminToken(ctx)
 	if err != nil || len(admin["id"]) < 1 {
 		helper.Print(ctx, false, helper.AccessTokenExpires)
 		return
 	}
 
-	cate, err := model.CateByID(param.ID)
+	cate, err := model.CateByID(id)
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
 		return
@@ -60,19 +43,19 @@ func (that *CateController) UpdateState(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	if cate.State == param.State {
+	if cate.State == state {
 		helper.Print(ctx, false, helper.NoDataUpdate)
 		return
 	}
 
-	err = model.CateSet(param.ID, param.State)
+	err = model.CateSet(id, state)
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
 		return
 	}
 
 	contentLog := fmt.Sprintf("财务管理-渠道管理-%s:后台账号:%s【商户ID: %s ；渠道名称: %s,id:%s,状态:%s】",
-		model.StateMap[param.State], admin["name"], cate.MerchantId, cate.Name, param.ID, model.StateMap[param.State])
+		model.StateMap[state], admin["name"], cate.MerchantId, cate.Name, id, model.StateMap[state])
 	model.AdminLogInsert(model.ChannelModel, contentLog, model.DeleteOp, admin["name"])
 
 	helper.Print(ctx, true, helper.Success)

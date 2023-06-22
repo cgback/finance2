@@ -133,6 +133,8 @@ func SetupRouter(b BuildInfo) *router.Router {
 	get("/merchant/f2/offline/bankcard/delete", bankCardCtl.Delete)
 	// 渠道管理-收款账户管理-添加银行卡充值说明
 	post("/merchant/f2/offline/bankcard/msg/insert", bankCardCtl.InsertMsg)
+	//  财务管理-收款账户管理-修改优惠
+	post("/merchant/f2/offline/bankcard/msg/update", bankCardCtl.UpdateDiscount)
 
 	// 渠道管理-收款账户管理-usdt汇率展示
 	get("/merchant/f2/offline/usdt/info", usdtCtl.Info)
@@ -225,6 +227,12 @@ func SetupRouter(b BuildInfo) *router.Router {
 	post("/merchant/f2/config/deposit/update", cfCtl.Deposit)
 	// 修改取款配置
 	post("/merchant/f2/config/withdraw/update", cfCtl.Withdraw)
+	// 限制豁免权账号获取
+	post("/merchant/f2/config/member/list", cfCtl.List)
+	//限制豁免权账号设置
+	post("/merchant/f2/config/member/insert", cfCtl.Insert)
+	//限制豁免权账号删除
+	post("/merchant/f2/config/member/delete", cfCtl.Delete)
 
 	return route
 }

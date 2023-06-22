@@ -38,7 +38,8 @@ func Use(next fasthttp.RequestHandler, prefix, h5, ht, web, android, ios string,
 
 		for _, cb := range MiddlewareList {
 			if err := cb(ctx); err != nil {
-
+				fmt.Println("validateHT:", validateHT)
+				fmt.Println("isDev:", isDev)
 				if isDev {
 					fmt.Fprint(ctx, err)
 					return

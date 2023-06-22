@@ -266,3 +266,34 @@ func channelCateMap(pids []string) (map[string]CateIDAndName, error) {
 
 	return res, err
 }
+
+func ChannelUpdateDiscount(param map[string]string) error {
+
+	record := g.Record{
+		"discount": param["discount"],
+	}
+
+	tx, err := meta.MerchantDB.Begin()
+	if err != nil {
+		return pushLog(err, helper.TransErr)
+	}
+
+	ex := g.Ex{
+		"id": param["id"],
+	}
+
+	query, _, _ := dialect.Update("f2_payment").Set(record).Where(ex).ToSQL()
+	_, err = tx.Exec(query)
+	if err != nil {
+		_ = tx.Rollback()
+		return pushLog(err, helper.TransErr)
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return pushLog(err, helper.TransErr)
+	}
+
+	_ = CacheRefreshPayment(param["id"])
+	return nil
+}

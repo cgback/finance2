@@ -47,7 +47,7 @@ func main() {
 
 	mt := new(model.MetaTable)
 	mt.Prefix = cfg.Prefix
-	mt.PayRPC = cfg.PayRPC
+	mt.PayRPC = cfg.RPC
 	conn.Use(validateKey)
 	mt.MerchantDB = conn.InitDB(cfg.Db.Masteren.Addr, cfg.Db.Masteren.MaxIdleConn, cfg.Db.Masteren.MaxOpenConn)
 	mt.MerchantRedis = conn.InitRedisSentinel(cfg.Redis.Addr, cfg.Redis.Password, cfg.Redis.Sentinel, 0)
@@ -112,7 +112,7 @@ func main() {
 	}
 	app := router.SetupRouter(b)
 	srv := &fasthttp.Server{
-		Handler:            middleware.Use(app.Handler, mt.Prefix, validateH5, validateHT, validateWEB, validateAndroid, validateIOS, true),
+		Handler:            middleware.Use(app.Handler, mt.Prefix, validateH5, validateHT, validateWEB, validateAndroid, validateIOS, false),
 		ReadTimeout:        router.ApiTimeout,
 		WriteTimeout:       router.ApiTimeout,
 		Name:               "finance2",

@@ -24,11 +24,14 @@ type TenantChannel struct {
 
 // 结构体定义
 type ChannelType struct {
-	ID    string `db:"id" json:"id"`
-	Name  string `db:"name" json:"name"`   // 通道类型名
-	Alias string `db:"alias" json:"alias"` // 通道类型别名
-	State string `db:"state" json:"state"` //状态 1启用 2禁用
-	Sort  int    `db:"sort" json:"sort"`   //排序
+	ID          string `db:"id" json:"id"`
+	Name        string `db:"name" json:"name"`                                      // 通道类型名
+	Alias       string `db:"alias" json:"alias"`                                    // 通道类型别名
+	State       string `db:"state" json:"state"`                                    //状态 1启用 2禁用
+	Sort        int    `db:"sort" json:"sort"`                                      //排序
+	UpdatedAt   int64  `db:"updated_at" json:"updated_at" redis:"updated_at"`       //操作时间
+	UpdatedUID  string `db:"updated_uid" json:"updated_uid" redis:"updated_uid"`    //操作人的ID
+	UpdatedName string `db:"updated_name" json:"updated_name" redis:"updated_name"` //操作人的名字
 }
 
 type TblBankTypes struct {
@@ -349,8 +352,15 @@ type paymentTDLog struct {
 }
 
 type FConfig struct {
-	Id      int    `json:"id" db:"id"`
+	Id      int64  `json:"id" db:"id"`
 	Name    string `json:"name" db:"name"`
 	Content string `json:"content" db:"content"`
 	Prefix  string `json:"prefix" db:"prefix"`
+}
+
+type FMemberConfig struct {
+	Id       int64
+	Uid      string
+	Username string
+	Flag     string
 }
