@@ -25,16 +25,6 @@ type updatePaymentParam struct {
 	Code       string `rule:"digit" msg:"code error" name:"code"`                  // 动态验证码
 }
 
-type paymentListParam struct {
-	CateID    string `rule:"digit" default:"0" msg:"cate_id error" name:"cate_id"`       // 渠道id
-	ChannelID string `rule:"digit" default:"0" msg:"channel_id error" name:"channel_id"` // 通道id
-	St        string `rule:"time" msg:"st error" name:"st"`                              // 开始时间
-	Et        string `rule:"time" msg:"et error" name:"et"`                              // 结束时间
-	Vip       string `rule:"digit" default:"0" msg:"vip error" name:"vip"`               //vip等级
-	State     string `rule:"none" default:"" msg:"state error" name:"state"`             // 0关闭1开启
-	Flag      string `rule:"digit" default:"0" msg:"flag error" name:"flag"`             //1充值2提现
-}
-
 type chanStateParam struct {
 	ID    string `rule:"digit" default:"0" msg:"id error" name:"id"`
 	State string `rule:"digit" min:"0" max:"1" msg:"state error" name:"state"` // 0:关闭1:开启
@@ -44,14 +34,16 @@ type chanStateParam struct {
 // List 财务管理-渠道管理-通道管理-列表
 func (that *PaymentController) List(ctx *fasthttp.RequestCtx) {
 
-	param := paymentListParam{}
-	err := validator.Bind(ctx, &param)
-	if err != nil {
-		helper.Print(ctx, false, helper.ParamErr)
-		return
-	}
+	cate_id := string(ctx.QueryArgs().Peek("cate_id"))
+	channel_id := string(ctx.QueryArgs().Peek("channel_id"))
+	//st:=string(ctx.QueryArgs().Peek("st"))
+	//et:=string(ctx.QueryArgs().Peek("et"))
+	vip := string(ctx.QueryArgs().Peek("vip"))
 
-	data, err := model.PaymentList(param.CateID, param.ChannelID)
+	state := string(ctx.QueryArgs().Peek("state"))
+	flag := string(ctx.QueryArgs().Peek("flag"))
+
+	data, err := model.PaymentList(cate_id, channel_id, vip, state, flag)
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
 		return

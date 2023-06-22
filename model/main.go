@@ -65,6 +65,7 @@ var (
 	colsDeposit             = helper.EnumFields(Deposit{})
 	colsWithdraw            = helper.EnumFields(Withdraw{})
 	colsMemberBankcard      = helper.EnumFields(MemberBankCard{})
+	colsConfig              = helper.EnumFields(FConfig{})
 )
 
 func Constructor(mt *MetaTable, payRPC string) {

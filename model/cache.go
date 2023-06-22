@@ -559,6 +559,13 @@ func CacheRefreshLevel() {
 			"state":        val.State,
 			"sort":         val.Sort,
 			"comment":      val.Comment,
+			"name":         val.Name,
+			"is_zone":      val.IsZone,
+			"is_fast":      val.IsFast,
+			"flag":         val.Flag,
+			"web_img":      val.Flag,
+			"app_img":      val.Flag,
+			"h5_img":       val.Flag,
 		}
 		pipe.HMSet(ctx, meta.Prefix+":f:p:"+val.ID, value)
 		pipe.Persist(ctx, meta.Prefix+":f:p:"+val.ID)
@@ -571,6 +578,8 @@ func CacheRefreshLevel() {
 		for _, val2 := range val {
 			pidsTemp = append(pidsTemp, val2.ID)
 			cidsTemp[val2.ChannelID] = struct{}{}
+			ckey := fmt.Sprintf("%s:f:lvl:c:%s:%s", meta.Prefix, level, val2.ChannelID)
+			pipe.LPush(ctx, ckey, val2.ID)
 		}
 		var cids []string
 		for cid, _ := range cidsTemp {
@@ -585,6 +594,7 @@ func CacheRefreshLevel() {
 			pipe.Set(ctx, meta.Prefix+":f:c:lvl:"+level, strings.Join(cids, ","), 1*time.Hour)
 			pipe.Persist(ctx, meta.Prefix+":f:c:lvl:"+level)
 		}
+
 	}
 
 	_, err = pipe.Exec(ctx)
@@ -633,11 +643,7 @@ func Tunnel(fctx *fasthttp.RequestCtx, id string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	key := fmt.Sprintf("%s:p:%d:%s", meta.Prefix, u.Level, id)
-	//sip := helper.FromRequest(fctx)
-	//if strings.Count(sip, ":") >= 2 {
-	//	key = fmt.Sprintf("p:%d:%s", 9, id)
-	//}
+	key := fmt.Sprintf("%s:f:lvl:c:%d:%s", meta.Prefix, u.Level, id)
 	lastDepositPaymentKey := fmt.Sprintf("%s:uldp:%s", meta.Prefix, u.Username)
 	var lastDepositPayment string
 
@@ -652,13 +658,11 @@ func Tunnel(fctx *fasthttp.RequestCtx, id string) (string, error) {
 
 	ll := len(paymentIds)
 	rs := make([]*redis.SliceCmd, ll)
-	re := make([]*redis.SliceCmd, ll)
 	bk := make([]*redis.StringCmd, ll)
 
 	exists := pipe.Exists(ctx, fmt.Sprintf("%s:DL:%s", meta.Prefix, u.UID))
 	for i, v := range paymentIds {
-		rs[i] = pipe.HMGet(ctx, meta.Prefix+":p:"+v, "id", "fmin", "fmax", "et", "st", "amount_list", "payment_name", "sort")
-		re[i] = pipe.HMGet(ctx, meta.Prefix+":pr:"+v+":"+fmt.Sprintf(`%d`, u.Level), "fmin", "fmax")
+		rs[i] = pipe.HMGet(ctx, meta.Prefix+":f:p:"+v, "id", "fmin", "fmax", "et", "st", "amount_list", "payment_name", "sort", "name", "is_zone", "is_fast", "flag", "web_img", "h5_img", "app_img")
 		bk[i] = pipe.Get(ctx, meta.Prefix+":BK:"+v)
 	}
 	exists2 := pipe.Exists(ctx, lastDepositPaymentKey)
@@ -683,31 +687,28 @@ func Tunnel(fctx *fasthttp.RequestCtx, id string) (string, error) {
 	for i := 0; i < ll; i++ {
 
 		var (
-			fmin, fmax string
-			ok         bool
-			m          Payment_t
+			m Payment_t
 		)
-
-		scope := re[i].Val()
-		if fmin, ok = scope[0].(string); !ok {
-			return "", errors.New(helper.TunnelMinLimitErr)
-		}
-
-		if fmax, ok = scope[1].(string); !ok {
-			return "", errors.New(helper.TunnelMaxLimitErr)
-		}
-
-		if err := rs[i].Scan(&m); err != nil {
+		if err = rs[i].Scan(&m); err != nil {
 			return "", pushLog(err, helper.RedisErr)
 		}
-
-		obj := fastjson.MustParse(`{"id":"0","bank":[], "fmin":"0","fmax":"0", "amount_list": "","sort":"0","payment_name":""}`)
+		//fmt.Println("m:", m)
+		obj := fastjson.MustParse(`{"id":"0","bank":[], "fmin":"0","fmax":"0", "amount_list": "","sort":"0","payment_name":"","discount":"0","name":"","is_zone":"0","is_fast":"0","flag":"1","web_img":"","h5_img":"","app_img":""}`)
 		obj.Set("id", fastjson.MustParse(fmt.Sprintf(`"%s"`, m.ID)))
-		obj.Set("fmin", fastjson.MustParse(fmt.Sprintf(`"%s"`, fmin)))
-		obj.Set("fmax", fastjson.MustParse(fmt.Sprintf(`"%s"`, fmax)))
+		obj.Set("fmin", fastjson.MustParse(fmt.Sprintf(`"%s"`, m.Fmin)))
+		obj.Set("fmax", fastjson.MustParse(fmt.Sprintf(`"%s"`, m.Fmax)))
 		obj.Set("sort", fastjson.MustParse(fmt.Sprintf(`"%s"`, m.Sort)))
 		obj.Set("payment_name", fastjson.MustParse(fmt.Sprintf(`"%s"`, m.PaymentName)))
 		obj.Set("amount_list", fastjson.MustParse(fmt.Sprintf(`"%s"`, m.AmountList)))
+		obj.Set("discount", fastjson.MustParse(fmt.Sprintf(`"%s"`, m.Discount)))
+		obj.Set("name", fastjson.MustParse(fmt.Sprintf(`"%s"`, m.Name)))
+		obj.Set("is_zone", fastjson.MustParse(fmt.Sprintf(`"%s"`, m.IsZone)))
+		obj.Set("is_fast", fastjson.MustParse(fmt.Sprintf(`"%s"`, m.IsFast)))
+		obj.Set("flag", fastjson.MustParse(fmt.Sprintf(`"%s"`, m.Flag)))
+		obj.Set("web_img", fastjson.MustParse(fmt.Sprintf(`"%s"`, m.WebImg)))
+		obj.Set("h5_img", fastjson.MustParse(fmt.Sprintf(`"%s"`, m.H5Img)))
+		obj.Set("app_img", fastjson.MustParse(fmt.Sprintf(`"%s"`, m.AppImg)))
+
 		if m.ID == lastDepositPayment {
 			obj.Set("is_last_success", fastjson.MustParse("1"))
 		} else {
@@ -741,6 +742,7 @@ func Tunnel(fctx *fasthttp.RequestCtx, id string) (string, error) {
 				}
 			}
 		}
+
 		banks := bk[i].Val()
 		if len(banks) > 0 {
 			obj.Set("bank", fastjson.MustParse(banks))
@@ -748,6 +750,10 @@ func Tunnel(fctx *fasthttp.RequestCtx, id string) (string, error) {
 
 		arr.SetArrayItem(i, obj)
 		obj = nil
+		fmt.Println(m.ID)
+		if m.ID == "766870294997073616" {
+			break
+		}
 	}
 	str := arr.String()
 

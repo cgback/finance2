@@ -78,6 +78,8 @@ func SetupRouter(b BuildInfo) *router.Router {
 	//提款管理
 	wdCtl := new(controller.WithdrawController)
 	cbCtl := new(controller.CallBackController)
+	//存款订单配置
+	cfCtl := new(controller.ConfigController)
 
 	get("/f2/version", Version)
 	// [callback] NVN 代付回调
@@ -216,6 +218,13 @@ func SetupRouter(b BuildInfo) *router.Router {
 	post("/merchant/f2/withdraw/receive", wdCtl.ConfirmName)
 	// [商户后台] 风控管理-提款审核-历史记录列表
 	post("/merchant/f2/withdraw/riskhistory", wdCtl.RiskHistory)
+
+	// 获取存款订单配置
+	post("/merchant/f2/config/deposit/list", cfCtl.Detail)
+	// 修改存款配置
+	post("/merchant/f2/config/deposit/update", cfCtl.Deposit)
+	// 修改取款配置
+	post("/merchant/f2/config/withdraw/update", cfCtl.Withdraw)
 
 	return route
 }

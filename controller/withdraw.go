@@ -75,14 +75,14 @@ func (that *WithdrawController) Withdraw(ctx *fasthttp.RequestCtx) {
 // RiskReviewList 风控待审核列表
 func (that *WithdrawController) RiskReviewList(ctx *fasthttp.RequestCtx) {
 
-	id := string(ctx.FormValue("id"))                    // 订单号
-	realName := string(ctx.FormValue("real_name"))       // 真实姓名
-	confirmName := string(ctx.FormValue("confirm_name")) // 领取人
-	page, err := strconv.ParseUint(string(ctx.FormValue("page")), 10, 64)
+	id := string(ctx.PostArgs().Peek("id"))                    // 订单号
+	realName := string(ctx.PostArgs().Peek("real_name"))       // 真实姓名
+	confirmName := string(ctx.PostArgs().Peek("confirm_name")) // 领取人
+	page, err := strconv.ParseUint(string(ctx.PostArgs().Peek("page")), 10, 64)
 	if err != nil {
 		page = 1
 	}
-	pageSize, err := strconv.ParseUint(string(ctx.FormValue("page_size")), 10, 64)
+	pageSize, err := strconv.ParseUint(string(ctx.PostArgs().Peek("page_size")), 10, 64)
 	if err != nil {
 		pageSize = 15
 	}
@@ -133,19 +133,19 @@ func (that *WithdrawController) RiskReviewList(ctx *fasthttp.RequestCtx) {
 // RiskWaitConfirmList 风控待领取列表
 func (that *WithdrawController) RiskWaitConfirmList(ctx *fasthttp.RequestCtx) {
 
-	id := string(ctx.FormValue("id"))              // 订单号
-	realName := string(ctx.FormValue("real_name")) // 真实姓名
-	startTime := string(ctx.FormValue("start_time"))
-	endTime := string(ctx.FormValue("end_time"))
-	username := string(ctx.FormValue("username"))
-	maxAmount := string(ctx.FormValue("max_amount"))
-	minAmount := string(ctx.FormValue("min_amount"))
-	vips := string(ctx.FormValue("vips"))
-	page, err := strconv.ParseUint(string(ctx.FormValue("page")), 10, 64)
+	id := string(ctx.PostArgs().Peek("id"))              // 订单号
+	realName := string(ctx.PostArgs().Peek("real_name")) // 真实姓名
+	startTime := string(ctx.PostArgs().Peek("start_time"))
+	endTime := string(ctx.PostArgs().Peek("end_time"))
+	username := string(ctx.PostArgs().Peek("username"))
+	maxAmount := string(ctx.PostArgs().Peek("max_amount"))
+	minAmount := string(ctx.PostArgs().Peek("min_amount"))
+	vips := string(ctx.PostArgs().Peek("vips"))
+	page, err := strconv.ParseUint(string(ctx.PostArgs().Peek("page")), 10, 64)
 	if err != nil {
 		page = 1
 	}
-	pageSize, err := strconv.ParseUint(string(ctx.FormValue("page_size")), 10, 64)
+	pageSize, err := strconv.ParseUint(string(ctx.PostArgs().Peek("page_size")), 10, 64)
 	if err != nil {
 		pageSize = 15
 	}
@@ -236,21 +236,21 @@ func (that *WithdrawController) RiskWaitConfirmList(ctx *fasthttp.RequestCtx) {
 // HangUpList 风控审核挂起列表
 func (that *WithdrawController) HangUpList(ctx *fasthttp.RequestCtx) {
 
-	id := string(ctx.FormValue("id"))              // 订单号
-	realName := string(ctx.FormValue("real_name")) // 真实姓名
-	startTime := string(ctx.FormValue("start_time"))
-	endTime := string(ctx.FormValue("end_time"))
-	maxAmount := string(ctx.FormValue("max_amount"))
-	minAmount := string(ctx.FormValue("min_amount"))
-	username := string(ctx.FormValue("username"))
-	remarkID := string(ctx.FormValue("remark_id"))
-	hangUpName := string(ctx.FormValue("hang_up_name"))
-	vips := string(ctx.FormValue("vips"))
-	page, err := strconv.ParseUint(string(ctx.FormValue("page")), 10, 64)
+	id := string(ctx.PostArgs().Peek("id"))              // 订单号
+	realName := string(ctx.PostArgs().Peek("real_name")) // 真实姓名
+	startTime := string(ctx.PostArgs().Peek("start_time"))
+	endTime := string(ctx.PostArgs().Peek("end_time"))
+	maxAmount := string(ctx.PostArgs().Peek("max_amount"))
+	minAmount := string(ctx.PostArgs().Peek("min_amount"))
+	username := string(ctx.PostArgs().Peek("username"))
+	remarkID := string(ctx.PostArgs().Peek("remark_id"))
+	hangUpName := string(ctx.PostArgs().Peek("hang_up_name"))
+	vips := string(ctx.PostArgs().Peek("vips"))
+	page, err := strconv.ParseUint(string(ctx.PostArgs().Peek("page")), 10, 64)
 	if err != nil {
 		page = 1
 	}
-	pageSize, err := strconv.ParseUint(string(ctx.FormValue("page_size")), 10, 64)
+	pageSize, err := strconv.ParseUint(string(ctx.PostArgs().Peek("page_size")), 10, 64)
 	if err != nil {
 		pageSize = 15
 	}
@@ -354,25 +354,25 @@ func (that *WithdrawController) HangUpList(ctx *fasthttp.RequestCtx) {
 // RiskHistory 历史记录列表
 func (that *WithdrawController) RiskHistory(ctx *fasthttp.RequestCtx) {
 
-	id := string(ctx.FormValue("id"))              // 订单号
-	realName := string(ctx.FormValue("real_name")) // 真实姓名
-	startTime := string(ctx.FormValue("start_time"))
-	endTime := string(ctx.FormValue("end_time"))
-	maxAmount := string(ctx.FormValue("max_amount"))
-	minAmount := string(ctx.FormValue("min_amount"))
-	username := string(ctx.FormValue("username"))
-	confirmName := string(ctx.FormValue("confirm_name"))
-	vips := string(ctx.FormValue("vips"))
-	state := string(ctx.FormValue("state"))
-	ty := string(ctx.FormValue("ty"))
-	sortField := string(ctx.FormValue("sort_field"))
-	isAsc := string(ctx.FormValue("is_asc"))
+	id := string(ctx.PostArgs().Peek("id"))              // 订单号
+	realName := string(ctx.PostArgs().Peek("real_name")) // 真实姓名
+	startTime := string(ctx.PostArgs().Peek("start_time"))
+	endTime := string(ctx.PostArgs().Peek("end_time"))
+	maxAmount := string(ctx.PostArgs().Peek("max_amount"))
+	minAmount := string(ctx.PostArgs().Peek("min_amount"))
+	username := string(ctx.PostArgs().Peek("username"))
+	confirmName := string(ctx.PostArgs().Peek("confirm_name"))
+	vips := string(ctx.PostArgs().Peek("vips"))
+	state := string(ctx.PostArgs().Peek("state"))
+	ty := string(ctx.PostArgs().Peek("ty"))
+	sortField := string(ctx.PostArgs().Peek("sort_field"))
+	isAsc := string(ctx.PostArgs().Peek("is_asc"))
 
-	page, err := strconv.ParseUint(string(ctx.FormValue("page")), 10, 64)
+	page, err := strconv.ParseUint(string(ctx.PostArgs().Peek("page")), 10, 64)
 	if err != nil {
 		page = 1
 	}
-	pageSize, err := strconv.ParseUint(string(ctx.FormValue("page_size")), 10, 64)
+	pageSize, err := strconv.ParseUint(string(ctx.PostArgs().Peek("page_size")), 10, 64)
 	if err != nil {
 		pageSize = 15
 	}
@@ -519,22 +519,22 @@ func (that *WithdrawController) RiskHistory(ctx *fasthttp.RequestCtx) {
 // HistoryList 后台提款列表
 func (that *WithdrawController) HistoryList(ctx *fasthttp.RequestCtx) {
 
-	id := string(ctx.FormValue("id")) // 订单号
-	username := string(ctx.FormValue("username"))
-	startTime := string(ctx.FormValue("start_time"))
-	endTime := string(ctx.FormValue("end_time"))
-	maxAmount := string(ctx.FormValue("max_amount"))
-	minAmount := string(ctx.FormValue("min_amount"))
-	state := string(ctx.FormValue("state"))
-	ty := string(ctx.FormValue("ty"))
-	sortField := string(ctx.FormValue("sort_field"))
-	isAsc := string(ctx.FormValue("is_asc"))
+	id := string(ctx.PostArgs().Peek("id")) // 订单号
+	username := string(ctx.PostArgs().Peek("username"))
+	startTime := string(ctx.PostArgs().Peek("start_time"))
+	endTime := string(ctx.PostArgs().Peek("end_time"))
+	maxAmount := string(ctx.PostArgs().Peek("max_amount"))
+	minAmount := string(ctx.PostArgs().Peek("min_amount"))
+	state := string(ctx.PostArgs().Peek("state"))
+	ty := string(ctx.PostArgs().Peek("ty"))
+	sortField := string(ctx.PostArgs().Peek("sort_field"))
+	isAsc := string(ctx.PostArgs().Peek("is_asc"))
 
-	page, err := strconv.ParseUint(string(ctx.FormValue("page")), 10, 64)
+	page, err := strconv.ParseUint(string(ctx.PostArgs().Peek("page")), 10, 64)
 	if err != nil {
 		page = 1
 	}
-	pageSize, err := strconv.ParseUint(string(ctx.FormValue("page_size")), 10, 64)
+	pageSize, err := strconv.ParseUint(string(ctx.PostArgs().Peek("page_size")), 10, 64)
 	if err != nil {
 		pageSize = 15
 	}
@@ -646,19 +646,19 @@ func (that *WithdrawController) HistoryList(ctx *fasthttp.RequestCtx) {
 // MemberWithdrawList 会员列表-提款信息
 func (that *WithdrawController) MemberWithdrawList(ctx *fasthttp.RequestCtx) {
 
-	financeType := string(ctx.FormValue("finance_type"))
-	uid := string(ctx.FormValue("uid"))
-	ty := string(ctx.FormValue("ty"))
-	state := string(ctx.FormValue("state"))
-	startTime := string(ctx.FormValue("start_time"))
-	endTime := string(ctx.FormValue("end_time"))
+	financeType := string(ctx.PostArgs().Peek("finance_type"))
+	uid := string(ctx.PostArgs().Peek("uid"))
+	ty := string(ctx.PostArgs().Peek("ty"))
+	state := string(ctx.PostArgs().Peek("state"))
+	startTime := string(ctx.PostArgs().Peek("start_time"))
+	endTime := string(ctx.PostArgs().Peek("end_time"))
 
-	page, err := strconv.ParseUint(string(ctx.FormValue("page")), 10, 64)
+	page, err := strconv.ParseUint(string(ctx.PostArgs().Peek("page")), 10, 64)
 	if err != nil {
 		page = 1
 	}
 
-	pageSize, err := strconv.ParseUint(string(ctx.FormValue("page_size")), 10, 64)
+	pageSize, err := strconv.ParseUint(string(ctx.PostArgs().Peek("page_size")), 10, 64)
 	if err != nil {
 		pageSize = 15
 	}
@@ -1013,7 +1013,7 @@ func (that *WithdrawController) Review(ctx *fasthttp.RequestCtx) {
 // AutomaticFailed 代付失败
 func (that *WithdrawController) AutomaticFailed(ctx *fasthttp.RequestCtx) {
 
-	id := string(ctx.FormValue("id"))
+	id := string(ctx.PostArgs().Peek("id"))
 	if !validator.CheckStringDigit(id) {
 		helper.Print(ctx, false, helper.IDErr)
 		return
@@ -1079,7 +1079,7 @@ func (that *WithdrawController) Processing(ctx *fasthttp.RequestCtx) {
 // RiskReview 风控审核 通过
 func (that *WithdrawController) RiskReview(ctx *fasthttp.RequestCtx) {
 
-	id := string(ctx.FormValue("id"))
+	id := string(ctx.PostArgs().Peek("id"))
 	if !validator.CheckStringDigit(id) {
 		helper.Print(ctx, false, helper.IDErr)
 		return
@@ -1302,7 +1302,7 @@ func (that *WithdrawController) HangUp(ctx *fasthttp.RequestCtx) {
 // ConfirmNameUpdate 修改领取人
 func (that *WithdrawController) ConfirmNameUpdate(ctx *fasthttp.RequestCtx) {
 
-	id := string(ctx.FormValue("id"))
+	id := string(ctx.PostArgs().Peek("id"))
 	if !validator.CheckStringDigit(id) {
 		helper.Print(ctx, false, helper.IDErr)
 		return
@@ -1332,8 +1332,8 @@ func (that *WithdrawController) ConfirmNameUpdate(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	newConfirmUID := string(ctx.FormValue("confirm_uid"))
-	newConfirmName := string(ctx.FormValue("confirm_name"))
+	newConfirmUID := string(ctx.PostArgs().Peek("confirm_uid"))
+	newConfirmName := string(ctx.PostArgs().Peek("confirm_name"))
 	if newConfirmName == "" || newConfirmUID == "" {
 		helper.Print(ctx, false, helper.AdminNameErr)
 		return
@@ -1363,7 +1363,7 @@ func (that *WithdrawController) ConfirmNameUpdate(ctx *fasthttp.RequestCtx) {
 // ConfirmName 领取
 func (that *WithdrawController) ConfirmName(ctx *fasthttp.RequestCtx) {
 
-	id := string(ctx.FormValue("id"))
+	id := string(ctx.PostArgs().Peek("id"))
 	if !validator.CheckStringDigit(id) {
 		helper.Print(ctx, false, helper.IDErr)
 		return
@@ -1418,8 +1418,8 @@ func (that *WithdrawController) ConfirmName(ctx *fasthttp.RequestCtx) {
 // BankCardWithdrawRecord 获取银行卡 绑定时间 成功失败次数
 func (that *WithdrawController) BankCardWithdrawRecord(ctx *fasthttp.RequestCtx) {
 
-	bankID := string(ctx.FormValue("bid"))
-	username := string(ctx.FormValue("username"))
+	bankID := string(ctx.PostArgs().Peek("bid"))
+	username := string(ctx.PostArgs().Peek("username"))
 
 	if bankID == "" || !validator.CheckStringDigit(bankID) {
 		helper.Print(ctx, false, helper.BankcardIDErr)

@@ -347,3 +347,10 @@ type paymentTDLog struct {
 	OrderID      string `db:"order_id"`
 	Username     string `db:"username"`
 }
+
+type FConfig struct {
+	Id      int    `json:"id" db:"id"`
+	Name    string `json:"name" db:"name"`
+	Content string `json:"content" db:"content"`
+	Prefix  string `json:"prefix" db:"prefix"`
+}

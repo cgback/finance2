@@ -23,7 +23,7 @@ type channelCate struct {
 	CateID    string `db:"cate_id" json:"cate_id"`
 }
 
-func PaymentList(cateID, chanID string) ([]Payment_t, error) {
+func PaymentList(cateID, chanID, vip, state, flag string) ([]Payment_t, error) {
 
 	var data []Payment_t
 
