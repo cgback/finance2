@@ -35,6 +35,7 @@ func NewPayment() {
 	var NvnPay = new(NvnPayment)
 	NvnPay.New() //NVN支付
 	vnPay = NvnPay
+	fmt.Println("init nvnpay:", vnPay)
 }
 
 // PayOnline 调用与pid对应的渠道, 发起充值(代收)请求

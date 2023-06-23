@@ -2,6 +2,7 @@ package model
 
 import (
 	"context"
+	"crypto/tls"
 	"database/sql"
 	"errors"
 	"finance/contrib/helper"
@@ -79,6 +80,13 @@ func Constructor(mt *MetaTable, payRPC string) {
 		LoadChannelType()
 		CacheRefreshLevel()
 		CateListRedis()
+	}
+
+	fc = &fasthttp.Client{
+		MaxConnsPerHost: 60000,
+		TLSConfig:       &tls.Config{InsecureSkipVerify: true},
+		ReadTimeout:     time.Second * 10,
+		WriteTimeout:    time.Second * 10,
 	}
 	NewPayment()
 }

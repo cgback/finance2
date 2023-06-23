@@ -73,11 +73,11 @@ func (that *NvnPayment) New() {
 		PayNotify:      "%s/finance/callback/nvnd",
 		WithdrawNotify: "%s/finance/callback/nvnw",
 		Channel: map[string]string{
-			"8":  QRBanking,
-			"1":  MomoPay,
-			"2":  ZaloPay,
-			"6":  ViettelPay,
-			"15": TheCao,
+			"1": QRBanking,
+			"2": MomoPay,
+			"3": ZaloPay,
+			"4": ViettelPay,
+			"5": TheCao,
 		},
 	}
 }

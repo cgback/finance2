@@ -23,6 +23,8 @@ type updatePaymentParam struct {
 	H5Img      string `rule:"none" msg:"h5_img error" name:"h5_img"`               //h5端说明
 	AppImg     string `rule:"none" msg:"app_img error" name:"app_img"`             //app端说明
 	Code       string `rule:"digit" msg:"code error" name:"code"`                  // 动态验证码
+	Fmax       string `rule:"digit" msg:"fmax" name:"fmax"`
+	Fmin       string `rule:"digit" msg:"fmin" name:"fmin"`
 }
 
 type chanStateParam struct {
@@ -189,12 +191,8 @@ func (that *PaymentController) Update(ctx *fasthttp.RequestCtx) {
 // UpdateState 财务管理-渠道管理-通道管理-启用/停用
 func (that *PaymentController) UpdateState(ctx *fasthttp.RequestCtx) {
 
-	param := chanStateParam{}
-	err := validator.Bind(ctx, &param)
-	if err != nil {
-		helper.Print(ctx, false, helper.ParamErr)
-		return
-	}
+	id := string(ctx.PostArgs().Peek("id"))
+	state := string(ctx.PostArgs().Peek("state"))
 
 	admin, err := model.AdminToken(ctx)
 	if err != nil || len(admin["id"]) < 1 {
@@ -203,7 +201,7 @@ func (that *PaymentController) UpdateState(ctx *fasthttp.RequestCtx) {
 	}
 
 	// 校验渠道id和通道id是否存在
-	payment, err := model.ChanExistsByID(param.ID)
+	payment, err := model.ChanExistsByID(id)
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
 		return
@@ -214,7 +212,7 @@ func (that *PaymentController) UpdateState(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	if payment.State == param.State {
+	if payment.State == state {
 		helper.Print(ctx, false, helper.NoDataUpdate)
 		return
 	}
@@ -232,7 +230,7 @@ func (that *PaymentController) UpdateState(ctx *fasthttp.RequestCtx) {
 	}
 
 	// 上级渠道关闭的时候不能开启
-	if param.State == "1" && cate.State == "0" {
+	if state == "1" && cate.State == "0" {
 		helper.Print(ctx, false, helper.ParentChannelClosed)
 		return
 
@@ -250,15 +248,15 @@ func (that *PaymentController) UpdateState(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	err = model.ChannelSet(param.ID, param.State)
+	err = model.ChannelSet(id, state)
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
 		return
 	}
 
 	contentLog := fmt.Sprintf(" 财务管理-渠道管理-通道管理-%s:后台账号:%s【渠道名称: %s ；通道名称: %s,id:%s】",
-		model.StateMap[param.State], admin["name"], cate.Name, channel.Name, param.ID)
-	model.AdminLogInsert(model.ChannelModel, contentLog, model.StateMap[param.State], admin["name"])
+		model.StateMap[state], admin["name"], cate.Name, channel.Name, id)
+	model.AdminLogInsert(model.ChannelModel, contentLog, model.StateMap[state], admin["name"])
 
 	helper.Print(ctx, true, helper.Success)
 }

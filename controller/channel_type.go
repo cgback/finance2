@@ -22,8 +22,8 @@ func (that ChannelTypeController) List(ctx *fasthttp.RequestCtx) {
 
 func (that ChannelTypeController) UpdateState(ctx *fasthttp.RequestCtx) {
 
-	id := string(ctx.QueryArgs().Peek("id"))
-	state := string(ctx.QueryArgs().Peek("state"))
+	id := string(ctx.PostArgs().Peek("id"))
+	state := string(ctx.PostArgs().Peek("state"))
 	admin, err := model.AdminToken(ctx)
 	if err != nil || len(admin["id"]) < 1 {
 		helper.Print(ctx, false, helper.AccessTokenExpires)
@@ -40,8 +40,8 @@ func (that ChannelTypeController) UpdateState(ctx *fasthttp.RequestCtx) {
 
 func (that ChannelTypeController) UpdateSort(ctx *fasthttp.RequestCtx) {
 
-	id := string(ctx.QueryArgs().Peek("id"))
-	sort := ctx.QueryArgs().GetUintOrZero("sort")
+	id := string(ctx.PostArgs().Peek("id"))
+	sort := ctx.PostArgs().GetUintOrZero("sort")
 
 	err := model.ChannelTypeUpdateSort(id, sort)
 	if err != nil {

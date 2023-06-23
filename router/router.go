@@ -119,9 +119,9 @@ func SetupRouter(b BuildInfo) *router.Router {
 	// 渠道管理-支付方式列表
 	get("/merchant/f2/channel/type/list", channelTypeCtl.List)
 	// 渠道管理-支付方式列表-更新状态
-	get("/merchant/f2/channel/type/updatestate", channelTypeCtl.UpdateState)
+	post("/merchant/f2/channel/type/updatestate", channelTypeCtl.UpdateState)
 	// 渠道管理-支付方式列表-修改排序
-	get("/merchant/f2/channel/type/updatesort", channelTypeCtl.UpdateSort)
+	post("/merchant/f2/channel/type/updatesort", channelTypeCtl.UpdateSort)
 
 	// 渠道管理-收款账户管理
 	get("/merchant/f2/offline/bankcard/list", bankCardCtl.List)

@@ -16,17 +16,7 @@ var onlinePay = map[string]bool{
 	"59000000000000005": true, //	TheCao
 	"59000000000000101": true, //	bankPay
 	//"133221087319615487": true, //	withdraw
-	"182540235356768974": true, //	777TheCao
-	"182540235356768975": true, //	777 MomoPay
-	"182540235356768976": true, //	777 ZaloPay
-	"182540235356768977": true, //	777 QR Banking
-	"182540235356768978": true, //	777 ViettelPay
-	"182540235356768979": true, //	777 代付
-	"182540235356769001": true, //	W MomoPay
-	"182540235356769002": true, //	W ZaloPay
-	"182540235356769003": true, //	W QR Banking
-	"182540235356769004": true, //	W ViettelPay
-	"182540235356769005": true, //	W 代付
+
 }
 
 var offlinePay = map[string]bool{

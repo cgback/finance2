@@ -151,7 +151,7 @@ func CachePayment(id string) (FPay, error) {
 		cols = append(cols, val.(string))
 	}
 
-	pkey := meta.Prefix + ":p:" + id
+	pkey := meta.Prefix + ":f:p:" + id
 	// 需要执行的命令
 	exists := pipe.Exists(ctx, pkey)
 	rs := pipe.HMGet(ctx, pkey, cols...)
@@ -577,12 +577,11 @@ func CacheRefreshLevel() {
 		for _, val2 := range val {
 			pidsTemp = append(pidsTemp, val2.ID)
 			cidsTemp[val2.ChannelID] = val2.ID
-			pipe.Unlink(ctx, meta.Prefix+":f:c:p:"+level+":"+val2.ChannelID)
+			meta.MerchantRedis.Unlink(ctx, meta.Prefix+":f:c:p:"+level+":"+val2.ChannelID)
 		}
 		var cids []string
 		for cid, pid := range cidsTemp {
 			cids = append(cids, cid)
-
 			pipe.LPush(ctx, meta.Prefix+":f:c:p:"+level+":"+cid, pid, 1*time.Hour)
 			pipe.Persist(ctx, meta.Prefix+":f:c:p:"+level+":"+cid)
 		}
@@ -652,7 +651,12 @@ func Tunnel(fctx *fasthttp.RequestCtx, id string) (string, error) {
 		fmt.Println("SMembers = ", err.Error())
 		return "[]", nil
 	}
-
+	fmt.Println("paymentIds:", paymentIds)
+	for i, pid := range paymentIds {
+		if pid == "3600000000000" {
+			paymentIds = append(paymentIds[:i], paymentIds[i+1:]...)
+		}
+	}
 	pipe := meta.MerchantRedis.TxPipeline()
 	defer pipe.Close()
 
@@ -692,7 +696,7 @@ func Tunnel(fctx *fasthttp.RequestCtx, id string) (string, error) {
 		if err = rs[i].Scan(&m); err != nil {
 			return "", pushLog(err, helper.RedisErr)
 		}
-		//fmt.Println("m:", m)
+		fmt.Println("m:", m)
 		obj := fastjson.MustParse(`{"id":"0","bank":[], "fmin":"0","fmax":"0", "amount_list": "","sort":"0","payment_name":"","discount":"0","name":"","is_zone":"0","is_fast":"0","flag":"1","web_img":"","h5_img":"","app_img":""}`)
 		obj.Set("id", fastjson.MustParse(fmt.Sprintf(`"%s"`, m.ID)))
 		obj.Set("fmin", fastjson.MustParse(fmt.Sprintf(`"%s"`, m.Fmin)))

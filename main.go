@@ -112,7 +112,7 @@ func main() {
 	}
 	app := router.SetupRouter(b)
 	srv := &fasthttp.Server{
-		Handler:            middleware.Use(app.Handler, mt.Prefix, validateH5, validateHT, validateWEB, validateAndroid, validateIOS, false),
+		Handler:            middleware.Use(app.Handler, mt.Prefix, validateH5, validateHT, validateWEB, validateAndroid, validateIOS, true),
 		ReadTimeout:        router.ApiTimeout,
 		WriteTimeout:       router.ApiTimeout,
 		Name:               "finance2",
