@@ -169,6 +169,9 @@ func (that *BankCardController) Insert(ctx *fasthttp.RequestCtx) {
 		IsZone:            isZone,
 		IsFast:            isFast,
 		Cid:               cid,
+		CreatedAt:         ctx.Time().Unix(),
+		CreatedUID:        admin["id"],
+		CreatedName:       admin["name"],
 	}
 
 	err = model.BankCardInsert(bc, code, admin["name"])
@@ -294,6 +297,9 @@ func (that *BankCardController) Update(ctx *fasthttp.RequestCtx) {
 	}
 	rec["is_zone"] = isZone
 	rec["is_fast"] = isFast
+	rec["updated_at"] = ctx.Time().Unix()
+	rec["updated_uid"] = admin["id"]
+	rec["updated_name"] = admin["name"]
 	bankCard, err := model.BankCardByID(id)
 	if err != nil {
 		helper.Print(ctx, false, err)
@@ -340,7 +346,15 @@ func (that *BankCardController) InsertMsg(ctx *fasthttp.RequestCtx) {
 	if cid == "3" && flags == "1" {
 		fields["id"] = "766870294997073621"
 	}
-	err := model.ChannelUpdateImg(fields)
+	admin, err := model.AdminToken(ctx)
+	if err != nil || len(admin["id"]) < 1 {
+		helper.Print(ctx, false, helper.AccessTokenExpires)
+		return
+	}
+	fields["updated_at"] = fmt.Sprintf(`%d`, ctx.Time().Unix())
+	fields["updated_uid"] = admin["id"]
+	fields["updated_name"] = admin["name"]
+	err = model.ChannelUpdateImg(fields)
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
 		return
@@ -371,7 +385,15 @@ func (that *BankCardController) UpdateDiscount(ctx *fasthttp.RequestCtx) {
 	if cid == "3" && flags == "1" {
 		fields["id"] = "766870294997073621"
 	}
-	err := model.ChannelUpdateDiscount(fields)
+	admin, err := model.AdminToken(ctx)
+	if err != nil || len(admin["id"]) < 1 {
+		helper.Print(ctx, false, helper.AccessTokenExpires)
+		return
+	}
+	fields["updated_at"] = fmt.Sprintf(`%d`, ctx.Time().Unix())
+	fields["updated_uid"] = admin["id"]
+	fields["updated_name"] = admin["name"]
+	err = model.ChannelUpdateDiscount(fields)
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
 		return

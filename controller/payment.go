@@ -36,16 +36,13 @@ type chanStateParam struct {
 // List 财务管理-渠道管理-通道管理-列表
 func (that *PaymentController) List(ctx *fasthttp.RequestCtx) {
 
-	cate_id := string(ctx.QueryArgs().Peek("cate_id"))
-	channel_id := string(ctx.QueryArgs().Peek("channel_id"))
-	//st:=string(ctx.QueryArgs().Peek("st"))
-	//et:=string(ctx.QueryArgs().Peek("et"))
+	cateId := string(ctx.QueryArgs().Peek("cate_id"))
+	channelId := string(ctx.QueryArgs().Peek("channel_id"))
 	vip := string(ctx.QueryArgs().Peek("vip"))
-
 	state := string(ctx.QueryArgs().Peek("state"))
 	flag := string(ctx.QueryArgs().Peek("flag"))
 
-	data, err := model.PaymentList(cate_id, channel_id, vip, state, flag)
+	data, err := model.PaymentList(cateId, channelId, vip, state, flag)
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
 		return
@@ -248,7 +245,7 @@ func (that *PaymentController) UpdateState(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	err = model.ChannelSet(id, state)
+	err = model.ChannelSet(id, state, admin["id"], admin["name"])
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
 		return

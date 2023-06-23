@@ -11,26 +11,32 @@ import (
 
 type Bankcard_t struct {
 	Id                string `db:"id" json:"id" json:"id"`
-	ChannelBankId     string `db:"channel_bank_id" json:"bank_id"`                 // t_channel_bank的id
-	BanklcardName     string `db:"banklcard_name" json:"banklcard_name"`           // 银行名称
-	BanklcardNo       string `db:"banklcard_no" json:"banklcard_no"`               // 银行卡号
-	AccountName       string `db:"account_name" json:"account_name"`               // 持卡人姓名
-	BankcardAddr      string `db:"bankcard_addr" json:"bankcard_addr"`             // 开户行地址
-	State             string `db:"state" json:"state"`                             // 状态：0 关闭  1 开启
-	Remark            string `db:"remark" json:"remark"`                           // 备注
-	Prefix            string `db:"prefix" json:"prefix"`                           // 商户前缀
-	DailyMaxAmount    string `db:"daily_max_amount" json:"daily_max_amount"`       // 当天最大收款限额
-	DailyFinishAmount string `db:"daily_finish_amount" json:"daily_finish_amount"` // 当天已收款总额
-	Flags             string `db:"flags" json:"flags"`                             // 1转卡2转账
-	Logo              string `db:"-" json:"logo"`                                  //logo
-	VipList           string `db:"vip_list" json:"vip_list"`                       //vip等级
-	Fmin              string `db:"fmin" json:"fmin"`                               //最小金额
-	Fmax              string `db:"fmax" json:"fmax"`                               //最大金额
-	AmountList        string `db:"amount_list" json:"amount_list"`                 //金额列表
-	Discount          string `db:"discount" json:"discount"`                       //优惠
-	IsZone            int    `db:"is_zone" json:"is_zone"`                         // 0 不是区间 1是区间
-	IsFast            int    `db:"is_fast" json:"is_fast"`                         // 0 不是快捷 1是快捷
-	Cid               int    `db:"cid" json:"cid"`                                 //1:QR Banking 2:MomoPay 3:ZaloPay 4:ViettelPay 5:Thẻ Cào 6:Offline 7:USDT
+	ChannelBankId     string `db:"channel_bank_id" json:"bank_id"`                        // t_channel_bank的id
+	BanklcardName     string `db:"banklcard_name" json:"banklcard_name"`                  // 银行名称
+	BanklcardNo       string `db:"banklcard_no" json:"banklcard_no"`                      // 银行卡号
+	AccountName       string `db:"account_name" json:"account_name"`                      // 持卡人姓名
+	BankcardAddr      string `db:"bankcard_addr" json:"bankcard_addr"`                    // 开户行地址
+	State             string `db:"state" json:"state"`                                    // 状态：0 关闭  1 开启
+	Remark            string `db:"remark" json:"remark"`                                  // 备注
+	Prefix            string `db:"prefix" json:"prefix"`                                  // 商户前缀
+	DailyMaxAmount    string `db:"daily_max_amount" json:"daily_max_amount"`              // 当天最大收款限额
+	DailyFinishAmount string `db:"daily_finish_amount" json:"daily_finish_amount"`        // 当天已收款总额
+	Flags             string `db:"flags" json:"flags"`                                    // 1转卡2转账
+	Logo              string `db:"-" json:"logo"`                                         //logo
+	VipList           string `db:"vip_list" json:"vip_list"`                              //vip等级
+	Fmin              string `db:"fmin" json:"fmin"`                                      //最小金额
+	Fmax              string `db:"fmax" json:"fmax"`                                      //最大金额
+	AmountList        string `db:"amount_list" json:"amount_list"`                        //金额列表
+	Discount          string `db:"discount" json:"discount"`                              //优惠
+	IsZone            int    `db:"is_zone" json:"is_zone"`                                // 0 不是区间 1是区间
+	IsFast            int    `db:"is_fast" json:"is_fast"`                                // 0 不是快捷 1是快捷
+	Cid               int    `db:"cid" json:"cid"`                                        //1:QR Banking 2:MomoPay 3:ZaloPay 4:ViettelPay 5:Thẻ Cào 6:Offline 7:USDT
+	CreatedAt         int64  `db:"created_at" json:"created_at" redis:"created_at"`       //创建时间
+	CreatedUID        string `db:"created_uid" json:"created_uid" redis:"created_uid"`    //创建人的ID
+	CreatedName       string `db:"created_name" json:"created_name" redis:"created_name"` //创建人的名字
+	UpdatedAt         int64  `db:"updated_at" json:"updated_at" redis:"updated_at"`       //操作时间
+	UpdatedUID        string `db:"updated_uid" json:"updated_uid" redis:"updated_uid"`    //操作人的ID
+	UpdatedName       string `db:"updated_name" json:"updated_name" redis:"updated_name"` //操作人的名字
 }
 
 // BankCardList 银行卡列表

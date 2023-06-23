@@ -3,8 +3,10 @@ package model
 import (
 	"database/sql"
 	"finance/contrib/helper"
+	"fmt"
 	g "github.com/doug-martin/goqu/v9"
 	"github.com/go-redis/redis/v8"
+	"time"
 )
 
 type PaymentIDChannelID struct {
@@ -37,8 +39,15 @@ func PaymentList(cateID, chanID, vip, state, flag string) ([]Payment_t, error) {
 		ex["channel_id"] = chanID
 	}
 
-	query, _, _ := dialect.From("f2_payment").Select(colPayment...).Where(ex).Order(g.C("cate_id").Desc()).ToSQL()
+	if flag != "" {
+		ex["flag"] = flag
+	}
+	if state != "0" && state != "" {
+		ex["state"] = state
+	}
 
+	query, _, _ := dialect.From("f2_payment").Select(colPayment...).Where(ex).Order(g.C("cate_id").Desc()).ToSQL()
+	fmt.Println(query)
 	err := meta.MerchantDB.Select(&data, query)
 	if err != nil {
 		return data, pushLog(err, helper.DBErr)
@@ -138,7 +147,7 @@ func ChannelUpdateImg(param map[string]string) error {
 	return nil
 }
 
-func ChannelSet(id, state string) error {
+func ChannelSet(id, state, adminId, adminName string) error {
 
 	tx, err := meta.MerchantDB.Begin()
 	if err != nil {
@@ -148,7 +157,7 @@ func ChannelSet(id, state string) error {
 	ex := g.Ex{
 		"id": id,
 	}
-	query, _, _ := dialect.Update("f2_payment").Set(g.Record{"state": state}).Where(ex).ToSQL()
+	query, _, _ := dialect.Update("f2_payment").Set(g.Record{"state": state, "updated_at": time.Now().Unix(), "updated_name": adminName}).Where(ex).ToSQL()
 	_, err = tx.Exec(query)
 	if err != nil {
 		_ = tx.Rollback()

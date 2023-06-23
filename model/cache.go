@@ -651,7 +651,6 @@ func Tunnel(fctx *fasthttp.RequestCtx, id string) (string, error) {
 		fmt.Println("SMembers = ", err.Error())
 		return "[]", nil
 	}
-	fmt.Println("paymentIds:", paymentIds)
 	for i, pid := range paymentIds {
 		if pid == "3600000000000" {
 			paymentIds = append(paymentIds[:i], paymentIds[i+1:]...)
@@ -696,7 +695,6 @@ func Tunnel(fctx *fasthttp.RequestCtx, id string) (string, error) {
 		if err = rs[i].Scan(&m); err != nil {
 			return "", pushLog(err, helper.RedisErr)
 		}
-		fmt.Println("m:", m)
 		obj := fastjson.MustParse(`{"id":"0","bank":[], "fmin":"0","fmax":"0", "amount_list": "","sort":"0","payment_name":"","discount":"0","name":"","is_zone":"0","is_fast":"0","flag":"1","web_img":"","h5_img":"","app_img":""}`)
 		obj.Set("id", fastjson.MustParse(fmt.Sprintf(`"%s"`, m.ID)))
 		obj.Set("fmin", fastjson.MustParse(fmt.Sprintf(`"%s"`, m.Fmin)))
@@ -754,7 +752,6 @@ func Tunnel(fctx *fasthttp.RequestCtx, id string) (string, error) {
 
 		arr.SetArrayItem(i, obj)
 		obj = nil
-		fmt.Println(m.ID)
 		if m.ID == "766870294997073616" {
 			break
 		}
