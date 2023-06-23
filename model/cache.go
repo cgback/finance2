@@ -508,7 +508,6 @@ func CacheRefreshLevel() {
 
 	//把所有通道按等级划分
 	for _, val := range payments {
-		fmt.Println("val:", val)
 		vipList := strings.Split(val.VipList, ",")
 		for _, level := range vipList {
 			if value, exists := levelMap[level]; !exists {
@@ -517,6 +516,7 @@ func CacheRefreshLevel() {
 				value = append(value, val)
 				levelMap[level] = value
 			}
+			meta.MerchantRedis.Unlink(ctx, meta.Prefix+":f:c:p:"+level+":"+val.ChannelID)
 		}
 	}
 
@@ -564,25 +564,32 @@ func CacheRefreshLevel() {
 			"is_zone":      val.IsZone,
 			"is_fast":      val.IsFast,
 			"flag":         val.Flag,
-			"web_img":      val.Flag,
-			"app_img":      val.Flag,
-			"h5_img":       val.Flag,
+			"web_img":      val.WebImg,
+			"app_img":      val.AppImg,
+			"h5_img":       val.H5Img,
 		}
 		pipe.HMSet(ctx, meta.Prefix+":f:p:"+val.ID, value)
 		pipe.Persist(ctx, meta.Prefix+":f:p:"+val.ID)
+
 	}
 	for level, val := range levelMap {
 		var pidsTemp []string
+		cidMap := map[string]struct{}{}
 		cidsTemp := map[string]string{}
 		for _, val2 := range val {
+			fmt.Println("val2:", val2.ID)
 			pidsTemp = append(pidsTemp, val2.ID)
-			cidsTemp[val2.ChannelID] = val2.ID
-			meta.MerchantRedis.Unlink(ctx, meta.Prefix+":f:c:p:"+level+":"+val2.ChannelID)
+			cidsTemp[val2.ChannelID+"_"+val2.ID] = val2.ID
 		}
 		var cids []string
-		for cid, pid := range cidsTemp {
-			cids = append(cids, cid)
-			pipe.LPush(ctx, meta.Prefix+":f:c:p:"+level+":"+cid, pid, 1*time.Hour)
+		for cidPid, pid := range cidsTemp {
+			cs := strings.Split(cidPid, "_")
+			cid := cs[0]
+			if _, ok := cidMap[cid]; !ok {
+				cids = append(cids, cid)
+				cidMap[cid] = struct{}{}
+			}
+			pipe.LPush(ctx, meta.Prefix+":f:c:p:"+level+":"+cid, pid)
 			pipe.Persist(ctx, meta.Prefix+":f:c:p:"+level+":"+cid)
 		}
 		if len(pidsTemp) > 0 {
@@ -650,11 +657,6 @@ func Tunnel(fctx *fasthttp.RequestCtx, id string) (string, error) {
 	if err != nil {
 		fmt.Println("SMembers = ", err.Error())
 		return "[]", nil
-	}
-	for i, pid := range paymentIds {
-		if pid == "3600000000000" {
-			paymentIds = append(paymentIds[:i], paymentIds[i+1:]...)
-		}
 	}
 	pipe := meta.MerchantRedis.TxPipeline()
 	defer pipe.Close()

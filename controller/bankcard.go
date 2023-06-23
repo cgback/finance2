@@ -359,6 +359,8 @@ func (that *BankCardController) InsertMsg(ctx *fasthttp.RequestCtx) {
 		helper.Print(ctx, false, err.Error())
 		return
 	}
+	helper.Print(ctx, true, helper.Success)
+
 }
 
 func (that *BankCardController) UpdateDiscount(ctx *fasthttp.RequestCtx) {
@@ -398,4 +400,6 @@ func (that *BankCardController) UpdateDiscount(ctx *fasthttp.RequestCtx) {
 		helper.Print(ctx, false, err.Error())
 		return
 	}
+	helper.Print(ctx, true, helper.Success)
+
 }

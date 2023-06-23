@@ -60,7 +60,6 @@ func BankCardByCol(val string) (Bankcard_t, error) {
 	var bc Bankcard_t
 	ex := g.Ex{
 		"banklcard_no": val,
-		"prefix":       meta.Prefix,
 	}
 	query, _, _ := dialect.From("f2_bankcards").Select(colsBankCard...).Where(ex).ToSQL()
 	err := meta.MerchantDB.Get(&bc, query)
