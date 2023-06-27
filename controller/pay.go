@@ -55,7 +55,12 @@ func (that *PayController) Pay(ctx *fasthttp.RequestCtx) {
 
 	// offline支付走if里面的代码
 	if _, ok := offlinePay[id]; ok {
-		model.OfflinePay(ctx, id, amount, bid)
+		res, err := model.OfflinePay(ctx, id, amount, bid)
+		if err != nil {
+			helper.Print(ctx, false, err.Error())
+			return
+		}
+		helper.PrintJson(ctx, true, res)
 		return
 	}
 

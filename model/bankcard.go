@@ -7,6 +7,7 @@ import (
 	"finance/contrib/validator"
 	"fmt"
 	g "github.com/doug-martin/goqu/v9"
+	"strconv"
 )
 
 type Bankcard_t struct {
@@ -30,7 +31,7 @@ type Bankcard_t struct {
 	Discount          string `db:"discount" json:"discount"`                              //优惠
 	IsZone            int    `db:"is_zone" json:"is_zone"`                                // 0 不是区间 1是区间
 	IsFast            int    `db:"is_fast" json:"is_fast"`                                // 0 不是快捷 1是快捷
-	Cid               int    `db:"cid" json:"cid"`                                        //1:QR Banking 2:MomoPay 3:ZaloPay 4:ViettelPay 5:Thẻ Cào 6:Offline 7:USDT
+	Cid               int64  `db:"cid" json:"cid"`                                        //1:QR Banking 2:MomoPay 3:ZaloPay 4:ViettelPay 5:Thẻ Cào 6:Offline 7:USDT
 	CreatedAt         int64  `db:"created_at" json:"created_at" redis:"created_at"`       //创建时间
 	CreatedUID        string `db:"created_uid" json:"created_uid" redis:"created_uid"`    //创建人的ID
 	CreatedName       string `db:"created_name" json:"created_name" redis:"created_name"` //创建人的名字
@@ -43,9 +44,6 @@ type Bankcard_t struct {
 func BankCardList(ex g.Ex, vip string) ([]Bankcard_t, error) {
 
 	var data []Bankcard_t
-
-	ex["prefix"] = meta.Prefix
-
 	query, _, _ := dialect.From("f2_bankcards").Select(colsBankCard...).Where(ex).ToSQL()
 	err := meta.MerchantDB.Select(&data, query)
 	if err != nil {
@@ -100,7 +98,7 @@ func BankCardInsert(recs Bankcard_t, code, adminName string) error {
 
 func BankCardUpdateCache() error {
 
-	key := meta.Prefix + ":offlineBankcard"
+	key := meta.Prefix + ":offline:bank:"
 	ex := g.Ex{
 		"state": "1",
 		"flags": "1",
@@ -120,20 +118,22 @@ func BankCardUpdateCache() error {
 	pipe := meta.MerchantRedis.TxPipeline()
 	defer pipe.Close()
 
-	pipe.Unlink(ctx, key)
+	pipe.Unlink(ctx, key+"6", key+"2", key+"4", key+"3", key+"7")
+
 	for _, v := range res {
 		val, err := helper.JsonMarshal(v)
 		if err != nil {
 			continue
 		}
-		pipe.LPush(ctx, key, string(val))
+		pipe.LPush(ctx, fmt.Sprintf(`%s%d`, key, v.Cid), string(val))
 		value := map[string]interface{}{
-			"account": v.AccountName,
-			"cardno":  v.BanklcardNo,
-			"name":    v.BanklcardName,
-			"cid":     v.ChannelBankId,
+			"account":         v.AccountName,
+			"cardno":          v.BanklcardNo,
+			"name":            v.BanklcardName,
+			"cid":             v.Cid,
+			"channel_bank_id": v.ChannelBankId,
 		}
-		vkey := key + ":" + v.Id
+		vkey := meta.Prefix + ":offline:bankid:" + v.Id
 		pipe.HMSet(ctx, vkey, value)
 		pipe.Persist(ctx, vkey)
 
@@ -213,8 +213,8 @@ func BankCardBackendById(bid string) (Bankcard_t, error) {
 	bc := Bankcard_t{
 		Id: bid,
 	}
-	key := meta.Prefix + ":offlineBankcard:" + bid
-	re := meta.MerchantRedis.HMGet(ctx, key, "account", "cardno", "name", "cid")
+	key := meta.Prefix + ":offline:bankid:" + bid
+	re := meta.MerchantRedis.HMGet(ctx, key, "account", "cardno", "name", "cid", "channel_bank_id")
 	if re.Err() != nil {
 		return bc, errors.New(helper.RecordNotExistErr)
 	}
@@ -240,16 +240,23 @@ func BankCardBackendById(bid string) (Bankcard_t, error) {
 	if cid, ok := scope[3].(string); !ok {
 		return bc, errors.New(helper.TunnelMaxLimitErr)
 	} else {
-		bc.ChannelBankId = cid
+		cid_int, _ := strconv.ParseInt(cid, 10, 64)
+		bc.Cid = cid_int
+	}
+
+	if channelBankId, ok := scope[4].(string); !ok {
+		return bc, errors.New(helper.TunnelMaxLimitErr)
+	} else {
+		bc.ChannelBankId = channelBankId
 	}
 
 	return bc, nil
 }
 
-func BankCardBackend() (Bankcard_t, error) {
+func BankCardBackend(cid string) (Bankcard_t, error) {
 
 	bc := Bankcard_t{}
-	key := meta.Prefix + ":offlineBankcard"
+	key := meta.Prefix + ":offline:bank:" + cid
 	res, err := meta.MerchantRedis.RPopLPush(ctx, key, key).Result()
 	if err != nil {
 		return bc, errors.New(helper.RecordNotExistErr)

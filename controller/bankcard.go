@@ -168,7 +168,7 @@ func (that *BankCardController) Insert(ctx *fasthttp.RequestCtx) {
 		Discount:          discount,
 		IsZone:            isZone,
 		IsFast:            isFast,
-		Cid:               cid,
+		Cid:               int64(cid),
 		CreatedAt:         ctx.Time().Unix(),
 		CreatedUID:        admin["id"],
 		CreatedName:       admin["name"],

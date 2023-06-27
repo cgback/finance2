@@ -239,8 +239,7 @@ func channelCateMap(pids []string) (map[string]CateIDAndName, error) {
 	}
 
 	ex := g.Ex{
-		"id":     g.Op{"in": pids},
-		"prefix": meta.Prefix,
+		"id": g.Op{"in": pids},
 	}
 	query, _, _ := dialect.From("f2_payment").Select("id", "cate_id").Where(ex).ToSQL()
 	err := meta.MerchantDB.Select(&data, query)

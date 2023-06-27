@@ -577,7 +577,6 @@ func CacheRefreshLevel() {
 		cidMap := map[string]struct{}{}
 		cidsTemp := map[string]string{}
 		for _, val2 := range val {
-			fmt.Println("val2:", val2.ID)
 			pidsTemp = append(pidsTemp, val2.ID)
 			cidsTemp[val2.ChannelID+"_"+val2.ID] = val2.ID
 		}

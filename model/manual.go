@@ -59,7 +59,7 @@ func OfflinePay(fctx *fasthttp.RequestCtx, paymentID, amount, bid string) (strin
 			return "", errors.New(helper.BankCardNotExist)
 		}
 	} else {
-		bc, err = BankCardBackend()
+		bc, err = BankCardBackend(p.ChannelID)
 		if err != nil {
 			fmt.Println("BankCardBackend err = ", err.Error())
 			return "", errors.New(helper.BankCardNotExist)
@@ -129,7 +129,9 @@ func OfflinePay(fctx *fasthttp.RequestCtx, paymentID, amount, bid string) (strin
 		"realname":     bc.AccountName,
 		"manualRemark": code,
 		"ts":           fmt.Sprintf("%d", ts),
-		"bid":          bid,
+		"bid":          bc.Id,
+		"uselink":      "0",
+		"is_qr":        bc.Flags, //1有二维码 2 没有二维码
 	}
 
 	bytes, _ := helper.JsonMarshal(res)
@@ -272,11 +274,7 @@ func GenCode(fctx *fasthttp.RequestCtx, amount, bid, code string) (string, error
 			return "", errors.New(helper.BankCardNotExist)
 		}
 	} else {
-		bc, err = BankCardBackend()
-		if err != nil {
-			fmt.Println("BankCardBackend err = ", err.Error())
-			return "", errors.New(helper.BankCardNotExist)
-		}
+		return "", errors.New(helper.BankCardNotExist)
 	}
 
 	qr, err := QrCodeGen(bc, amount, code)

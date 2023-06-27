@@ -91,7 +91,7 @@ func main() {
 	mt.MerchantRPC = rycli.NewClient()
 	mt.Finance = content
 
-	model.Constructor(mt, cfg.PayRPC)
+	model.Constructor(mt, cfg.RPC)
 
 	defer func() {
 		model.Close()
@@ -101,6 +101,7 @@ func main() {
 	if os.Args[3] == "load" {
 		fmt.Println("load")
 		model.BankTypeUpdateCache()
+		model.BankCardUpdateCache()
 	}
 
 	mt.Program = filepath.Base(os.Args[0])

@@ -80,6 +80,7 @@ func Constructor(mt *MetaTable, payRPC string) {
 		LoadChannelType()
 		CacheRefreshLevel()
 		CateListRedis()
+		BankCardUpdateCache()
 	}
 
 	fc = &fasthttp.Client{

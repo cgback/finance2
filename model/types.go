@@ -90,31 +90,33 @@ type FPay struct {
 }
 
 type Payment_t struct {
-	ID          string `db:"id" redis:"id" json:"id"`                               //id
-	CateID      string `db:"cate_id" redis:"cate_id" json:"cate_id"`                //渠道ID
-	ChannelID   string `db:"channel_id" redis:"channel_id" json:"channel_id"`       //支付方式id
-	ChannelName string `redis:"channel_name" json:"channel_name"`                   //通道id
-	PaymentName string `db:"payment_name" redis:"payment_name" json:"payment_name"` //通道名称
-	Fmax        string `db:"fmax" redis:"fmax" json:"fmax"`                         //最大支付金额
-	Fmin        string `db:"fmin" redis:"fmin" json:"fmin"`                         //最小支付金额
-	AmountList  string `db:"amount_list" redis:"amount_list" json:"amount_list"`    // 固定金额列表
-	Et          string `db:"et" redis:"et" json:"et"`                               //结束时间
-	St          string `db:"st" redis:"st" json:"st"`                               //开始时间
-	CreatedAt   string `db:"created_at" redis:"created_at" json:"created_at"`       //创建时间
-	State       string `db:"state" redis:"state" json:"state"`                      //0:关闭1:开启
-	Sort        string `db:"sort" redis:"sort" json:"sort"`                         //排序
-	Comment     string `db:"comment" redis:"comment" json:"comment"`                //备注
-	VipList     string `db:"vip_list" redis:"vip_list" json:"vip_list"`             //vip等级
-	Discount    string `db:"discount" redis:"discount" json:"discount"`             //优惠
-	UpdatedAt   string `db:"updated_at" redis:"updated_at" json:"updated_at"`       //更新时间
-	Name        string `db:"name" redis:"name" json:"name"`                         //前端展示名称
-	UpdatedName string `db:"updated_name" redis:"updated_name" json:"updated_name"` //更新人
-	IsZone      string `db:"is_zone" redis:"is_zone" json:"is_zone"`                //0没有1有区间
-	IsFast      string `db:"is_fast" redis:"is_fast" json:"is_fast"`                //快捷金额是否开启
-	Flag        string `db:"flag" redis:"flag" json:"flag"`                         //1三方通道2离线通道
-	WebImg      string `db:"web_img" redis:"web_img" json:"web_img"`                //web端说明
-	H5Img       string `db:"h5_img" redis:"h5_img" json:"h5_img"`                   //h5端说明
-	AppImg      string `db:"app_img" redis:"app_img" json:"app_img"`                //App端说明
+	ID                string `db:"id" redis:"id" json:"id"`                               //id
+	CateID            string `db:"cate_id" redis:"cate_id" json:"cate_id"`                //渠道ID
+	ChannelID         string `db:"channel_id" redis:"channel_id" json:"channel_id"`       //支付方式id
+	ChannelName       string `redis:"channel_name" json:"channel_name"`                   //通道id
+	PaymentName       string `db:"payment_name" redis:"payment_name" json:"payment_name"` //通道名称
+	Fmax              string `db:"fmax" redis:"fmax" json:"fmax"`                         //最大支付金额
+	Fmin              string `db:"fmin" redis:"fmin" json:"fmin"`                         //最小支付金额
+	AmountList        string `db:"amount_list" redis:"amount_list" json:"amount_list"`    // 固定金额列表
+	Et                string `db:"et" redis:"et" json:"et"`                               //结束时间
+	St                string `db:"st" redis:"st" json:"st"`                               //开始时间
+	CreatedAt         string `db:"created_at" redis:"created_at" json:"created_at"`       //创建时间
+	State             string `db:"state" redis:"state" json:"state"`                      //0:关闭1:开启
+	Sort              string `db:"sort" redis:"sort" json:"sort"`                         //排序
+	Comment           string `db:"comment" redis:"comment" json:"comment"`                //备注
+	VipList           string `db:"vip_list" redis:"vip_list" json:"vip_list"`             //vip等级
+	Discount          string `db:"discount" redis:"discount" json:"discount"`             //优惠
+	UpdatedAt         string `db:"updated_at" redis:"updated_at" json:"updated_at"`       //更新时间
+	Name              string `db:"name" redis:"name" json:"name"`                         //前端展示名称
+	UpdatedName       string `db:"updated_name" redis:"updated_name" json:"updated_name"` //更新人
+	IsZone            string `db:"is_zone" redis:"is_zone" json:"is_zone"`                //0没有1有区间
+	IsFast            string `db:"is_fast" redis:"is_fast" json:"is_fast"`                //快捷金额是否开启
+	Flag              string `db:"flag" redis:"flag" json:"flag"`                         //1三方通道2离线通道
+	WebImg            string `db:"web_img" redis:"web_img" json:"web_img"`                //web端说明
+	H5Img             string `db:"h5_img" redis:"h5_img" json:"h5_img"`                   //h5端说明
+	AppImg            string `db:"app_img" redis:"app_img" json:"app_img"`                //App端说明
+	DailyMaxAmount    string `db:"daily_max_amount" json:"daily_max_amount"`              // 当天最大收款限额
+	DailyFinishAmount string `db:"daily_finish_amount" json:"daily_finish_amount"`        // 当天已收款总额
 }
 
 // Deposit 存款
