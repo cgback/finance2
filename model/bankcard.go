@@ -38,6 +38,7 @@ type Bankcard_t struct {
 	UpdatedAt         int64  `db:"updated_at" json:"updated_at" redis:"updated_at"`       //操作时间
 	UpdatedUID        string `db:"updated_uid" json:"updated_uid" redis:"updated_uid"`    //操作人的ID
 	UpdatedName       string `db:"updated_name" json:"updated_name" redis:"updated_name"` //操作人的名字
+	Seq               int    `db:"seq" json:"seq" redis:"seq"`                            //排序
 }
 
 // BankCardList 银行卡列表
@@ -114,11 +115,10 @@ func BankCardUpdateCache() error {
 		meta.MerchantRedis.Unlink(ctx, key).Err()
 		return nil
 	}
+	meta.MerchantRedis.Unlink(ctx, key+"6", key+"2", key+"4", key+"3", key+"7")
 
 	pipe := meta.MerchantRedis.TxPipeline()
 	defer pipe.Close()
-
-	pipe.Unlink(ctx, key+"6", key+"2", key+"4", key+"3", key+"7")
 
 	for _, v := range res {
 		val, err := helper.JsonMarshal(v)

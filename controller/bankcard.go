@@ -21,7 +21,7 @@ func (that *BankCardController) List(ctx *fasthttp.RequestCtx) {
 	state := string(ctx.QueryArgs().Peek("state"))
 	vip := string(ctx.QueryArgs().Peek("vip"))
 	cid := string(ctx.QueryArgs().Peek("cid"))
-	flag := string(ctx.QueryArgs().Peek("flag"))
+	flags := string(ctx.QueryArgs().Peek("flags"))
 
 	ex := g.Ex{}
 
@@ -37,8 +37,8 @@ func (that *BankCardController) List(ctx *fasthttp.RequestCtx) {
 	if helper.CtypeDigit(cid) {
 		ex["cid"] = cid
 	}
-	if helper.CtypeDigit(flag) {
-		ex["flag"] = flag
+	if helper.CtypeDigit(flags) {
+		ex["flags"] = flags
 	}
 
 	if accounName != "" {
@@ -73,6 +73,8 @@ func (that *BankCardController) Insert(ctx *fasthttp.RequestCtx) {
 	isZone := ctx.PostArgs().GetUintOrZero("is_zone")
 	isFast := ctx.PostArgs().GetUintOrZero("is_fast")
 	cid := ctx.PostArgs().GetUintOrZero("cid")
+	seq := ctx.PostArgs().GetUintOrZero("seq")
+	paymentName := string(ctx.PostArgs().Peek("payment_name"))
 
 	if bankId != "" {
 		if !helper.CtypeDigit(bankId) {
@@ -172,9 +174,38 @@ func (that *BankCardController) Insert(ctx *fasthttp.RequestCtx) {
 		CreatedAt:         ctx.Time().Unix(),
 		CreatedUID:        admin["id"],
 		CreatedName:       admin["name"],
+		Seq:               seq,
 	}
 
 	err = model.BankCardInsert(bc, code, admin["name"])
+	if err != nil {
+		helper.Print(ctx, false, err.Error())
+		return
+	}
+
+	fields := map[string]string{
+		"payment_name": paymentName,
+	}
+	if cid == 2 && flags == "1" {
+		fields["id"] = "766870294997073617"
+	}
+	if cid == 2 && flags == "2" {
+		fields["id"] = "766870294997073618"
+	}
+	if cid == 4 && flags == "1" {
+		fields["id"] = "766870294997073619"
+	}
+	if cid == 4 && flags == "2" {
+		fields["id"] = "766870294997073620"
+	}
+	if cid == 3 && flags == "1" {
+		fields["id"] = "766870294997073621"
+	}
+
+	fields["updated_at"] = fmt.Sprintf(`%d`, ctx.Time().Unix())
+	fields["updated_uid"] = admin["id"]
+	fields["updated_name"] = admin["name"]
+	err = model.ChannelUpdatePaymentName(fields)
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
 		return
@@ -228,7 +259,8 @@ func (that *BankCardController) Update(ctx *fasthttp.RequestCtx) {
 	discount := string(ctx.PostArgs().Peek("discount"))
 	isZone := ctx.PostArgs().GetUintOrZero("is_zone")
 	isFast := ctx.PostArgs().GetUintOrZero("is_fast")
-
+	seq := ctx.PostArgs().GetUintOrZero("seq")
+	paymentName := string(ctx.PostArgs().Peek("payment_name"))
 	admin, err := model.AdminToken(ctx)
 	if err != nil || len(admin["id"]) < 1 {
 		helper.Print(ctx, false, helper.AccessTokenExpires)
@@ -242,6 +274,9 @@ func (that *BankCardController) Update(ctx *fasthttp.RequestCtx) {
 
 	rec := g.Record{
 		"state": state,
+	}
+	if seq != 0 {
+		rec["seq"] = seq
 	}
 
 	if vips != "" {
@@ -283,7 +318,7 @@ func (that *BankCardController) Update(ctx *fasthttp.RequestCtx) {
 	}
 
 	if discount != "" {
-		if !validator.CheckStringDigit(discount) {
+		if !validator.CheckFloat(discount) {
 			helper.Print(ctx, false, helper.AmountErr)
 			return
 		}
@@ -307,6 +342,34 @@ func (that *BankCardController) Update(ctx *fasthttp.RequestCtx) {
 	}
 
 	err = model.BankCardUpdate(id, rec)
+	if err != nil {
+		helper.Print(ctx, false, err.Error())
+		return
+	}
+
+	fields := map[string]string{
+		"payment_name": paymentName,
+	}
+	if bankCard.Cid == 2 && bankCard.Flags == "1" {
+		fields["id"] = "766870294997073617"
+	}
+	if bankCard.Cid == 2 && bankCard.Flags == "2" {
+		fields["id"] = "766870294997073618"
+	}
+	if bankCard.Cid == 4 && bankCard.Flags == "1" {
+		fields["id"] = "766870294997073619"
+	}
+	if bankCard.Cid == 4 && bankCard.Flags == "2" {
+		fields["id"] = "766870294997073620"
+	}
+	if bankCard.Cid == 3 && bankCard.Flags == "1" {
+		fields["id"] = "766870294997073621"
+	}
+
+	fields["updated_at"] = fmt.Sprintf(`%d`, ctx.Time().Unix())
+	fields["updated_uid"] = admin["id"]
+	fields["updated_name"] = admin["name"]
+	err = model.ChannelUpdatePaymentName(fields)
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
 		return

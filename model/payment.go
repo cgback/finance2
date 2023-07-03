@@ -147,6 +147,38 @@ func ChannelUpdateImg(param map[string]string) error {
 	return nil
 }
 
+func ChannelUpdatePaymentName(param map[string]string) error {
+
+	record := g.Record{
+		"payment_name": param["payment_name"],
+	}
+
+	tx, err := meta.MerchantDB.Begin()
+	if err != nil {
+		return pushLog(err, helper.TransErr)
+	}
+
+	ex := g.Ex{
+		"id": param["id"],
+	}
+
+	query, _, _ := dialect.Update("f2_payment").Set(record).Where(ex).ToSQL()
+	_, err = tx.Exec(query)
+	if err != nil {
+		_ = tx.Rollback()
+		return pushLog(err, helper.TransErr)
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return pushLog(err, helper.TransErr)
+	}
+
+	_ = CacheRefreshPayment(param["id"])
+
+	return nil
+}
+
 func ChannelSet(id, state, adminId, adminName string) error {
 
 	tx, err := meta.MerchantDB.Begin()
