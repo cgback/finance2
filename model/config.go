@@ -55,7 +55,7 @@ func MemberConfigList(flag, usernames string) ([]FMemberConfig, error) {
 		unames := strings.Split(usernames, ",")
 		ex["username"] = unames
 	}
-	query, _, _ := dialect.From("f_config").Select(colsConfig...).Where(ex).ToSQL()
+	query, _, _ := dialect.From("f_member_config").Select(colsMemberConfig...).Where(ex).ToSQL()
 	err := meta.MerchantDB.Select(&data, query)
 	if err != nil {
 		return data, pushLog(err, helper.DBErr)
