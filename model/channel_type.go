@@ -116,6 +116,8 @@ func LoadChannelType() {
 				}
 				zs = append(zs, z)
 			}
+			cid := meta.Prefix + ":p:c:t:" + v.ID
+			pipe.HSet(ctx, cid, "name", v.Name, "id", v.ID, "sort", v.Sort)
 		}
 		if len(zs) > 0 {
 			pipe.ZAdd(ctx, key, zs...)
@@ -140,7 +142,7 @@ func TunnelByID(id string) (ChannelType, error) {
 func ChannelTypeById(id string) (map[string]string, error) {
 
 	key := meta.Prefix + ":p:c:t:" + id
-	field := []string{"promo_state", "sort", "name", "id"}
+	field := []string{"sort", "name", "id"}
 	res := map[string]string{}
 
 	pipe := meta.MerchantRedis.Pipeline()

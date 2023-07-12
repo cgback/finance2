@@ -361,8 +361,8 @@ type FConfig struct {
 }
 
 type FMemberConfig struct {
-	Id       int64
-	Uid      string
-	Username string
-	Flag     string
+	Id       int64  `db:"id" json:"id,omitempty"`
+	Uid      string `db:"uid" json:"uid,omitempty"`
+	Username string `db:"username" json:"username,omitempty"`
+	Flag     string `db:"flag" json:"flag,omitempty"`
 }

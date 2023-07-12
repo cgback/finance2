@@ -39,6 +39,7 @@ type Bankcard_t struct {
 	UpdatedUID        string `db:"updated_uid" json:"updated_uid" redis:"updated_uid"`    //操作人的ID
 	UpdatedName       string `db:"updated_name" json:"updated_name" redis:"updated_name"` //操作人的名字
 	Seq               int    `db:"seq" json:"seq" redis:"seq"`                            //排序
+	PaymentName       string `db:"payment_name" json:"payment_name" redis:"payment_name"` //前台展示名称
 }
 
 // BankCardList 银行卡列表

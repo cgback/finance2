@@ -50,31 +50,12 @@ func ConfigUpdate(configs map[string]string) error {
 func MemberConfigList(flag, usernames string) ([]FMemberConfig, error) {
 
 	var data []FMemberConfig
-	ex := g.Ex{"flag": 0}
+	ex := g.Ex{"flag": flag}
 	if usernames != "" {
 		unames := strings.Split(usernames, ",")
-		//for _,username :=range unames {
-		//	if !validator.CheckUName(username, 5, 14) {
-		//		return data, errors.New(helper.UsernameErr)
-		//
-		//	}
-		//
-		//	mb, err := MemberFindOne(username)
-		//	if err != nil {
-		//		return data, errors.New(helper.UserNotExist)
-		//	}
-		//	query, _, _ := dialect.Insert("tbl_withdraw").Rows(record).ToSQL()
-		//	fmt.Println(query)
-		//	_, err = tx.Exec(query)
-		//	if err != nil {
-		//		_ = tx.Rollback()
-		//		return pushLog(err, helper.DBErr)
-		//	}
-		//
-		//}
 		ex["username"] = unames
 	}
-	query, _, _ := dialect.From("f_config").Select(colsConfig...).ToSQL()
+	query, _, _ := dialect.From("f_config").Select(colsConfig...).Where(ex).ToSQL()
 	err := meta.MerchantDB.Select(&data, query)
 	if err != nil {
 		return data, pushLog(err, helper.DBErr)

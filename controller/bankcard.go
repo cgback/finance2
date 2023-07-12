@@ -175,6 +175,7 @@ func (that *BankCardController) Insert(ctx *fasthttp.RequestCtx) {
 		CreatedUID:        admin["id"],
 		CreatedName:       admin["name"],
 		Seq:               seq,
+		PaymentName:       paymentName,
 	}
 
 	err = model.BankCardInsert(bc, code, admin["name"])
@@ -335,6 +336,7 @@ func (that *BankCardController) Update(ctx *fasthttp.RequestCtx) {
 	rec["updated_at"] = ctx.Time().Unix()
 	rec["updated_uid"] = admin["id"]
 	rec["updated_name"] = admin["name"]
+	rec["payment_name"] = paymentName
 	bankCard, err := model.BankCardByID(id)
 	if err != nil {
 		helper.Print(ctx, false, err)

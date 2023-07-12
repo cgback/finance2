@@ -500,7 +500,7 @@ func CacheRefreshLevel() {
 		"state":      "1",
 		"channel_id": g.Op{"neq": "101"},
 	}
-	query, _, _ := dialect.From("f2_payment").Select(colPayment...).Where(ex).ToSQL()
+	query, _, _ := dialect.From("f2_payment").Select(colPayment...).Where(ex).Order(g.C("sort").Asc()).ToSQL()
 	err := meta.MerchantDB.Select(&payments, query)
 	if err != nil && err != sql.ErrNoRows {
 		return
