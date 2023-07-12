@@ -365,4 +365,5 @@ type FMemberConfig struct {
 	Uid      string `db:"uid" json:"uid,omitempty"`
 	Username string `db:"username" json:"username,omitempty"`
 	Flag     string `db:"flag" json:"flag,omitempty"`
+	Ty       string `db:"ty" json:"ty"`
 }

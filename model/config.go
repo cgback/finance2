@@ -63,7 +63,7 @@ func MemberConfigList(flag, usernames string) ([]FMemberConfig, error) {
 	return data, nil
 }
 
-func MemberConfigInsert(flag, usernames string) error {
+func MemberConfigInsert(flag, usernames, ty string) error {
 
 	tx, err := meta.MerchantDB.Begin()
 	if err != nil {
@@ -86,6 +86,7 @@ func MemberConfigInsert(flag, usernames string) error {
 				"username": mb.Username,
 				"uid":      mb.UID,
 				"flag":     flag,
+				"ty":       ty,
 			}
 			query, _, _ := dialect.Insert("f_member_config").Rows(record).ToSQL()
 			fmt.Println(query)

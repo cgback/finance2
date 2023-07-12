@@ -142,11 +142,12 @@ func (that *ConfigController) Insert(ctx *fasthttp.RequestCtx) {
 
 	flag := string(ctx.PostArgs().Peek("flag"))
 	username := string(ctx.PostArgs().Peek("username"))
+	ty := string(ctx.PostArgs().Peek("ty"))
 	if !helper.CtypeDigit(flag) || (flag != "1" && flag != "0") {
 		helper.Print(ctx, false, helper.ParamErr)
 		return
 	}
-	err := model.MemberConfigInsert(flag, username)
+	err := model.MemberConfigInsert(flag, username, ty)
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
 		return
