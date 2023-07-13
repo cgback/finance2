@@ -25,7 +25,7 @@ type channelCate struct {
 	CateID    string `db:"cate_id" json:"cate_id"`
 }
 
-func PaymentList(cateID, chanID, vip, state, flag string) ([]Payment_t, error) {
+func PaymentList(cateID, chanID, vip, state, flag, paymentName, name string) ([]Payment_t, error) {
 
 	var data []Payment_t
 
@@ -44,6 +44,12 @@ func PaymentList(cateID, chanID, vip, state, flag string) ([]Payment_t, error) {
 	}
 	if state != "0" && state != "" {
 		ex["state"] = state
+	}
+	if paymentName != "" {
+		ex["payment_name"] = paymentName
+	}
+	if name != "" {
+		ex["name"] = name
 	}
 
 	query, _, _ := dialect.From("f2_payment").Select(colPayment...).Where(ex).Order(g.C("cate_id").Desc()).ToSQL()
@@ -85,6 +91,7 @@ func ChannelUpdate(param map[string]string) error {
 		"sort":         param["sort"],
 		"comment":      param["comment"],
 		"amount_list":  param["amount_list"],
+		"vip_list":     param["vip_list"],
 	}
 
 	tx, err := meta.MerchantDB.Begin()
@@ -153,23 +160,13 @@ func ChannelUpdatePaymentName(param map[string]string) error {
 		"payment_name": param["payment_name"],
 	}
 
-	tx, err := meta.MerchantDB.Begin()
-	if err != nil {
-		return pushLog(err, helper.TransErr)
-	}
-
 	ex := g.Ex{
 		"id": param["id"],
 	}
 
 	query, _, _ := dialect.Update("f2_payment").Set(record).Where(ex).ToSQL()
-	_, err = tx.Exec(query)
-	if err != nil {
-		_ = tx.Rollback()
-		return pushLog(err, helper.TransErr)
-	}
-
-	err = tx.Commit()
+	fmt.Println(query)
+	_, err := meta.MerchantDB.Exec(query)
 	if err != nil {
 		return pushLog(err, helper.TransErr)
 	}

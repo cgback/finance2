@@ -57,7 +57,6 @@ func (that *BankCardController) List(ctx *fasthttp.RequestCtx) {
 // Insert 线下卡转卡 添加银行卡
 func (that *BankCardController) Insert(ctx *fasthttp.RequestCtx) {
 
-	bankId := string(ctx.PostArgs().Peek("bank_id"))
 	accountName := string(ctx.PostArgs().Peek("account_name"))
 	banklcardName := string(ctx.PostArgs().Peek("banklcard_name"))
 	banklcardNo := string(ctx.PostArgs().Peek("banklcard_no"))
@@ -72,28 +71,29 @@ func (that *BankCardController) Insert(ctx *fasthttp.RequestCtx) {
 	discount := string(ctx.PostArgs().Peek("discount"))
 	isZone := ctx.PostArgs().GetUintOrZero("is_zone")
 	isFast := ctx.PostArgs().GetUintOrZero("is_fast")
-	cid := ctx.PostArgs().GetUintOrZero("cid")
+	cids := string(ctx.PostArgs().Peek("cid"))
 	seq := ctx.PostArgs().GetUintOrZero("seq")
 	paymentName := string(ctx.PostArgs().Peek("payment_name"))
 
-	if bankId != "" {
-		if !helper.CtypeDigit(bankId) {
-			helper.Print(ctx, false, helper.ParamErr)
-			return
-		}
-	}
 	admin, err := model.AdminToken(ctx)
 	if err != nil || len(admin["id"]) < 1 {
 		helper.Print(ctx, false, helper.AccessTokenExpires)
 		return
 	}
 
+	cid, err := strconv.ParseInt(cids, 10, 64)
+	if err != nil {
+		helper.Print(ctx, false, helper.ParamErr)
+		return
+	}
 	if !helper.CtypeDigit(banklcardNo) {
+		fmt.Println("banklcardNo:", banklcardNo)
 		helper.Print(ctx, false, helper.ParamErr)
 		return
 	}
 
 	if dailyMaxAmount < 1 {
+		fmt.Println("dailyMaxAmount:", dailyMaxAmount)
 		helper.Print(ctx, false, helper.ParamErr)
 		return
 	}
@@ -150,10 +150,14 @@ func (that *BankCardController) Insert(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
+	if discount == "" {
+		discount = "0"
+	}
+
 	bc := model.Bankcard_t{
 
 		Id:                helper.GenId(),
-		ChannelBankId:     bankId,
+		ChannelBankId:     "0",
 		BanklcardName:     banklcardName,
 		BanklcardNo:       banklcardNo,
 		AccountName:       accountName,
@@ -174,6 +178,9 @@ func (that *BankCardController) Insert(ctx *fasthttp.RequestCtx) {
 		CreatedAt:         ctx.Time().Unix(),
 		CreatedUID:        admin["id"],
 		CreatedName:       admin["name"],
+		UpdatedUID:        admin["id"],
+		UpdatedName:       admin["name"],
+		UpdatedAt:         ctx.Time().Unix(),
 		Seq:               seq,
 		PaymentName:       paymentName,
 	}
@@ -202,6 +209,9 @@ func (that *BankCardController) Insert(ctx *fasthttp.RequestCtx) {
 	if cid == 3 && flags == "1" {
 		fields["id"] = "766870294997073621"
 	}
+	if cid == 6 && flags == "2" {
+		fields["id"] = "766870294997073616"
+	}
 
 	fields["updated_at"] = fmt.Sprintf(`%d`, ctx.Time().Unix())
 	fields["updated_uid"] = admin["id"]
@@ -212,6 +222,7 @@ func (that *BankCardController) Insert(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
+	model.CacheRefreshOfflinePaymentBanks(fields["id"], cid, flags)
 	//content := fmt.Sprintf("添加银行卡【卡号: %s，最大限额：%.4f, 持卡人姓名：%s】", cardNo, maxAmount, realName)
 	//defer model.SystemLogWrite(content, ctx)
 
@@ -331,12 +342,18 @@ func (that *BankCardController) Update(ctx *fasthttp.RequestCtx) {
 	if dailyMaxAmount > 0 {
 		rec["daily_max_amount"] = fmt.Sprintf("%f", dailyMaxAmount)
 	}
-	rec["is_zone"] = isZone
-	rec["is_fast"] = isFast
+	if isZone != 0 {
+		rec["is_zone"] = isZone
+	}
+	if isFast != 0 {
+		rec["is_fast"] = isFast
+	}
 	rec["updated_at"] = ctx.Time().Unix()
 	rec["updated_uid"] = admin["id"]
 	rec["updated_name"] = admin["name"]
-	rec["payment_name"] = paymentName
+	if paymentName != "" {
+		rec["payment_name"] = paymentName
+	}
 	bankCard, err := model.BankCardByID(id)
 	if err != nil {
 		helper.Print(ctx, false, err)
@@ -349,6 +366,9 @@ func (that *BankCardController) Update(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
+	if paymentName == "" {
+		paymentName = bankCard.PaymentName
+	}
 	fields := map[string]string{
 		"payment_name": paymentName,
 	}
@@ -367,6 +387,9 @@ func (that *BankCardController) Update(ctx *fasthttp.RequestCtx) {
 	if bankCard.Cid == 3 && bankCard.Flags == "1" {
 		fields["id"] = "766870294997073621"
 	}
+	if bankCard.Cid == 6 && bankCard.Flags == "2" {
+		fields["id"] = "766870294997073616"
+	}
 
 	fields["updated_at"] = fmt.Sprintf(`%d`, ctx.Time().Unix())
 	fields["updated_uid"] = admin["id"]
@@ -376,6 +399,7 @@ func (that *BankCardController) Update(ctx *fasthttp.RequestCtx) {
 		helper.Print(ctx, false, err.Error())
 		return
 	}
+	model.CacheRefreshOfflinePaymentBanks(fields["id"], bankCard.Cid, bankCard.Flags)
 
 	contentLog := fmt.Sprintf("渠道管理-线下银行卡-更新:后台账号:%s【银行卡名称:%s,卡号:%s,姓名:%s,当日最大入款金额:%s】",
 		admin["name"], bankCard.BanklcardName, bankCard.BanklcardNo, bankCard.AccountName, bankCard.DailyMaxAmount)

@@ -47,6 +47,7 @@ func BankCardList(ex g.Ex, vip string) ([]Bankcard_t, error) {
 
 	var data []Bankcard_t
 	query, _, _ := dialect.From("f2_bankcards").Select(colsBankCard...).Where(ex).ToSQL()
+	fmt.Println(query)
 	err := meta.MerchantDB.Select(&data, query)
 	if err != nil {
 		return data, pushLog(err, helper.DBErr)

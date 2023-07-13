@@ -92,5 +92,5 @@ func (that *PayController) Cate(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	helper.PrintJson(ctx, true, data)
+	helper.Print(ctx, true, data)
 }

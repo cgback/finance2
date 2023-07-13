@@ -36,13 +36,15 @@ type chanStateParam struct {
 // List 财务管理-渠道管理-通道管理-列表
 func (that *PaymentController) List(ctx *fasthttp.RequestCtx) {
 
-	cateId := string(ctx.QueryArgs().Peek("cate_id"))
-	channelId := string(ctx.QueryArgs().Peek("channel_id"))
-	vip := string(ctx.QueryArgs().Peek("vip"))
-	state := string(ctx.QueryArgs().Peek("state"))
-	flag := string(ctx.QueryArgs().Peek("flag"))
+	cateId := string(ctx.PostArgs().Peek("cate_id"))
+	channelId := string(ctx.PostArgs().Peek("channel_id"))
+	vip := string(ctx.PostArgs().Peek("vip"))
+	state := string(ctx.PostArgs().Peek("state"))
+	flag := string(ctx.PostArgs().Peek("flag"))
+	paymentName := string(ctx.PostArgs().Peek("payment_name"))
+	name := string(ctx.PostArgs().Peek("name"))
 
-	data, err := model.PaymentList(cateId, channelId, vip, state, flag)
+	data, err := model.PaymentList(cateId, channelId, vip, state, flag, paymentName, name)
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
 		return
@@ -123,52 +125,13 @@ func (that *PaymentController) Update(ctx *fasthttp.RequestCtx) {
 		"sort":        param.Sort,
 		"comment":     param.Comment,
 		"amount_list": param.AmountList,
+		"fmax":        param.Fmax,
+		"fmin":        param.Fmin,
+		"vip_list":    param.VipList,
 	}
 
 	if len(param.AmountList) > 0 {
 		//TODO RPC
-		//min, err := decimal.NewFromString(param.FMin)
-		//if err != nil {
-		//	helper.Print(ctx, false, helper.AmountErr)
-		//	return
-		//}
-		//max, err := decimal.NewFromString(param.FMax)
-		//if err != nil {
-		//	helper.Print(ctx, false, helper.AmountErr)
-		//	return
-		//}
-		//if strings.Contains(param.AmountList, ",") {
-		//	list := strings.Split(param.AmountList, ",")
-		//	for _, v := range list {
-		//		amount, err := decimal.NewFromString(v)
-		//		if err != nil {
-		//			helper.Print(ctx, false, helper.AmountErr)
-		//			return
-		//		}
-		//		if amount.LessThan(min) {
-		//			helper.Print(ctx, false, helper.AmountErr)
-		//			return
-		//		}
-		//		if amount.GreaterThan(max) {
-		//			helper.Print(ctx, false, helper.AmountErr)
-		//			return
-		//		}
-		//	}
-		//} else {
-		//	amount, err := decimal.NewFromString(param.AmountList)
-		//	if err != nil {
-		//		helper.Print(ctx, false, helper.AmountErr)
-		//		return
-		//	}
-		//	if amount.LessThan(min) {
-		//		helper.Print(ctx, false, helper.AmountErr)
-		//		return
-		//	}
-		//	if amount.GreaterThan(max) {
-		//		helper.Print(ctx, false, helper.AmountErr)
-		//		return
-		//	}
-		//}
 	}
 
 	err = model.ChannelUpdate(fields)

@@ -93,7 +93,7 @@ type Payment_t struct {
 	ID                string `db:"id" redis:"id" json:"id"`                               //id
 	CateID            string `db:"cate_id" redis:"cate_id" json:"cate_id"`                //渠道ID
 	ChannelID         string `db:"channel_id" redis:"channel_id" json:"channel_id"`       //支付方式id
-	ChannelName       string `redis:"channel_name" json:"channel_name"`                   //通道id
+	ChannelName       string `redis:"channel_name" json:"channel_name"`                   //支付方式名称
 	PaymentName       string `db:"payment_name" redis:"payment_name" json:"payment_name"` //通道名称
 	Fmax              string `db:"fmax" redis:"fmax" json:"fmax"`                         //最大支付金额
 	Fmin              string `db:"fmin" redis:"fmin" json:"fmin"`                         //最小支付金额

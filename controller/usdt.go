@@ -178,14 +178,18 @@ func (that *UsdtController) List(ctx *fasthttp.RequestCtx) {
 
 	page := ctx.PostArgs().GetUintOrZero("page")
 	pageSize := ctx.PostArgs().GetUintOrZero("page_size")
-	fmt.Println(page)
+	walletAddr := string(ctx.PostArgs().Peek("wallet_addr"))
 	if page < 1 {
 		page = 1
 	}
 	if pageSize < 10 {
 		pageSize = 10
 	}
-	data, err := model.VirtualWalletList(g.Ex{}, uint(page), uint(pageSize))
+	ex := g.Ex{}
+	if walletAddr != "" {
+		ex["wallet_addr"] = walletAddr
+	}
+	data, err := model.VirtualWalletList(ex, uint(page), uint(pageSize))
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
 		return
@@ -364,6 +368,10 @@ func (that *UsdtController) UpdateState(ctx *fasthttp.RequestCtx) {
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
 		return
+	}
+
+	if state == "2" {
+		model.ChannelSet("779402438062874469", "0", admin["id"], admin["name"])
 	}
 
 	contentLog := fmt.Sprintf("渠道管理-线下USDT-更新状态:后台账号:%s【id:%s,USDT名称:%s,地址:%s,最大:%f,最小:%f,二维码:%s,排序:%d,备注：%s】",

@@ -72,6 +72,7 @@ func WithdrawUserInsert(amount, bid, sid, ts, verifyCode string, fCtx *fasthttp.
 
 	recs, err := ryrpc.KmsDecryptOne(mb.UID, false, []string{"phone"})
 	if err != nil {
+		fmt.Println(err)
 		_ = pushLog(err, helper.GetRPCErr)
 		return "", errors.New(helper.GetRPCErr)
 	}
@@ -80,7 +81,7 @@ func WithdrawUserInsert(amount, bid, sid, ts, verifyCode string, fCtx *fasthttp.
 	if mb.Tester == "1" {
 		rs, err := checkWithdrawSms(mb, recs["phone"], sid, ts, verifyCode, fCtx)
 		if err != nil {
-			return rs, errors.New(helper.GetRPCErr)
+			return rs, errors.New(helper.FirstDailyWithdrawNeedVerify)
 		}
 	}
 

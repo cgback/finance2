@@ -10,6 +10,7 @@ import (
 	"github.com/valyala/fasthttp"
 	"github.com/valyala/fastjson"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -288,7 +289,7 @@ func CacheRefreshPayment(id string) error {
 		"state":        val.State,
 		"amount_list":  val.AmountList,
 	}
-	pkey := meta.Prefix + ":p:" + id
+	pkey := meta.Prefix + ":f:p:" + id
 	pipe.Unlink(ctx, pkey)
 	pipe.HMSet(ctx, pkey, value)
 	pipe.Persist(ctx, pkey)
@@ -301,11 +302,12 @@ func CacheRefreshPayment(id string) error {
 }
 
 // 自己的银行
-func CacheRefreshOfflinePaymentBanks(id string) error {
+func CacheRefreshOfflinePaymentBanks(id string, cid int64, flags string) error {
 
 	ex := g.Ex{
 		"state": "1",
-		"flags": "1",
+		"flags": flags,
+		"cid":   cid,
 	}
 	res, err := BankCardList(ex, "")
 	if err != nil {
@@ -326,10 +328,12 @@ func CacheRefreshOfflinePaymentBanks(id string) error {
 	if len(res) > 0 {
 
 		for k, v := range res {
-			bt, err := getBankTypeByCode(bankCodeMap[v.ChannelBankId])
-			if err == nil {
-				res[k].BanklcardName = bt.ShortName
-				res[k].Logo = bt.Logo
+			if v.ChannelBankId != "" {
+				bt, err := getBankTypeByCode(bankCodeMap[v.ChannelBankId])
+				if err == nil {
+					res[k].BanklcardName = bt.ShortName
+					res[k].Logo = bt.Logo
+				}
 			}
 		}
 		sort.SliceStable(res, func(i, j int) bool {
@@ -353,7 +357,6 @@ func CacheRefreshOfflinePaymentBanks(id string) error {
 	if err != nil {
 		return pushLog(err, helper.RedisErr)
 	}
-	return nil
 
 	return nil
 }
@@ -762,11 +765,20 @@ func Tunnel(fctx *fasthttp.RequestCtx, id string) (string, error) {
 	return str, nil
 }
 
-func Cate(fctx *fasthttp.RequestCtx) (string, error) {
+type CateData struct {
+	Id            string `json:"id"`
+	Name          string `json:"name"`
+	IsLastSuccess int    `json:"is_last_success"`
+	Sort          int    `json:"sort"`
+}
+
+func Cate(fctx *fasthttp.RequestCtx) ([]CateData, error) {
+
+	data := []CateData{}
 
 	m, err := MemberCache(fctx)
 	if err != nil {
-		return "", err
+		return data, err
 	}
 	var lastDepositChannel string
 	key := fmt.Sprintf("%s:f:c:lvl:%d", meta.Prefix, m.Level)
@@ -780,16 +792,16 @@ func Cate(fctx *fasthttp.RequestCtx) (string, error) {
 	_, err = pipe.Exec(ctx)
 	pipe.Close()
 	if err != nil {
-		return "[]", pushLog(err, helper.RedisErr)
+		return data, pushLog(err, helper.RedisErr)
 	}
 
 	recs_result, err := recs_temp.Result()
 	if err != nil {
-		return "[]", nil
+		return data, nil
 	}
 	// 如果会员被锁定不返回通道
 	if exists.Val() != 0 {
-		return "[]", nil
+		return data, nil
 	}
 	if exists2.Val() == 1 {
 		lastDeposit := meta.MerchantRedis.Get(ctx, lastDepositKey)
@@ -800,38 +812,42 @@ func Cate(fctx *fasthttp.RequestCtx) (string, error) {
 		meta.MerchantRedis.Set(ctx, lastDepositKey, lastDepositChannel, 100*time.Hour).Err()
 	}
 
-	a := new(fastjson.Arena)
-	obj := a.NewArray()
 	recs := strings.Split(recs_result, ",")
-	for i, value := range recs {
+	for _, value := range recs {
 
 		fmt.Println("value:", value)
-		val := fastjson.MustParse(`{"id":"0","name":"x", "is_last_success":"0"}`)
-		re := meta.MerchantRedis.HMGet(ctx, meta.Prefix+":f:c:"+value, "id", "name")
+		val := CateData{}
+		re := meta.MerchantRedis.HMGet(ctx, meta.Prefix+":f:c:"+value, "id", "name", "sort")
 		scope := re.Val()
 		if id, ok := scope[0].(string); !ok {
 			fmt.Println("scope:", scope)
 			continue
 		} else {
 			if lastDepositChannel != "" && string(id) == lastDepositChannel {
-				val.Set("is_last_success", fastjson.MustParse("1"))
+				val.IsLastSuccess = 1
 			} else {
-				val.Set("is_last_success", fastjson.MustParse("0"))
+				val.IsLastSuccess = 0
 			}
-			val.Set("id", fastjson.MustParse(id))
+			val.Id = id
 		}
 		if name, ok := scope[1].(string); !ok {
 			continue
 		} else {
-			val.Set("name", fastjson.MustParse(fmt.Sprintf(`"%s"`, name)))
+			val.Name = name
 		}
-		obj.SetArrayItem(i, val)
+		if sort, ok := scope[2].(string); !ok {
+			continue
+		} else {
+			sortTemp, err := strconv.Atoi(sort)
+			if err == nil {
+				val.Sort = sortTemp
+			}
+		}
+		data = append(data, val)
 	}
+	sort.Slice(data, func(i, j int) bool { return data[i].Sort < data[j].Sort })
 
-	str := obj.String()
-	a = nil
-
-	return str, nil
+	return data, nil
 }
 
 // WithdrawLock 锁定提款订单

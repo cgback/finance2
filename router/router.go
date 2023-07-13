@@ -112,7 +112,7 @@ func SetupRouter(b BuildInfo) *router.Router {
 	//  财务管理-渠道管理-通道管理-修改
 	post("/merchant/f2/payment/update", paymentCtl.Update)
 	// 财务管理-渠道管理-通道管理-列表
-	get("/merchant/f2/payment/list", paymentCtl.List)
+	post("/merchant/f2/payment/list", paymentCtl.List)
 	//  财务管理-渠道管理-通道管理-启用/停用
 	post("/merchant/f2/payment/update/state", paymentCtl.UpdateState)
 
