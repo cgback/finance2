@@ -192,6 +192,9 @@ func BankCardDelete(id, adminName string) error {
 	if err != nil {
 		return err
 	}
+	if BankCard.State == "1" {
+		return errors.New(helper.OnlineCateDeleteErr)
+	}
 
 	ex := g.Ex{
 		"id": id,

@@ -58,7 +58,14 @@ func ChannelTypeUpdateState(id, state string, admin map[string]string) error {
 	}
 
 	LoadChannelType()
-
+	if state == "2" {
+		list, err := ChanByChan(id)
+		if err == nil {
+			for _, v := range list {
+				ChannelSet(v.ID, "0", admin["id"], admin["name"])
+			}
+		}
+	}
 	return nil
 }
 
@@ -109,6 +116,7 @@ func LoadChannelType() {
 		key := fmt.Sprintf("%s:f2:channeltypes", meta.Prefix)
 		pipe.Del(ctx, key)
 		for _, v := range cts {
+			fmt.Println(v.Name, ":", v.Sort)
 			if v.State == "1" {
 				z := &redis.Z{
 					Score:  float64(v.Sort),
@@ -117,7 +125,7 @@ func LoadChannelType() {
 				zs = append(zs, z)
 			}
 			cid := meta.Prefix + ":p:c:t:" + v.ID
-			pipe.HSet(ctx, cid, "name", v.Name, "id", v.ID, "sort", v.Sort)
+			meta.MerchantRedis.HSet(ctx, cid, "name", v.Name, "id", v.ID, "sort", v.Sort)
 		}
 		if len(zs) > 0 {
 			pipe.ZAdd(ctx, key, zs...)

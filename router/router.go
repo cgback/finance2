@@ -233,6 +233,10 @@ func SetupRouter(b BuildInfo) *router.Router {
 	post("/merchant/f2/config/member/insert", cfCtl.Insert)
 	//限制豁免权账号删除
 	post("/merchant/f2/config/member/delete", cfCtl.Delete)
+	// [商户后台] 渠道列表数据缓存
+	get("/merchant/f2/cate/cache", cateCtl.Cache)
+	// [商户后台] 财务管理-渠道管理-通道类型管理-列表
+	get("/merchant/f2/tunnel/list", channelTypeCtl.List)
 
 	return route
 }

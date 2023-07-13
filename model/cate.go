@@ -86,6 +86,24 @@ func CateList() ([]Category, error) {
 	return data, nil
 }
 
+func cateMap() (map[string]Category, error) {
+
+	m := map[string]Category{}
+	var data []Category
+
+	cond := g.Ex{}
+	query, _, _ := dialect.From("f2_category").Select(colCate...).Where(cond).ToSQL()
+	err := meta.MerchantDB.Select(&data, query)
+	if err != nil {
+		return m, pushLog(err, helper.DBErr)
+	}
+	for _, v := range data {
+		m[v.ID] = v
+	}
+
+	return m, nil
+}
+
 // 设置渠道的状态 开启/关闭
 func CateSet(id, state string) error {
 

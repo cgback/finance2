@@ -140,6 +140,11 @@ func (that *PaymentController) Update(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
+	if param.State == "1" && channel.State != "1" {
+		fmt.Println("通道开启了也去开启支付方式")
+		model.ChannelTypeUpdateState(channel.ID, "1", admin)
+	}
+
 	contentLog := fmt.Sprintf("财务管理-渠道管理-通道管理-修改:后台账号:%s【渠道名:%s;通道名:%s;子通道名:%s=>%s;最小金额:%s=>%s；最大金额:%s=>%s,金额:%s=>%s】",
 		admin["name"], cate.Name, channel.Name, payment.PaymentName, fields["payment_name"], payment.Fmin, fields["fmin"],
 		payment.Fmax, fields["fmax"], payment.AmountList, fields["amount_list"])
@@ -189,13 +194,6 @@ func (that *PaymentController) UpdateState(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	// 上级渠道关闭的时候不能开启
-	if state == "1" && cate.State == "0" {
-		helper.Print(ctx, false, helper.ParentChannelClosed)
-		return
-
-	}
-
 	// 三方通道
 	channel, err := model.TunnelByID(payment.ChannelID)
 	if err != nil {
@@ -212,6 +210,12 @@ func (that *PaymentController) UpdateState(ctx *fasthttp.RequestCtx) {
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
 		return
+	}
+
+	fmt.Println(state, ":", channel.State)
+	if state == "1" && channel.State != "1" {
+		fmt.Println("通道开启了也去开启支付方式")
+		model.ChannelTypeUpdateState(channel.ID, "1", admin)
 	}
 
 	contentLog := fmt.Sprintf(" 财务管理-渠道管理-通道管理-%s:后台账号:%s【渠道名称: %s ；通道名称: %s,id:%s】",

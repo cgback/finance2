@@ -519,7 +519,7 @@ func CacheRefreshLevel() {
 				value = append(value, val)
 				levelMap[level] = value
 			}
-			meta.MerchantRedis.Unlink(ctx, meta.Prefix+":f:c:p:"+level+":"+val.ChannelID)
+			meta.MerchantRedis.Unlink(ctx, meta.Prefix+":f:c:p:"+level+":"+val.ChannelID).Err()
 		}
 	}
 
@@ -815,9 +815,8 @@ func Cate(fctx *fasthttp.RequestCtx) ([]CateData, error) {
 	recs := strings.Split(recs_result, ",")
 	for _, value := range recs {
 
-		fmt.Println("value:", value)
 		val := CateData{}
-		re := meta.MerchantRedis.HMGet(ctx, meta.Prefix+":f:c:"+value, "id", "name", "sort")
+		re := meta.MerchantRedis.HMGet(ctx, meta.Prefix+":p:c:t:"+value, "id", "name", "sort")
 		scope := re.Val()
 		if id, ok := scope[0].(string); !ok {
 			fmt.Println("scope:", scope)

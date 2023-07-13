@@ -31,11 +31,11 @@ func PaymentList(cateID, chanID, vip, state, flag, paymentName, name string) ([]
 
 	ex := g.Ex{}
 
-	if cateID != "0" {
+	if cateID != "" {
 		ex["cate_id"] = cateID
 	}
 
-	if chanID != "0" {
+	if chanID != "" {
 		ex["channel_id"] = chanID
 	}
 
@@ -72,8 +72,10 @@ func PaymentList(cateID, chanID, vip, state, flag, paymentName, name string) ([]
 		pipe.Exec(ctx)
 		pipe.Close()
 
+		cateM, _ := cateMap()
 		for i := 0; i < ll; i++ {
 			data[i].ChannelName = res[i].Val()
+			data[i].CateName = cateM[data[i].CateID].Name
 		}
 	}
 
@@ -207,14 +209,13 @@ func ChannelSet(id, state, adminId, adminName string) error {
 	return nil
 }
 
-// ChanByCateAndChan 通过cate id和channel id查找cate
-func ChanByCateAndChan(cateId, ChanId string) (Payment_t, error) {
+func ChanByChan(ChanId string) ([]Payment_t, error) {
 
-	var channel Payment_t
+	var channel []Payment_t
 
 	query, _, _ := dialect.From("f2_payment").Select(colPayment...).
-		Where(g.Ex{"cate_id": cateId, "channel_id": ChanId, "prefix": meta.Prefix}).ToSQL()
-	err := meta.MerchantDB.Get(&channel, query)
+		Where(g.Ex{"channel_id": ChanId}).ToSQL()
+	err := meta.MerchantDB.Select(&channel, query)
 	if err != nil && err != sql.ErrNoRows {
 		return channel, pushLog(err, helper.DBErr)
 	}

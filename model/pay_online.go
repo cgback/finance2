@@ -6,6 +6,7 @@ import (
 	"finance/contrib/validator"
 	"fmt"
 	g "github.com/doug-martin/goqu/v9"
+	"github.com/go-redis/redis/v8"
 	"github.com/tenfyzhong/cityhash"
 	"github.com/valyala/fasthttp"
 	"math/rand"
@@ -44,9 +45,38 @@ func PayOnline(fctx *fasthttp.RequestCtx, pid, amount, bid string) (map[string]s
 	res := map[string]string{}
 	var data paymentDepositResp
 
+	pipe := meta.MerchantRedis.TxPipeline()
+	defer pipe.Close()
 	user, err := MemberCache(fctx)
 	if err != nil {
 		return res, err
+	}
+	key := fmt.Sprintf("%s:finance:manual:c:%s", meta.Prefix, user.Username)
+	zcard := pipe.ZCard(ctx, key)
+
+	_, err = pipe.Exec(ctx)
+	if err != nil && err != redis.Nil {
+		return res, pushLog(err, helper.RedisErr)
+	}
+	cd, err := ConfigDetail()
+	if err != nil {
+		return res, pushLog(err, helper.DBErr)
+	}
+	dtom := cd["deposit_time_one_max"]
+	dto := cd["deposit_time_one"]
+	dtomi, err := strconv.ParseInt(dtom, 10, 64)
+	if err != nil {
+		return res, pushLog(err, helper.DBErr)
+	}
+	dtoi, err := strconv.Atoi(dto)
+	if err != nil {
+		return res, pushLog(err, helper.DBErr)
+	}
+	if zcard.Val() >= dtomi {
+		err = meta.MerchantRedis.SetNX(ctx, "deposit_wait", 1, time.Duration(dtoi)*time.Second).Err()
+		if err != nil {
+			return res, errors.New(fmt.Sprintf(`Bạn Đã Gửi %d Đơn, Tạm Thời Không Thể Gửi Tiếp, Vui Lòng Liên Hệ CSKH`, dtomi))
+		}
 	}
 	user, err = MemberGetByName(user.Username)
 	if err != nil {

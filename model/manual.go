@@ -6,6 +6,7 @@ import (
 	"finance/contrib/validator"
 	"fmt"
 	"github.com/go-redis/redis/v8"
+	"strconv"
 	"time"
 
 	g "github.com/doug-martin/goqu/v9"
@@ -34,8 +35,25 @@ func OfflinePay(fctx *fasthttp.RequestCtx, paymentID, amount, bid string) (strin
 		return "", pushLog(err, helper.RedisErr)
 	}
 
-	if zcard.Val() >= 5 {
-		return "", errors.New(fmt.Sprintf(`Bạn Đã Gửi 5 Đơn, Tạm Thời Không Thể Gửi Tiếp, Vui Lòng Liên Hệ CSKH`))
+	cd, err := ConfigDetail()
+	if err != nil {
+		return "", pushLog(err, helper.DBErr)
+	}
+	dtom := cd["deposit_time_one_max"]
+	dto := cd["deposit_time_one"]
+	dtomi, err := strconv.ParseInt(dtom, 10, 64)
+	if err != nil {
+		return "", pushLog(err, helper.DBErr)
+	}
+	dtoi, err := strconv.Atoi(dto)
+	if err != nil {
+		return "", pushLog(err, helper.DBErr)
+	}
+	if zcard.Val() >= dtomi {
+		err = meta.MerchantRedis.SetNX(ctx, "deposit_wait", 1, time.Duration(dtoi)*time.Second).Err()
+		if err != nil {
+			return "", errors.New(fmt.Sprintf(`Bạn Đã Gửi %d Đơn, Tạm Thời Không Thể Gửi Tiếp, Vui Lòng Liên Hệ CSKH`, dtomi))
+		}
 	}
 
 	ts := fctx.Time().In(loc).Unix()
