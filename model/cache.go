@@ -233,6 +233,11 @@ func CacheRefreshPayment(id string) error {
 		"state":        val.State,
 		"amount_list":  val.AmountList,
 		"discount":     val.Discount,
+		"is_zone":      val.IsZone,
+		"is_fast":      val.IsFast,
+		"h5_img":       val.H5Img,
+		"web_img":      val.WebImg,
+		"app_img":      val.AppImg,
 	}
 	pkey := meta.Prefix + ":f:p:" + val.ID
 	pipe.Unlink(ctx, pkey)

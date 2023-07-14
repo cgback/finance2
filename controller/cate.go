@@ -66,3 +66,17 @@ func (that *CateController) Cache(ctx *fasthttp.RequestCtx) {
 	data := model.CateListRedis()
 	helper.PrintJson(ctx, true, data)
 }
+
+// Withdraw 财务管理-提款通道
+func (that *CateController) Withdraw(ctx *fasthttp.RequestCtx) {
+
+	amount := ctx.PostArgs().GetUfloatOrZero("amount")
+
+	data, err := model.CateWithdrawList(amount)
+	if err != nil {
+		helper.Print(ctx, false, err.Error())
+		return
+	}
+
+	helper.Print(ctx, true, data)
+}

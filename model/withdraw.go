@@ -394,6 +394,7 @@ func WithdrawInsert(amount, bid, withdrawID, confirmUid, confirmName string, rec
 		"tester":              member.Tester,
 		"balance":             userAmount.Sub(withdrawAmount).String(),
 		"r":                   mhash,
+		"last_withdraw_at":    member.LastWithdrawAt,
 	}
 
 	// 开启事务 写账变 更新redis  查询提款

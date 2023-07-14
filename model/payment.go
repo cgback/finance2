@@ -25,7 +25,7 @@ type channelCate struct {
 	CateID    string `db:"cate_id" json:"cate_id"`
 }
 
-func PaymentList(cateID, chanID, vip, state, flag, paymentName, name string) ([]Payment_t, error) {
+func PaymentList(cateID, channelName, vip, state, flag, paymentName, name string) ([]Payment_t, error) {
 
 	var data []Payment_t
 
@@ -35,12 +35,23 @@ func PaymentList(cateID, chanID, vip, state, flag, paymentName, name string) ([]
 		ex["cate_id"] = cateID
 	}
 
-	if chanID != "" {
-		ex["channel_id"] = chanID
+	if channelName != "" {
+		cl, _ := ChannelTypeList()
+		for _, v := range cl {
+			if v.Name == channelName {
+				ex["channel_id"] = v.ID
+			}
+		}
 	}
 
 	if flag != "" {
-		ex["flag"] = flag
+		if flag == "1" {
+			ex["id"] = g.Op{"notIn": []string{"779402438062874465", "133221087319615487"}}
+			ex["flag"] = 1
+		}
+		if flag == "2" {
+			ex["id"] = []string{"779402438062874465", "133221087319615487"}
+		}
 	}
 	if state != "0" && state != "" {
 		ex["state"] = state
@@ -96,6 +107,10 @@ func ChannelUpdate(param map[string]string) error {
 		"vip_list":     param["vip_list"],
 		"is_zone":      param["is_zone"],
 		"is_fast":      param["is_fast"],
+		"h5_img":       param["h5_img"],
+		"web_img":      param["web_img"],
+		"app_img":      param["app_img"],
+		"discount":     param["discount"],
 	}
 
 	tx, err := meta.MerchantDB.Begin()

@@ -178,13 +178,14 @@ func DepositUpPointReviewSuccess(did, uid, name, remark string, state int) error
 	var feeCashType int
 	//如果存款有优惠
 
-	key := meta.Prefix + ":f:p" + order.PID
+	key := meta.Prefix + ":f:p:" + order.PID
 
 	promoDiscount, err := meta.MerchantRedis.HGet(ctx, key, "discount").Result()
 	if err != nil && err != redis.Nil {
 		//缓存没有配置就跳过
 		fmt.Println(err)
 	}
+	fmt.Println("review discount:", promoDiscount)
 	pd, _ := decimal.NewFromString(promoDiscount)
 	if pd.GreaterThan(decimal.Zero) {
 		//大于0就是优惠，给钱
@@ -633,7 +634,7 @@ func DepositHistory(username, parentName, groupName, id, channelID, oid, state,
 }
 
 // DepositList 存款订单列表
-func DepositList(ex g.Ex, startTime, endTime string, page, pageSize int) (FDepositData, error) {
+func DepositList(ex g.Ex, startTime, endTime string, isBig, firstWd, page, pageSize int) (FDepositData, error) {
 
 	ex["prefix"] = meta.Prefix
 	ex["tester"] = 1
@@ -810,6 +811,7 @@ func DepositManual(id, amount, remark, name, uid string) error {
 		"level":             order.Level,
 		"tester":            tester,
 		"r":                 mhash,
+		"first_deposit_at":  mb.FirstDepositAt,
 	}
 	query, _, _ := dialect.Insert("tbl_deposit").Rows(d).ToSQL()
 	_, err = tx.Exec(query)
@@ -1132,7 +1134,7 @@ func DepositUpPointSuccess(did, uid, name, remark, payAt string, state int) erro
 	fee := decimal.Zero
 	var feeCashType int
 	//如果存款有优惠
-	key := meta.Prefix + ":f:p" + order.PID
+	key := meta.Prefix + ":f:p:" + order.PID
 	promoDiscount, err := meta.MerchantRedis.HGet(ctx, key, "discount").Result()
 	if err != nil && err != redis.Nil {
 		//缓存没有配置就跳过
@@ -1409,7 +1411,7 @@ func DepositUpPointCancel(did, uid, name, remark, payAt string, state int) error
 	fee := decimal.Zero
 	var feeCashType int
 	//如果存款有优惠
-	key := meta.Prefix + ":f:p" + order.PID
+	key := meta.Prefix + ":f:p:" + order.PID
 
 	promoDiscount, err := meta.MerchantRedis.HGet(ctx, key, "discount").Result()
 	if err != nil && err != redis.Nil {

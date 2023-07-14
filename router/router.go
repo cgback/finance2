@@ -156,6 +156,10 @@ func SetupRouter(b BuildInfo) *router.Router {
 	get("/merchant/f2/offline/usdt/delete", usdtCtl.Delete)
 	// 渠道管理-收款账户管理-usdt设置-展示usdt收款账号
 	post("/merchant/f2/offline/usdt/updatestate", usdtCtl.UpdateState)
+	// [商户后台] 财务管理-存款管理-线下USDT-确认金额待审核
+	post("/merchant/f2/deposit/usdt/reviewing", depositCtl.OfflineUSDT)
+	// [商户后台] 财务管理-存款管理-线下USDT-审核
+	post("/merchant/f2/deposit/usdt/review", depositCtl.OfflineUSDTReview)
 
 	// [商户后台] 风控管理-风控配置-接单控制-关闭自动派单
 	get("/merchant/f2/risks/close", risksCtl.CloseAuto)
@@ -189,12 +193,14 @@ func SetupRouter(b BuildInfo) *router.Router {
 	// [商户后台] 财务管理-存款管理-补单审核
 	post("/merchant/f2/deposit/review", depositCtl.Review)
 
-	// [商户后台] 财务管理-存款管理-线下转卡-确认金额待审核
-	post("/merchant/f2/manual/confirm", manualCtl.Confirm)
 	// [商户后台] 财务管理-存款管理-USDT存款
 	post("/merchant/f2/deposit/usdt/list", depositCtl.USDTList)
 	// [商户后台] 财务管理-存款管理-线下转卡-入款订单
 	post("/merchant/f2/manual/list", manualCtl.List)
+	// [商户后台] 财务管理-存款管理-线下转卡-确认金额待审核
+	post("/merchant/f2/manual/confirm", manualCtl.Confirm)
+	// [商户后台] 财务管理-存款管理-线下转卡-审核
+	post("/merchant/f2/manual/review", manualCtl.Review)
 
 	// [商户后台] 财务管理-提款管理-会员列表-提款
 	post("/merchant/f2/withdraw/memberlist", wdCtl.MemberWithdrawList)
@@ -208,6 +214,8 @@ func SetupRouter(b BuildInfo) *router.Router {
 	post("/merchant/f2/withdraw/review", wdCtl.Review)
 	// [商户后台] 财务管理-提款管理-代付失败
 	post("/merchant/f2/withdraw/automatic/failed", wdCtl.AutomaticFailed)
+	// [商户后台] 财务管理-提款渠道
+	get("/merchant/f2/cate/withdraw", cateCtl.Withdraw)
 
 	// [商户后台] 风控管理-提款审核-待领取列表
 	post("/merchant/f2/withdraw/waitreceive", wdCtl.RiskWaitConfirmList)

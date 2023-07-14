@@ -160,6 +160,7 @@ func PayOnline(fctx *fasthttp.RequestCtx, pid, amount, bid string) (map[string]s
 		"tester":            user.Tester,
 		"r":                 mhash,
 		"discount":          discount.StringFixed(2),
+		"first_deposit_at":  user.FirstDepositAt,
 	}
 
 	fmt.Println("deposit d:", d)

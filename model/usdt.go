@@ -194,6 +194,7 @@ func UsdtPay(fctx *fasthttp.RequestCtx, pid, amount, rate, addr, protocolType, h
 		"flag":              DepositFlagUSDT,
 		"level":             user.Level,
 		"r":                 mhash,
+		"first_deposit_at":  user.FirstDepositAt,
 	}
 
 	// 请求成功插入订单
@@ -637,6 +638,7 @@ func usdtWithdrawInsert(mv MemberVirtualWallet, amount, rate, withdrawID, confir
 		"protocol":            1,
 		"alias":               mv.Alias,
 		"wallet_addr":         mv.WalletAddr,
+		"last_withdraw_at":    member.LastWithdrawAt,
 	}
 
 	// 开启事务 写账变 更新redis  查询提款

@@ -160,3 +160,40 @@ func CateSet(id, state string) error {
 	cateToRedis()
 	return nil
 }
+
+func CateWithdrawList(amount float64) ([]Category, error) {
+
+	var data []Category
+
+	ex := g.Ex{
+		"id":    []string{"59000000000000101"},
+		"state": "1",
+	}
+	if amount != 0 {
+		ex["fmin"] = g.Op{"lte": amount}
+		ex["fmax"] = g.Op{"gte": amount}
+	}
+
+	var pids []string
+	query, _, _ := dialect.From("f2_payment").Select("cate_id").Where(ex).ToSQL()
+	err := meta.MerchantDB.Select(&pids, query)
+	if err != nil {
+		return data, pushLog(err, helper.DBErr)
+	}
+
+	if len(pids) == 0 {
+		return data, nil
+	}
+
+	ex = g.Ex{
+		"id":    pids,
+		"state": "1",
+	}
+	query, _, _ = dialect.From("f2_category").Select(colCate...).Where(ex).Order(g.C("created_at").Desc()).ToSQL()
+	err = meta.MerchantDB.Select(&data, query)
+	if err != nil {
+		return data, pushLog(err, helper.DBErr)
+	}
+
+	return data, nil
+}

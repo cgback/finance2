@@ -40,7 +40,7 @@ type chanStateParam struct {
 func (that *PaymentController) List(ctx *fasthttp.RequestCtx) {
 
 	var cateId string
-	channelId := string(ctx.PostArgs().Peek("channel_id"))
+	channelName := string(ctx.PostArgs().Peek("channel_name"))
 	vip := string(ctx.PostArgs().Peek("vip"))
 	state := string(ctx.PostArgs().Peek("state"))
 	flag := string(ctx.PostArgs().Peek("flag"))
@@ -56,7 +56,7 @@ func (that *PaymentController) List(ctx *fasthttp.RequestCtx) {
 		}
 	}
 
-	data, err := model.PaymentList(cateId, channelId, vip, state, flag, paymentName, name)
+	data, err := model.PaymentList(cateId, channelName, vip, state, flag, paymentName, name)
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
 		return
@@ -74,7 +74,6 @@ func (that *PaymentController) Update(ctx *fasthttp.RequestCtx) {
 		helper.Print(ctx, false, helper.ParamErr)
 		return
 	}
-	fmt.Println("IsZone：", param.IsZone)
 
 	admin, err := model.AdminToken(ctx)
 	if err != nil || len(admin["id"]) < 1 {
@@ -144,6 +143,10 @@ func (that *PaymentController) Update(ctx *fasthttp.RequestCtx) {
 		"payment_name": param.PaymentName,
 		"is_zone":      param.IsZone,
 		"is_fast":      param.IsFast,
+		"h5_img":       param.H5Img,
+		"web_img":      param.WebImg,
+		"app_img":      param.AppImg,
+		"discount":     param.Discount,
 	}
 
 	if len(param.AmountList) > 0 {

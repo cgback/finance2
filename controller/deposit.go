@@ -73,6 +73,8 @@ type depositListParam struct {
 	Dty        int    `rule:"none" default:"0" name:"dty"`
 	SortField  string `rule:"none" default:"" name:"sort_field"` //排序字段
 	IsAsc      int    `rule:"none" default:"0" name:"is_asc"`
+	IsBig      int    `rule:"none" default:"0" name:"is_big"`
+	FirstWd    int    `rule:"none" default:"0" name:"first_wd"`
 }
 
 // Detail 会员列表-存款信息
@@ -292,7 +294,7 @@ func (that *DepositController) List(ctx *fasthttp.RequestCtx) {
 		ex["amount"] = g.Op{"between": exp.NewRangeVal(param.MinAmount, param.MaxAmount)}
 	}
 
-	data, err := model.DepositList(ex, param.StartTime, param.EndTime, param.Page, param.PageSize)
+	data, err := model.DepositList(ex, param.StartTime, param.EndTime, param.IsBig, param.FirstWd, param.Page, param.PageSize)
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
 		return
@@ -313,6 +315,8 @@ func (that *DepositController) USDTList(ctx *fasthttp.RequestCtx) {
 	hashId := string(ctx.PostArgs().Peek("hash_id"))
 	page := ctx.PostArgs().GetUintOrZero("page")
 	pageSize := ctx.PostArgs().GetUintOrZero("page_size")
+	isBig := ctx.PostArgs().GetUintOrZero("is_big")     //大额优先 0默认1大额优先
+	firstWd := ctx.PostArgs().GetUintOrZero("first_wd") //首提优先 0默认1首提优先
 
 	if page == 0 {
 		page = 1
@@ -359,7 +363,7 @@ func (that *DepositController) USDTList(ctx *fasthttp.RequestCtx) {
 		ex["usdt_apply_amount"] = g.Op{"between": exp.NewRangeVal(minAmount, maxAmount)}
 	}
 
-	data, err := model.DepositList(ex, startTime, endTime, page, pageSize)
+	data, err := model.DepositList(ex, startTime, endTime, isBig, firstWd, page, pageSize)
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
 		return

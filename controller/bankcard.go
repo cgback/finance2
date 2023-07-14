@@ -447,6 +447,12 @@ func (that *BankCardController) InsertMsg(ctx *fasthttp.RequestCtx) {
 	if cid == "3" && flags == "1" {
 		fields["id"] = "766870294997073621"
 	}
+	if cid == "6" {
+		fields["id"] = "766870294997073616"
+	}
+	if cid == "7" {
+		fields["id"] = "779402438062874469"
+	}
 	admin, err := model.AdminToken(ctx)
 	if err != nil || len(admin["id"]) < 1 {
 		helper.Print(ctx, false, helper.AccessTokenExpires)
@@ -487,6 +493,12 @@ func (that *BankCardController) UpdateDiscount(ctx *fasthttp.RequestCtx) {
 	}
 	if cid == "3" && flags == "1" {
 		fields["id"] = "766870294997073621"
+	}
+	if cid == "6" {
+		fields["id"] = "766870294997073616"
+	}
+	if cid == "7" {
+		fields["id"] = "779402438062874469"
 	}
 	admin, err := model.AdminToken(ctx)
 	if err != nil || len(admin["id"]) < 1 {

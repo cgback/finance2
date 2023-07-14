@@ -136,11 +136,12 @@ func OfflinePay(fctx *fasthttp.RequestCtx, paymentID, amount, bid string) (strin
 		"bankcard_id":   bc.Id,
 		"flag":          "3",
 		//"bank_code":     bankCode,
-		"bank_no":  bc.BanklcardNo,
-		"level":    user.Level,
-		"tester":   user.Tester,
-		"r":        mhash,
-		"discount": discount.StringFixed(2),
+		"bank_no":          bc.BanklcardNo,
+		"level":            user.Level,
+		"tester":           user.Tester,
+		"r":                mhash,
+		"discount":         discount.StringFixed(2),
+		"first_deposit_at": user.FirstDepositAt,
 	}
 
 	// 请求成功插入订单
@@ -248,7 +249,6 @@ func ManualReview(did, remark, name, uid string, state int, record Deposit) erro
 		amount := decimal.NewFromFloat(record.Amount)
 
 		vals := g.Record{
-			"total_finish_amount": g.L(fmt.Sprintf("total_finish_amount+%s", amount.String())),
 			"daily_finish_amount": g.L(fmt.Sprintf("daily_finish_amount+%s", amount.String())),
 		}
 		err = BankCardUpdate(record.BankcardID, vals)
