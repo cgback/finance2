@@ -177,33 +177,27 @@ func DepositUpPointReviewSuccess(did, uid, name, remark string, state int) error
 	fee := decimal.Zero
 	var feeCashType int
 	//如果存款有优惠
-	key := meta.Prefix + ":p:c:t:" + order.ChannelID
-	promoState, err := meta.MerchantRedis.HGet(ctx, key, "promo_state").Result()
+
+	key := meta.Prefix + ":f:p" + order.PID
+
+	promoDiscount, err := meta.MerchantRedis.HGet(ctx, key, "discount").Result()
 	if err != nil && err != redis.Nil {
 		//缓存没有配置就跳过
 		fmt.Println(err)
 	}
-	//开启了优惠
-	if promoState == "1" {
-		promoDiscount, err := meta.MerchantRedis.HGet(ctx, key, "promo_discount").Result()
-		if err != nil && err != redis.Nil {
-			//缓存没有配置就跳过
-			fmt.Println(err)
-		}
-		pd, _ := decimal.NewFromString(promoDiscount)
-		if pd.GreaterThan(decimal.Zero) {
-			//大于0就是优惠，给钱
-			fee = money.Mul(pd).Div(decimal.NewFromInt(100))
-			money = money.Add(fee)
-			balanceFeeAfter = decimal.NewFromFloat(balance.Balance).Add(money.Abs())
-			feeCashType = helper.TransactionDepositBonus
-		} else if pd.LessThan(decimal.Zero) {
-			//小于0就是收费，扣钱
-			fee = money.Mul(pd).Div(decimal.NewFromInt(100))
-			money = money.Add(fee)
-			balanceFeeAfter = decimal.NewFromFloat(balance.Balance).Add(money.Abs())
-			feeCashType = helper.TransactionDepositFee
-		}
+	pd, _ := decimal.NewFromString(promoDiscount)
+	if pd.GreaterThan(decimal.Zero) {
+		//大于0就是优惠，给钱
+		fee = money.Mul(pd).Div(decimal.NewFromInt(100))
+		money = money.Add(fee)
+		balanceFeeAfter = decimal.NewFromFloat(balance.Balance).Add(money.Abs())
+		feeCashType = helper.TransactionDepositBonus
+	} else if pd.LessThan(decimal.Zero) {
+		//小于0就是收费，扣钱
+		fee = money.Mul(pd).Div(decimal.NewFromInt(100))
+		money = money.Add(fee)
+		balanceFeeAfter = decimal.NewFromFloat(balance.Balance).Add(money.Abs())
+		feeCashType = helper.TransactionDepositFee
 	}
 
 	// 开启事务
@@ -220,9 +214,7 @@ func DepositUpPointReviewSuccess(did, uid, name, remark string, state int) error
 		"confirm_name":  name,
 		"review_remark": remark,
 	}
-	if promoState == "1" {
-		record["discount"] = fee
-	}
+	record["discount"] = fee
 
 	query, _, _ := dialect.Update("tbl_deposit").Set(record).Where(ex).ToSQL()
 	_, err = tx.Exec(query)
@@ -1140,43 +1132,35 @@ func DepositUpPointSuccess(did, uid, name, remark, payAt string, state int) erro
 	fee := decimal.Zero
 	var feeCashType int
 	//如果存款有优惠
-	key := meta.Prefix + ":p:c:t:" + order.ChannelID
-	promoState, err := meta.MerchantRedis.HGet(ctx, key, "promo_state").Result()
+	key := meta.Prefix + ":f:p" + order.PID
+	promoDiscount, err := meta.MerchantRedis.HGet(ctx, key, "discount").Result()
 	if err != nil && err != redis.Nil {
 		//缓存没有配置就跳过
 		fmt.Println(err)
 	}
-	//开启了优惠
-	if promoState == "1" {
-		promoDiscount, err := meta.MerchantRedis.HGet(ctx, key, "promo_discount").Result()
-		if err != nil && err != redis.Nil {
-			//缓存没有配置就跳过
-			fmt.Println(err)
-		}
-		pd, _ := decimal.NewFromString(promoDiscount)
-		fmt.Println("promoDiscount:", promoDiscount)
-		if pd.GreaterThan(decimal.Zero) {
-			//大于0就是优惠，给钱
-			fee = money.Mul(pd).Div(decimal.NewFromInt(100))
-			money = money.Add(fee)
-			balanceFeeAfter = decimal.NewFromFloat(balance.Balance).Add(money.Abs())
-			feeCashType = helper.TransactionDepositBonus
-		} else if pd.LessThan(decimal.Zero) {
-			//小于0就是收费，扣钱
-			fee = money.Mul(pd).Div(decimal.NewFromInt(100))
-			money = money.Add(fee)
-			balanceFeeAfter = decimal.NewFromFloat(balance.Balance).Add(money.Abs())
-			feeCashType = helper.TransactionDepositFee
+	pd, _ := decimal.NewFromString(promoDiscount)
+	fmt.Println("promoDiscount:", promoDiscount)
+	if pd.GreaterThan(decimal.Zero) {
+		//大于0就是优惠，给钱
+		fee = money.Mul(pd).Div(decimal.NewFromInt(100))
+		money = money.Add(fee)
+		balanceFeeAfter = decimal.NewFromFloat(balance.Balance).Add(money.Abs())
+		feeCashType = helper.TransactionDepositBonus
+	} else if pd.LessThan(decimal.Zero) {
+		//小于0就是收费，扣钱
+		fee = money.Mul(pd).Div(decimal.NewFromInt(100))
+		money = money.Add(fee)
+		balanceFeeAfter = decimal.NewFromFloat(balance.Balance).Add(money.Abs())
+		feeCashType = helper.TransactionDepositFee
 
-		}
-		//修改存款订单的存款优惠
-		record["discount"] = fee
-		query, _, _ = dialect.Update("tbl_deposit").Set(record).Where(g.Ex{"id": order.ID}).ToSQL()
-		_, err = tx.Exec(query)
-		if err != nil {
-			_ = tx.Rollback()
-			return pushLog(err, helper.DBErr)
-		}
+	}
+	//修改存款订单的存款优惠
+	record["discount"] = fee
+	query, _, _ = dialect.Update("tbl_deposit").Set(record).Where(g.Ex{"id": order.ID}).ToSQL()
+	_, err = tx.Exec(query)
+	if err != nil {
+		_ = tx.Rollback()
+		return pushLog(err, helper.DBErr)
 	}
 
 	// 3、更新余额
@@ -1425,43 +1409,36 @@ func DepositUpPointCancel(did, uid, name, remark, payAt string, state int) error
 	fee := decimal.Zero
 	var feeCashType int
 	//如果存款有优惠
-	key := meta.Prefix + ":p:c:t:" + order.ChannelID
-	promoState, err := meta.MerchantRedis.HGet(ctx, key, "promo_state").Result()
+	key := meta.Prefix + ":f:p" + order.PID
+
+	promoDiscount, err := meta.MerchantRedis.HGet(ctx, key, "discount").Result()
 	if err != nil && err != redis.Nil {
 		//缓存没有配置就跳过
 		fmt.Println(err)
 	}
-	//开启了优惠
-	if promoState == "1" {
-		promoDiscount, err := meta.MerchantRedis.HGet(ctx, key, "promo_discount").Result()
-		if err != nil && err != redis.Nil {
-			//缓存没有配置就跳过
-			fmt.Println(err)
-		}
-		pd, _ := decimal.NewFromString(promoDiscount)
-		fmt.Println("promoDiscount:", promoDiscount)
-		if pd.GreaterThan(decimal.Zero) {
-			//大于0就是优惠，给钱
-			fee = money.Mul(pd).Div(decimal.NewFromInt(100))
-			money = money.Add(fee)
-			balanceFeeAfter = decimal.NewFromFloat(balance.Balance).Add(money.Abs())
-			feeCashType = helper.TransactionDepositBonus
-		} else if pd.LessThan(decimal.Zero) {
-			//小于0就是收费，扣钱
-			fee = money.Mul(pd).Div(decimal.NewFromInt(100))
-			money = money.Add(fee)
-			balanceFeeAfter = decimal.NewFromFloat(balance.Balance).Add(money.Abs())
-			feeCashType = helper.TransactionDepositFee
+	pd, _ := decimal.NewFromString(promoDiscount)
+	fmt.Println("promoDiscount:", promoDiscount)
+	if pd.GreaterThan(decimal.Zero) {
+		//大于0就是优惠，给钱
+		fee = money.Mul(pd).Div(decimal.NewFromInt(100))
+		money = money.Add(fee)
+		balanceFeeAfter = decimal.NewFromFloat(balance.Balance).Add(money.Abs())
+		feeCashType = helper.TransactionDepositBonus
+	} else if pd.LessThan(decimal.Zero) {
+		//小于0就是收费，扣钱
+		fee = money.Mul(pd).Div(decimal.NewFromInt(100))
+		money = money.Add(fee)
+		balanceFeeAfter = decimal.NewFromFloat(balance.Balance).Add(money.Abs())
+		feeCashType = helper.TransactionDepositFee
 
-		}
-		//修改存款订单的存款优惠
-		record["discount"] = fee
-		query, _, _ = dialect.Update("tbl_deposit").Set(record).Where(g.Ex{"id": order.ID}).ToSQL()
-		_, err = tx.Exec(query)
-		if err != nil {
-			_ = tx.Rollback()
-			return pushLog(err, helper.DBErr)
-		}
+	}
+	//修改存款订单的存款优惠
+	record["discount"] = fee
+	query, _, _ = dialect.Update("tbl_deposit").Set(record).Where(g.Ex{"id": order.ID}).ToSQL()
+	_, err = tx.Exec(query)
+	if err != nil {
+		_ = tx.Rollback()
+		return pushLog(err, helper.DBErr)
 	}
 
 	// 3、更新余额

@@ -147,7 +147,13 @@ func BankCardUpdateCache() error {
 		fmt.Println("BankCardUpdateCache pipe.Exec = ", err)
 		return errors.New(helper.RedisErr)
 	}
-	CacheRefreshPaymentOfflineBanks()
+
+	CacheRefreshOfflinePaymentBanks("766870294997073617", 2, "1")
+	CacheRefreshOfflinePaymentBanks("766870294997073618", 2, "2")
+	CacheRefreshOfflinePaymentBanks("766870294997073619", 4, "1")
+	CacheRefreshOfflinePaymentBanks("766870294997073620", 4, "2")
+	CacheRefreshOfflinePaymentBanks("766870294997073621", 3, "1")
+	CacheRefreshOfflinePaymentBanks("766870294997073616", 6, "2")
 
 	return nil
 }

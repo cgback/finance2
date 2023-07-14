@@ -7,6 +7,7 @@ import (
 	"fmt"
 	g "github.com/doug-martin/goqu/v9"
 	"github.com/go-redis/redis/v8"
+	"github.com/shopspring/decimal"
 	"github.com/tenfyzhong/cityhash"
 	"github.com/valyala/fasthttp"
 	"math/rand"
@@ -113,7 +114,15 @@ func PayOnline(fctx *fasthttp.RequestCtx, pid, amount, bid string) (map[string]s
 			UseLink:    1,
 		}
 	}
-
+	skey := meta.Prefix + ":f:p:" + p.ID
+	promoDiscount, err := meta.MerchantRedis.HGet(ctx, skey, "discount").Result()
+	if err != nil && err != redis.Nil {
+		//缓存没有配置就跳过
+		fmt.Println(err)
+	}
+	pd, _ := decimal.NewFromString(promoDiscount)
+	a, _ := decimal.NewFromString(amount)
+	discount := pd.Mul(a).Div(decimal.NewFromInt(100))
 	ts := fctx.Time().In(loc).Unix()
 	// 生成我方存款订单号
 	sn := fmt.Sprintf(`deposit%s%s%d%d`, data.OrderID, user.Username, ts, user.CreatedAt)
@@ -150,6 +159,7 @@ func PayOnline(fctx *fasthttp.RequestCtx, pid, amount, bid string) (map[string]s
 		"flag":              DepositFlagThird,
 		"tester":            user.Tester,
 		"r":                 mhash,
+		"discount":          discount.StringFixed(2),
 	}
 
 	fmt.Println("deposit d:", d)

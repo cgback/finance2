@@ -91,7 +91,16 @@ func OfflinePay(fctx *fasthttp.RequestCtx, paymentID, amount, bid string) (strin
 	}
 
 	fmt.Println("TransacCodeGet code = ", code)
-
+	skey := meta.Prefix + ":f:p:" + p.ID
+	promoDiscount, err := meta.MerchantRedis.HGet(ctx, skey, "discount").Result()
+	if err != nil && err != redis.Nil {
+		//缓存没有配置就跳过
+		fmt.Println(err)
+	}
+	fmt.Println("discount:", promoDiscount)
+	pd, _ := decimal.NewFromString(promoDiscount)
+	am, _ := decimal.NewFromString(amount)
+	discount := pd.Mul(am).Div(decimal.NewFromInt(100))
 	// 生成我方存款订单号
 	orderId := helper.GenId()
 	now := time.Now()
@@ -127,10 +136,11 @@ func OfflinePay(fctx *fasthttp.RequestCtx, paymentID, amount, bid string) (strin
 		"bankcard_id":   bc.Id,
 		"flag":          "3",
 		//"bank_code":     bankCode,
-		"bank_no": bc.BanklcardNo,
-		"level":   user.Level,
-		"tester":  user.Tester,
-		"r":       mhash,
+		"bank_no":  bc.BanklcardNo,
+		"level":    user.Level,
+		"tester":   user.Tester,
+		"r":        mhash,
+		"discount": discount.StringFixed(2),
 	}
 
 	// 请求成功插入订单

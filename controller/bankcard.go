@@ -216,6 +216,12 @@ func (that *BankCardController) Insert(ctx *fasthttp.RequestCtx) {
 	fields["updated_at"] = fmt.Sprintf(`%d`, ctx.Time().Unix())
 	fields["updated_uid"] = admin["id"]
 	fields["updated_name"] = admin["name"]
+	if isZone != 0 {
+		fields["is_zone"] = fmt.Sprintf(`%d`, isZone)
+	}
+	if isFast != 0 {
+		fields["is_fast"] = fmt.Sprintf(`%d`, isFast)
+	}
 	err = model.ChannelUpdatePaymentName(fields)
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
@@ -269,8 +275,8 @@ func (that *BankCardController) Update(ctx *fasthttp.RequestCtx) {
 	vips := string(ctx.PostArgs().Peek("vip_list"))
 	amountList := string(ctx.PostArgs().Peek("amount_list"))
 	discount := string(ctx.PostArgs().Peek("discount"))
-	isZone := ctx.PostArgs().GetUintOrZero("is_zone")
-	isFast := ctx.PostArgs().GetUintOrZero("is_fast")
+	isZone := string(ctx.PostArgs().Peek("is_zone"))
+	isFast := string(ctx.PostArgs().Peek("is_fast"))
 	seq := ctx.PostArgs().GetUintOrZero("seq")
 	paymentName := string(ctx.PostArgs().Peek("payment_name"))
 	admin, err := model.AdminToken(ctx)
@@ -342,10 +348,10 @@ func (that *BankCardController) Update(ctx *fasthttp.RequestCtx) {
 	if dailyMaxAmount > 0 {
 		rec["daily_max_amount"] = fmt.Sprintf("%f", dailyMaxAmount)
 	}
-	if isZone != 0 {
+	if isZone != "" {
 		rec["is_zone"] = isZone
 	}
-	if isFast != 0 {
+	if isFast != "" {
 		rec["is_fast"] = isFast
 	}
 	rec["updated_at"] = ctx.Time().Unix()
@@ -390,10 +396,16 @@ func (that *BankCardController) Update(ctx *fasthttp.RequestCtx) {
 	if bankCard.Cid == 6 && bankCard.Flags == "2" {
 		fields["id"] = "766870294997073616"
 	}
-
+	if isZone != "" {
+		fields["is_zone"] = isZone
+	}
+	if isFast != "" {
+		fields["is_fast"] = isFast
+	}
 	fields["updated_at"] = fmt.Sprintf(`%d`, ctx.Time().Unix())
 	fields["updated_uid"] = admin["id"]
 	fields["updated_name"] = admin["name"]
+
 	err = model.ChannelUpdatePaymentName(fields)
 	if err != nil {
 		helper.Print(ctx, false, err.Error())

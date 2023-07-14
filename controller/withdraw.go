@@ -744,6 +744,9 @@ func (that *WithdrawController) FinanceReviewList(ctx *fasthttp.RequestCtx) {
 	confirmName := string(ctx.PostArgs().Peek("confirm_name"))
 	page := ctx.PostArgs().GetUintOrZero("page")
 	pageSize := ctx.PostArgs().GetUintOrZero("page_size")
+	//isFirst := ctx.PostArgs().GetUintOrZero("is_first") //
+	//isBig := ctx.PostArgs().GetUintOrZero("is_big")     //
+	//pid := string(ctx.PostArgs().Peek("pid"))
 
 	if startTime == "" || endTime == "" {
 		helper.Print(ctx, false, helper.DateTimeErr)

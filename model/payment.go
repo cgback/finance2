@@ -161,6 +161,12 @@ func ChannelUpdatePaymentName(param map[string]string) error {
 	record := g.Record{
 		"payment_name": param["payment_name"],
 	}
+	if param["is_zone"] != "" {
+		record["is_zone"] = param["is_zone"]
+	}
+	if param["is_fast"] != "" {
+		record["is_fast"] = param["is_fast"]
+	}
 
 	ex := g.Ex{
 		"id": param["id"],
@@ -174,6 +180,28 @@ func ChannelUpdatePaymentName(param map[string]string) error {
 	}
 
 	_ = CacheRefreshPayment(param["id"])
+
+	return nil
+}
+
+func ChannelUpdateMin(id, fmin string) error {
+
+	record := g.Record{
+		"fmin": fmin,
+	}
+
+	ex := g.Ex{
+		"id": id,
+	}
+
+	query, _, _ := dialect.Update("f2_payment").Set(record).Where(ex).ToSQL()
+	fmt.Println(query)
+	_, err := meta.MerchantDB.Exec(query)
+	if err != nil {
+		return pushLog(err, helper.TransErr)
+	}
+
+	_ = CacheRefreshPayment(id)
 
 	return nil
 }

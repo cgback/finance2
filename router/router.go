@@ -182,6 +182,9 @@ func SetupRouter(b BuildInfo) *router.Router {
 	post("/merchant/f2/deposit/manual", depositCtl.Manual)
 	// [商户后台] 财务管理-存款管理-补单审核
 	post("/merchant/f2/deposit/review", depositCtl.Review)
+
+	// [商户后台] 财务管理-存款管理-线下转卡-确认金额待审核
+	post("/merchant/f2/manual/confirm", manualCtl.Confirm)
 	// [商户后台] 财务管理-存款管理-USDT存款
 	post("/merchant/f2/deposit/usdt/list", depositCtl.USDTList)
 	// [商户后台] 财务管理-存款管理-线下转卡-入款订单

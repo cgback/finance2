@@ -44,6 +44,13 @@ func ConfigUpdate(configs map[string]string) error {
 		}
 	}
 	tx.Commit()
+
+	if configs["withdraw_min"] != "" {
+		ChannelUpdateMin("133221087319615487", configs["withdraw_min"])
+	}
+	if configs["withdraw_usdt_min"] != "" {
+		ChannelUpdateMin("779402438062874465", configs["withdraw_usdt_min"])
+	}
 	return nil
 }
 

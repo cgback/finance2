@@ -125,7 +125,7 @@ func (that *ConfigController) List(ctx *fasthttp.RequestCtx) {
 
 	flag := string(ctx.PostArgs().Peek("flag"))
 	username := string(ctx.PostArgs().Peek("username"))
-	if !helper.CtypeDigit(flag) || (flag != "1" && flag != "0") {
+	if !helper.CtypeDigit(flag) {
 		helper.Print(ctx, false, helper.ParamErr)
 		return
 	}
@@ -143,7 +143,7 @@ func (that *ConfigController) Insert(ctx *fasthttp.RequestCtx) {
 	flag := string(ctx.PostArgs().Peek("flag"))
 	username := string(ctx.PostArgs().Peek("username"))
 	ty := string(ctx.PostArgs().Peek("ty"))
-	if !helper.CtypeDigit(flag) || (flag != "1" && flag != "0") {
+	if !helper.CtypeDigit(flag) {
 		helper.Print(ctx, false, helper.ParamErr)
 		return
 	}

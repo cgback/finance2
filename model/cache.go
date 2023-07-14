@@ -15,63 +15,6 @@ import (
 	"time"
 )
 
-func CacheRefreshPaymentOfflineBanks() error {
-
-	ex := g.Ex{
-		"state": "1",
-		"flags": "1",
-	}
-	res, err := BankCardList(ex, "")
-	if err != nil {
-		fmt.Println("BankCardUpdateCache err = ", err)
-		return err
-	}
-
-	if len(res) == 0 {
-		fmt.Println("BankCardUpdateCache len(res) = 0")
-		return nil
-	}
-
-	pipe := meta.MerchantRedis.TxPipeline()
-	defer pipe.Close()
-
-	bkey := meta.Prefix + ":BK:766870294997073616"
-	pipe.Unlink(ctx, bkey)
-	if len(res) > 0 {
-
-		for k, v := range res {
-			bt, err := getBankTypeByCode(bankCodeMap[v.ChannelBankId])
-			if err == nil {
-				res[k].BanklcardName = bt.ShortName
-				res[k].Logo = bt.Logo
-			}
-		}
-		sort.SliceStable(res, func(i, j int) bool {
-			if res[i].DailyMaxAmount < res[j].DailyMaxAmount {
-				return true
-			}
-
-			return false
-		})
-
-		s, err := helper.JsonMarshal(res)
-		if err != nil {
-			return errors.New(helper.FormatErr)
-		}
-
-		pipe.Set(ctx, bkey, string(s), 999999*time.Hour)
-		pipe.Persist(ctx, bkey)
-	}
-
-	_, err = pipe.Exec(ctx)
-	if err != nil {
-		return pushLog(err, helper.RedisErr)
-	}
-	return nil
-
-	return nil
-}
-
 func getBankTypeByCode(bankCode string) (TblBankTypes, error) {
 
 	key := meta.Prefix + ":bank:type:" + bankCode
@@ -288,6 +231,7 @@ func CacheRefreshPayment(id string) error {
 		"st":           val.St,
 		"state":        val.State,
 		"amount_list":  val.AmountList,
+		"discount":     val.Discount,
 	}
 	pkey := meta.Prefix + ":f:p:" + id
 	pipe.Unlink(ctx, pkey)
@@ -502,6 +446,7 @@ func CacheRefreshLevel() {
 	ex := g.Ex{
 		"state":      "1",
 		"channel_id": g.Op{"neq": "101"},
+		"id":         g.Op{"neq": "133221087319615487"},
 	}
 	query, _, _ := dialect.From("f2_payment").Select(colPayment...).Where(ex).Order(g.C("sort").Asc()).ToSQL()
 	err := meta.MerchantDB.Select(&payments, query)
