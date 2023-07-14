@@ -95,6 +95,12 @@ func SetupRouter(b BuildInfo) *router.Router {
 	// [前台] 线下转卡-发起存款
 	post("/f2/gen/code", manualCtl.GenCode)
 
+	// [前台] 线下USDT-发起存款
+	post("/f2/usdt/pay", usdtCtl.Pay)
+	// [前台] 用户申请提现
+	post("/f2/usdt/withdraw", usdtCtl.Withdraw)
+	// [前台] 线下USDT-获取trc收款地址
+	get("/f2/usdt/info", usdtCtl.Info)
 	// [前台] 用户申请提现
 	post("/f2/withdraw", wdCtl.Withdraw)
 	// [前台] 用户提现剩余次数和额度

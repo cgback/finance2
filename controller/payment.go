@@ -11,20 +11,23 @@ import (
 type PaymentController struct{}
 
 type updatePaymentParam struct {
-	ID         string `rule:"digit" msg:"id error" name:"id"`
-	Name       string `rule:"none" msg:"name error" name:"name"`                   // 通道名称
-	State      string `rule:"none" msg:"state error" name:"state"`                 //状态
-	Sort       string `rule:"digit" min:"1" max:"99" msg:"sort error" name:"sort"` // 排序
-	Comment    string `rule:"none" msg:"comment error" name:"comment"`             // 备注
-	AmountList string `rule:"none" msg:"amount_list error" name:"amount_list"`     // 快捷金额列表
-	VipList    string `rule:"vip_list" msg:"vip_list error" name:"vip_list"`       //会员等级
-	Discount   string `rule:"float" msg:"discount error" name:"discount"`          //优惠
-	WebImg     string `rule:"none" msg:"web_img error" name:"web_img"`             //web端说明
-	H5Img      string `rule:"none" msg:"h5_img error" name:"h5_img"`               //h5端说明
-	AppImg     string `rule:"none" msg:"app_img error" name:"app_img"`             //app端说明
-	Code       string `rule:"digit" msg:"code error" name:"code"`                  // 动态验证码
-	Fmax       string `rule:"digit" msg:"fmax" name:"fmax"`
-	Fmin       string `rule:"digit" msg:"fmin" name:"fmin"`
+	ID          string `rule:"digit" msg:"id error" name:"id"`
+	Name        string `rule:"none" msg:"name error" name:"name"`                   // 通道名称
+	State       string `rule:"none" msg:"state error" name:"state"`                 //状态
+	Sort        string `rule:"digit" min:"1" max:"99" msg:"sort error" name:"sort"` // 排序
+	Comment     string `rule:"none" msg:"comment error" name:"comment"`             // 备注
+	AmountList  string `rule:"none" msg:"amount_list error" name:"amount_list"`     // 快捷金额列表
+	VipList     string `rule:"vip_list" msg:"vip_list error" name:"vip_list"`       //会员等级
+	Discount    string `rule:"float" msg:"discount error" name:"discount"`          //优惠
+	WebImg      string `rule:"none" msg:"web_img error" name:"web_img"`             //web端说明
+	H5Img       string `rule:"none" msg:"h5_img error" name:"h5_img"`               //h5端说明
+	AppImg      string `rule:"none" msg:"app_img error" name:"app_img"`             //app端说明
+	Code        string `rule:"digit" msg:"code error" name:"code"`                  // 动态验证码
+	Fmax        string `rule:"digit" msg:"fmax" name:"fmax"`
+	Fmin        string `rule:"digit" msg:"fmin" name:"fmin"`
+	PaymentName string `rule:"none" msg:"payment_name error" name:"payment_name"`
+	IsZone      string `rule:"none" msg:"is_zone error" name:"is_zone"`
+	IsFast      string `rule:"none" msg:"is_fast error" name:"is_fast"`
 }
 
 type chanStateParam struct {
@@ -36,13 +39,22 @@ type chanStateParam struct {
 // List 财务管理-渠道管理-通道管理-列表
 func (that *PaymentController) List(ctx *fasthttp.RequestCtx) {
 
-	cateId := string(ctx.PostArgs().Peek("cate_id"))
+	var cateId string
 	channelId := string(ctx.PostArgs().Peek("channel_id"))
 	vip := string(ctx.PostArgs().Peek("vip"))
 	state := string(ctx.PostArgs().Peek("state"))
 	flag := string(ctx.PostArgs().Peek("flag"))
 	paymentName := string(ctx.PostArgs().Peek("payment_name"))
 	name := string(ctx.PostArgs().Peek("name"))
+	cateName := string(ctx.PostArgs().Peek("cate_name"))
+	fmt.Println("cateName:", cateName)
+	if cateName != "" {
+		cate, err := model.CateListByName(cateName)
+		if err == nil {
+			fmt.Println(cate.ID)
+			cateId = cate.ID
+		}
+	}
 
 	data, err := model.PaymentList(cateId, channelId, vip, state, flag, paymentName, name)
 	if err != nil {
@@ -62,6 +74,7 @@ func (that *PaymentController) Update(ctx *fasthttp.RequestCtx) {
 		helper.Print(ctx, false, helper.ParamErr)
 		return
 	}
+	fmt.Println("IsZone：", param.IsZone)
 
 	admin, err := model.AdminToken(ctx)
 	if err != nil || len(admin["id"]) < 1 {
@@ -120,14 +133,17 @@ func (that *PaymentController) Update(ctx *fasthttp.RequestCtx) {
 	}
 
 	fields := map[string]string{
-		"id":          param.ID,
-		"quota":       "0",
-		"sort":        param.Sort,
-		"comment":     param.Comment,
-		"amount_list": param.AmountList,
-		"fmax":        param.Fmax,
-		"fmin":        param.Fmin,
-		"vip_list":    param.VipList,
+		"id":           param.ID,
+		"quota":        "0",
+		"sort":         param.Sort,
+		"comment":      param.Comment,
+		"amount_list":  param.AmountList,
+		"fmax":         param.Fmax,
+		"fmin":         param.Fmin,
+		"vip_list":     param.VipList,
+		"payment_name": param.PaymentName,
+		"is_zone":      param.IsZone,
+		"is_fast":      param.IsFast,
 	}
 
 	if len(param.AmountList) > 0 {

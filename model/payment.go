@@ -94,6 +94,8 @@ func ChannelUpdate(param map[string]string) error {
 		"comment":      param["comment"],
 		"amount_list":  param["amount_list"],
 		"vip_list":     param["vip_list"],
+		"is_zone":      param["is_zone"],
+		"is_fast":      param["is_fast"],
 	}
 
 	tx, err := meta.MerchantDB.Begin()

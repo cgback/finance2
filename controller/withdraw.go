@@ -86,8 +86,25 @@ func (that *WithdrawController) RiskReviewList(ctx *fasthttp.RequestCtx) {
 	if err != nil {
 		pageSize = 15
 	}
+	isFirst := ctx.PostArgs().GetUintOrZero("is_first") //是否首提 0全部1首提
+	isBig := ctx.PostArgs().GetUintOrZero("is_big")     //大额优先 0默认1大额优先
+	pid := string(ctx.PostArgs().Peek("pid"))           //提现渠道 全部为'' cgpay ：59000000000000101
+	firstWd := ctx.PostArgs().GetUintOrZero("first_wd") //首提优先 0默认1首提优先
+	ty := ctx.PostArgs().GetUintOrZero("ty")            //出款类型 0 全部 101 自动代付 6 手动出款
 
 	ex := g.Ex{}
+	if isFirst > 0 {
+		ex["last_withdraw_at"] = 0
+	}
+	if pid != "" {
+		ex["pid"] = pid
+	}
+	if ty == 101 {
+		ex["pid"] = "59000000000000101"
+	}
+	if ty == 6 {
+		ex["pid"] = []string{"133221087319615487", "779402438062874465"}
+	}
 	if realName != "" {
 		if len([]rune(id)) > 30 {
 			helper.Print(ctx, false, helper.RealNameFMTErr)
@@ -115,7 +132,7 @@ func (that *WithdrawController) RiskReviewList(ctx *fasthttp.RequestCtx) {
 
 	// 已派单
 	ex["state"] = model.WithdrawDispatched
-	data, err := model.WithdrawList(ex, 3, "", "", uint(page), uint(pageSize))
+	data, err := model.WithdrawList(ex, 3, "", "", isBig, firstWd, uint(page), uint(pageSize))
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
 		return
@@ -149,6 +166,11 @@ func (that *WithdrawController) RiskWaitConfirmList(ctx *fasthttp.RequestCtx) {
 	if err != nil {
 		pageSize = 15
 	}
+	isFirst := ctx.PostArgs().GetUintOrZero("is_first") //是否首提 0全部1首提
+	isBig := ctx.PostArgs().GetUintOrZero("is_big")     //大额优先 0默认1大额优先
+	pid := string(ctx.PostArgs().Peek("pid"))           //提现渠道 全部为'' cgpay ：59000000000000101
+	firstWd := ctx.PostArgs().GetUintOrZero("first_wd") //首提优先 0默认1首提优先
+	ty := ctx.PostArgs().GetUintOrZero("ty")            //出款类型 0 全部 101 自动代付 6 手动出款
 
 	if startTime == "" || endTime == "" {
 		helper.Print(ctx, false, helper.DateTimeErr)
@@ -156,6 +178,18 @@ func (that *WithdrawController) RiskWaitConfirmList(ctx *fasthttp.RequestCtx) {
 	}
 
 	ex := g.Ex{}
+	if isFirst > 0 {
+		ex["last_withdraw_at"] = 0
+	}
+	if pid != "" {
+		ex["pid"] = pid
+	}
+	if ty == 101 {
+		ex["pid"] = "59000000000000101"
+	}
+	if ty == 6 {
+		ex["pid"] = []string{"133221087319615487", "779402438062874465"}
+	}
 	if realName != "" {
 		if len([]rune(id)) > 30 {
 			helper.Print(ctx, false, helper.RealNameFMTErr)
@@ -218,7 +252,7 @@ func (that *WithdrawController) RiskWaitConfirmList(ctx *fasthttp.RequestCtx) {
 	// 待派单
 	ex["state"] = model.WithdrawReviewing
 
-	data, err := model.WithdrawList(ex, 1, startTime, endTime, uint(page), uint(pageSize))
+	data, err := model.WithdrawList(ex, 1, startTime, endTime, isBig, firstWd, uint(page), uint(pageSize))
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
 		return
@@ -254,6 +288,11 @@ func (that *WithdrawController) HangUpList(ctx *fasthttp.RequestCtx) {
 	if err != nil {
 		pageSize = 15
 	}
+	isFirst := ctx.PostArgs().GetUintOrZero("is_first") //是否首提 0全部1首提
+	isBig := ctx.PostArgs().GetUintOrZero("is_big")     //大额优先 0默认1大额优先
+	pid := string(ctx.PostArgs().Peek("pid"))           //提现渠道 全部为'' cgpay ：59000000000000101
+	firstWd := ctx.PostArgs().GetUintOrZero("first_wd") //首提优先 0默认1首提优先
+	ty := ctx.PostArgs().GetUintOrZero("ty")            //出款类型 0 全部 101 自动代付 6 手动出款
 
 	if startTime == "" || endTime == "" {
 		helper.Print(ctx, false, helper.DateTimeErr)
@@ -261,6 +300,18 @@ func (that *WithdrawController) HangUpList(ctx *fasthttp.RequestCtx) {
 	}
 
 	ex := g.Ex{}
+	if isFirst > 0 {
+		ex["last_withdraw_at"] = 0
+	}
+	if pid != "" {
+		ex["pid"] = pid
+	}
+	if ty == 101 {
+		ex["pid"] = "59000000000000101"
+	}
+	if ty == 6 {
+		ex["pid"] = []string{"133221087319615487", "779402438062874465"}
+	}
 	if realName != "" {
 		if len([]rune(id)) > 30 {
 			helper.Print(ctx, false, helper.RealNameFMTErr)
@@ -336,7 +387,7 @@ func (that *WithdrawController) HangUpList(ctx *fasthttp.RequestCtx) {
 
 	// 挂起
 	ex["state"] = model.WithdrawHangup
-	data, err := model.WithdrawList(ex, 1, startTime, endTime, uint(page), uint(pageSize))
+	data, err := model.WithdrawList(ex, 1, startTime, endTime, isBig, firstWd, uint(page), uint(pageSize))
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
 		return
@@ -662,7 +713,6 @@ func (that *WithdrawController) MemberWithdrawList(ctx *fasthttp.RequestCtx) {
 	if err != nil {
 		pageSize = 15
 	}
-
 	if startTime == "" || endTime == "" {
 		helper.Print(ctx, false, helper.DateTimeErr)
 		return
@@ -714,7 +764,7 @@ func (that *WithdrawController) MemberWithdrawList(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	data, err := model.WithdrawList(ex, uint8(tyUint), startTime, endTime, uint(page), uint(pageSize))
+	data, err := model.WithdrawList(ex, uint8(tyUint), startTime, endTime, 0, 0, uint(page), uint(pageSize))
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
 		return
@@ -744,16 +794,29 @@ func (that *WithdrawController) FinanceReviewList(ctx *fasthttp.RequestCtx) {
 	confirmName := string(ctx.PostArgs().Peek("confirm_name"))
 	page := ctx.PostArgs().GetUintOrZero("page")
 	pageSize := ctx.PostArgs().GetUintOrZero("page_size")
-	//isFirst := ctx.PostArgs().GetUintOrZero("is_first") //
-	//isBig := ctx.PostArgs().GetUintOrZero("is_big")     //
-	//pid := string(ctx.PostArgs().Peek("pid"))
-
+	isFirst := ctx.PostArgs().GetUintOrZero("is_first") //是否首提 0全部1首提
+	isBig := ctx.PostArgs().GetUintOrZero("is_big")     //大额优先 0默认1大额优先
+	pid := string(ctx.PostArgs().Peek("pid"))           //提现渠道 全部为'' cgpay ：59000000000000101
+	firstWd := ctx.PostArgs().GetUintOrZero("first_wd") //首提优先 0默认1首提优先
+	ty := ctx.PostArgs().GetUintOrZero("ty")            //出款类型 0 全部 101 自动代付 6 手动出款
 	if startTime == "" || endTime == "" {
 		helper.Print(ctx, false, helper.DateTimeErr)
 		return
 	}
 
 	ex := g.Ex{}
+	if isFirst > 0 {
+		ex["last_withdraw_at"] = 0
+	}
+	if pid != "" {
+		ex["pid"] = pid
+	}
+	if ty == 101 {
+		ex["pid"] = "59000000000000101"
+	}
+	if ty == 6 {
+		ex["pid"] = []string{"133221087319615487", "779402438062874465"}
+	}
 	if minAmount != "" && maxAmount != "" {
 		if !validator.CheckStringDigit(minAmount) || !validator.CheckStringDigit(maxAmount) {
 			helper.Print(ctx, false, helper.AmountErr)
@@ -768,6 +831,18 @@ func (that *WithdrawController) FinanceReviewList(ctx *fasthttp.RequestCtx) {
 		}
 
 		ex["amount"] = g.Op{"between": exp.NewRangeVal(minAmountInt, maxAmountInt)}
+	}
+	if isFirst > 0 {
+		ex["last_withdraw_at"] = 0
+	}
+	if pid != "" {
+		ex["pid"] = pid
+	}
+	if ty == 101 {
+		ex["pid"] = "59000000000000101"
+	}
+	if ty == 6 {
+		ex["pid"] = []string{"133221087319615487", "779402438062874465"}
 	}
 
 	if username != "" {
@@ -810,7 +885,7 @@ func (that *WithdrawController) FinanceReviewList(ctx *fasthttp.RequestCtx) {
 		model.WithdrawAutoPayFailed,
 	}
 
-	data, err := model.WithdrawList(ex, 1, startTime, endTime, uint(page), uint(pageSize))
+	data, err := model.WithdrawList(ex, 1, startTime, endTime, isBig, firstWd, uint(page), uint(pageSize))
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
 		return

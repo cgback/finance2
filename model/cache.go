@@ -219,6 +219,7 @@ func CacheRefreshPayment(id string) error {
 	defer pipe.Close()
 
 	value := map[string]interface{}{
+		"id":           val.ID,
 		"cate_id":      val.CateID,
 		"channel_id":   val.ChannelID,
 		"payment_name": val.PaymentName,
@@ -233,7 +234,7 @@ func CacheRefreshPayment(id string) error {
 		"amount_list":  val.AmountList,
 		"discount":     val.Discount,
 	}
-	pkey := meta.Prefix + ":f:p:" + id
+	pkey := meta.Prefix + ":f:p:" + val.ID
 	pipe.Unlink(ctx, pkey)
 	pipe.HMSet(ctx, pkey, value)
 	pipe.Persist(ctx, pkey)
@@ -597,6 +598,7 @@ func Tunnel(fctx *fasthttp.RequestCtx, id string) (string, error) {
 		return "", err
 	}
 	key := fmt.Sprintf("%s:f:c:p:%d:%s", meta.Prefix, u.Level, id)
+	fmt.Println("key:", key)
 	lastDepositPaymentKey := fmt.Sprintf("%s:uldp:%s", meta.Prefix, u.Username)
 	var lastDepositPayment string
 
@@ -614,6 +616,8 @@ func Tunnel(fctx *fasthttp.RequestCtx, id string) (string, error) {
 
 	exists := pipe.Exists(ctx, fmt.Sprintf("%s:DL:%s", meta.Prefix, u.UID))
 	for i, v := range paymentIds {
+		fmt.Println("paymentIds key:", meta.Prefix+":f:p:"+v)
+
 		rs[i] = pipe.HMGet(ctx, meta.Prefix+":f:p:"+v, "id", "fmin", "fmax", "et", "st", "amount_list", "payment_name", "sort", "name", "is_zone", "is_fast", "flag", "web_img", "h5_img", "app_img")
 		bk[i] = pipe.Get(ctx, meta.Prefix+":BK:"+v)
 	}

@@ -86,6 +86,20 @@ func CateList() ([]Category, error) {
 	return data, nil
 }
 
+func CateListByName(name string) (Category, error) {
+
+	var data Category
+
+	cond := g.Ex{"name": name}
+	query, _, _ := dialect.From("f2_category").Select(colCate...).Where(cond).Limit(1).ToSQL()
+	err := meta.MerchantDB.Get(&data, query)
+	if err != nil {
+		return data, pushLog(err, helper.DBErr)
+	}
+
+	return data, nil
+}
+
 func cateMap() (map[string]Category, error) {
 
 	m := map[string]Category{}

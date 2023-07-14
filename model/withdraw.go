@@ -709,7 +709,7 @@ func WithdrawDealListData(data FWithdrawData) (WithdrawListData, error) {
 }
 
 // WithdrawList 提款记录
-func WithdrawList(ex g.Ex, ty uint8, startTime, endTime string, page, pageSize uint) (FWithdrawData, error) {
+func WithdrawList(ex g.Ex, ty uint8, startTime, endTime string, isBig, firstWd int, page, pageSize uint) (FWithdrawData, error) {
 
 	ex["prefix"] = meta.Prefix
 
