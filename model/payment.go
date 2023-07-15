@@ -184,6 +184,15 @@ func ChannelUpdatePaymentName(param map[string]string) error {
 	if param["is_fast"] != "" {
 		record["is_fast"] = param["is_fast"]
 	}
+	if param["fmin"] != "" {
+		record["fmin"] = param["fmin"]
+	}
+	if param["fmax"] != "" {
+		record["fmax"] = param["fmax"]
+	}
+	if param["sort"] != "" && param["sort"] != "0" {
+		record["sort"] = param["sort"]
+	}
 
 	ex := g.Ex{
 		"id": param["id"],

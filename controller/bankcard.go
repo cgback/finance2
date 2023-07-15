@@ -402,6 +402,15 @@ func (that *BankCardController) Update(ctx *fasthttp.RequestCtx) {
 	if isFast != "" {
 		fields["is_fast"] = isFast
 	}
+	if fmin != "" {
+		fields["fmin"] = fmin
+	}
+	if fmax != "" {
+		fields["fmax"] = fmax
+	}
+	if seq != 0 {
+		fields["sort"] = fmt.Sprintf(`%d`, seq)
+	}
 	fields["updated_at"] = fmt.Sprintf(`%d`, ctx.Time().Unix())
 	fields["updated_uid"] = admin["id"]
 	fields["updated_name"] = admin["name"]

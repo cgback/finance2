@@ -159,7 +159,7 @@ func OfflinePay(fctx *fasthttp.RequestCtx, paymentID, amount, bid string) (strin
 		"manualRemark": code,
 		"ts":           fmt.Sprintf("%d", ts),
 		"bid":          bc.Id,
-		"uselink":      "0",
+		"useink":       "0",
 		"is_qr":        bc.Flags, //1有二维码 2 没有二维码
 	}
 
