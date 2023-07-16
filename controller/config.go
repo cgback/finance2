@@ -82,13 +82,13 @@ func (that *ConfigController) Deposit(ctx *fasthttp.RequestCtx) {
 
 func (that *ConfigController) Withdraw(ctx *fasthttp.RequestCtx) {
 
-	withdraw_max := string(ctx.PostArgs().Peek("withdraw_max"))
+	withdraw_usdt_min := string(ctx.PostArgs().Peek("withdraw_usdt_min"))
 	withdraw_list_first := string(ctx.PostArgs().Peek("withdraw_list_first"))
 	withdraw_auto_min := string(ctx.PostArgs().Peek("withdraw_auto_min"))
 	withdraw_min := string(ctx.PostArgs().Peek("withdraw_min"))
 	code := string(ctx.PostArgs().Peek("code"))
-	if withdraw_max != "" {
-		_, err := strconv.ParseFloat(withdraw_max, 64)
+	if withdraw_usdt_min != "" {
+		_, err := strconv.ParseFloat(withdraw_usdt_min, 64)
 		if err != nil {
 			helper.Print(ctx, false, helper.ParamErr)
 			return
@@ -96,7 +96,7 @@ func (that *ConfigController) Withdraw(ctx *fasthttp.RequestCtx) {
 	}
 
 	config := map[string]string{}
-	config["withdraw_max"] = withdraw_max
+	config["withdraw_usdt_min"] = withdraw_usdt_min
 	config["withdraw_list_first"] = withdraw_list_first
 	config["withdraw_auto_min"] = withdraw_auto_min
 	config["withdraw_min"] = withdraw_min

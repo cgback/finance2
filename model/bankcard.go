@@ -104,7 +104,6 @@ func BankCardUpdateCache() error {
 	key := meta.Prefix + ":offline:bank:"
 	ex := g.Ex{
 		"state": "1",
-		"flags": "1",
 	}
 	res, err := BankCardList(ex, "")
 	if err != nil {

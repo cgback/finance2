@@ -53,6 +53,9 @@ func (that *PaymentController) List(ctx *fasthttp.RequestCtx) {
 		if err == nil {
 			fmt.Println(cate.ID)
 			cateId = cate.ID
+		} else {
+			helper.Print(ctx, false, err.Error())
+			return
 		}
 	}
 

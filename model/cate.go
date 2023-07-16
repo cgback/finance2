@@ -93,8 +93,12 @@ func CateListByName(name string) (Category, error) {
 	cond := g.Ex{"name": name}
 	query, _, _ := dialect.From("f2_category").Select(colCate...).Where(cond).Limit(1).ToSQL()
 	err := meta.MerchantDB.Get(&data, query)
-	if err != nil {
-		return data, pushLog(err, helper.DBErr)
+	if err != nil && err != sql.ErrNoRows {
+		return data, pushLog(fmt.Errorf("%s,[%s]", err.Error(), query), helper.DBErr)
+	}
+
+	if err == sql.ErrNoRows {
+		return data, errors.New(helper.CateNotExist)
 	}
 
 	return data, nil

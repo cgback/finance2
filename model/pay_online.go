@@ -46,42 +46,67 @@ func PayOnline(fctx *fasthttp.RequestCtx, pid, amount, bid string) (map[string]s
 	res := map[string]string{}
 	var data paymentDepositResp
 
-	pipe := meta.MerchantRedis.TxPipeline()
-	defer pipe.Close()
 	user, err := MemberCache(fctx)
 	if err != nil {
 		return res, err
 	}
-	key := fmt.Sprintf("%s:finance:manual:c:%s", meta.Prefix, user.Username)
-	zcard := pipe.ZCard(ctx, key)
 
-	_, err = pipe.Exec(ctx)
-	if err != nil && err != redis.Nil {
-		return res, pushLog(err, helper.RedisErr)
+	user, err = MemberGetByName(user.Username)
+	if err != nil {
+		return res, err
 	}
+
 	cd, err := ConfigDetail()
 	if err != nil {
 		return res, pushLog(err, helper.DBErr)
 	}
-	dtom := cd["deposit_time_one_max"]
-	dto := cd["deposit_time_one"]
-	dtomi, err := strconv.ParseInt(dtom, 10, 64)
-	if err != nil {
-		return res, pushLog(err, helper.DBErr)
-	}
-	dtoi, err := strconv.Atoi(dto)
-	if err != nil {
-		return res, pushLog(err, helper.DBErr)
-	}
-	if zcard.Val() >= dtomi {
-		err = meta.MerchantRedis.SetNX(ctx, "deposit_wait", 1, time.Duration(dtoi)*time.Second).Err()
-		if err != nil {
-			return res, errors.New(fmt.Sprintf(`Bạn Đã Gửi %d Đơn, Tạm Thời Không Thể Gửi Tiếp, Vui Lòng Liên Hệ CSKH`, dtomi))
+	//存款订单配置开启
+	dts := cd["deposit_time_switch"]
+	levelLimit := cd["deposit_level_limit"]
+	dll, _ := decimal.NewFromString(levelLimit)
+	if dts == "1" && decimal.NewFromInt(int64(user.Level)).LessThan(dll) {
+		//是否在豁免名单里
+		mcl, _ := MemberConfigList("1", user.Username)
+		if len(mcl) == 0 {
+			dtss := cd["deposit_third_switch"]
+			ex1 := g.Ex{"uid": user.UID, "created_at": g.Op{"gte": time.Now().Unix() - 18000}}
+			if dtss == "2" {
+				ex1["flag"] = []int{3, 4}
+			}
+			//查最近30分钟有多少条
+			total := dataTotal{}
+			countQuery, _, _ := dialect.From("tbl_deposit").Select(g.COUNT(1).As("t"), g.SUM("amount").As("s")).Where(
+				ex1).ToSQL()
+			err = meta.MerchantDB.Get(&total, countQuery)
+			if err != nil {
+				return res, pushLog(err, helper.DBErr)
+			}
+
+			dtom := cd["deposit_time_one_max"]
+			dto := cd["deposit_time_one"]
+			dcr := cd["deposit_can_repeat"]
+			dtomi, err := strconv.ParseInt(dtom, 10, 64)
+			if err != nil {
+				return res, pushLog(err, helper.DBErr)
+			}
+			dtoi, err := strconv.Atoi(dto)
+			if err != nil {
+				return res, pushLog(err, helper.DBErr)
+			}
+			fmt.Println("dcr:", dcr)
+			fmt.Println("total:", total.T.Int64)
+			if dcr == "1" {
+				if total.T.Int64 > 1 {
+					return res, errors.New(helper.EmptyOrder30MinsBlock)
+				}
+			}
+			if total.T.Int64 >= dtomi {
+				err = meta.MerchantRedis.SetNX(ctx, "deposit_wait", 1, time.Duration(dtoi)*time.Second).Err()
+				if err != nil {
+					return res, errors.New(fmt.Sprintf(`Bạn Đã Gửi %d Đơn, Tạm Thời Không Thể Gửi Tiếp, Vui Lòng Liên Hệ CSKH`, dtomi))
+				}
+			}
 		}
-	}
-	user, err = MemberGetByName(user.Username)
-	if err != nil {
-		return res, err
 	}
 
 	fmt.Printf("deposit username[%s] args: %s, ts: %s  \n",

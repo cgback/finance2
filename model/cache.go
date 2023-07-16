@@ -267,6 +267,8 @@ func CacheRefreshOfflinePaymentBanks(id string, cid int64, flags string) error {
 
 	if len(res) == 0 {
 		fmt.Println("BankCardUpdateCache len(res) = 0")
+		//关闭这个渠道的状态
+		ChannelSet(id, "0", "0", "")
 		return nil
 	}
 

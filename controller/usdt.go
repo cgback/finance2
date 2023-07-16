@@ -168,7 +168,28 @@ func (that *UsdtController) Insert(ctx *fasthttp.RequestCtx) {
 		helper.Print(ctx, false, err.Error())
 		return
 	}
+	fields := map[string]string{
+		"payment_name": name,
+		"id":           "779402438062874469",
+	}
+	if minAmount != 0 {
+		fields["fmin"] = fmt.Sprintf(`%f`, minAmount)
+	}
+	if maxAmount != 0 {
+		fields["fmax"] = fmt.Sprintf(`%f`, maxAmount)
+	}
+	err = model.ChannelUpdatePaymentName(fields)
+	if err != nil {
+		helper.Print(ctx, false, err.Error())
+		return
+	}
+	if state == "2" {
+		model.ChannelSet("779402438062874469", "0", admin["id"], admin["name"])
+	}
 
+	if state == "1" {
+		model.ChannelSet("779402438062874469", "1", admin["id"], admin["name"])
+	}
 	helper.Print(ctx, true, helper.Success)
 
 }
@@ -313,6 +334,29 @@ func (that *UsdtController) UpdateAccount(ctx *fasthttp.RequestCtx) {
 		helper.Print(ctx, false, err.Error())
 		return
 	}
+	fields := map[string]string{
+		"payment_name": name,
+		"id":           "779402438062874469",
+	}
+	if minAmount != 0 {
+		fields["fmin"] = fmt.Sprintf(`%f`, minAmount)
+	}
+	if maxAmount != 0 {
+		fields["fmax"] = fmt.Sprintf(`%f`, maxAmount)
+	}
+	err = model.ChannelUpdatePaymentName(fields)
+	if err != nil {
+		helper.Print(ctx, false, err.Error())
+		return
+	}
+
+	if state == "2" {
+		model.ChannelSet("779402438062874469", "0", admin["id"], admin["name"])
+	}
+
+	if state == "1" {
+		model.ChannelSet("779402438062874469", "1", admin["id"], admin["name"])
+	}
 
 	contentLog := fmt.Sprintf("渠道管理-线下USDT-更新:后台账号:%s【id:%s,USDT名称:%s,地址:%s,最大:%f,最小:%f,二维码:%s,排序:%d,备注：%s】",
 		admin["name"], vw.Id, vw.Name, vw.WalletAddr, vw.MaxAmount, vw.MinAmount, vw.QrImg, vw.Sort, vw.Remark)
@@ -372,6 +416,10 @@ func (that *UsdtController) UpdateState(ctx *fasthttp.RequestCtx) {
 
 	if state == "2" {
 		model.ChannelSet("779402438062874469", "0", admin["id"], admin["name"])
+	}
+
+	if state == "1" {
+		model.ChannelSet("779402438062874469", "1", admin["id"], admin["name"])
 	}
 
 	contentLog := fmt.Sprintf("渠道管理-线下USDT-更新状态:后台账号:%s【id:%s,USDT名称:%s,地址:%s,最大:%f,最小:%f,二维码:%s,排序:%d,备注：%s】",
