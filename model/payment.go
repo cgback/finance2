@@ -193,7 +193,9 @@ func ChannelUpdatePaymentName(param map[string]string) error {
 	if param["sort"] != "" && param["sort"] != "0" {
 		record["sort"] = param["sort"]
 	}
-
+	if param["state"] != "" {
+		record["state"] = param["state"]
+	}
 	ex := g.Ex{
 		"id": param["id"],
 	}

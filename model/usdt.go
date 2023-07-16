@@ -136,41 +136,56 @@ func UsdtPay(fctx *fasthttp.RequestCtx, pid, amount, rate, addr, protocolType, h
 		mcl, _ := MemberConfigList("1", user.Username)
 		if len(mcl) == 0 {
 			dtss := cd["deposit_third_switch"]
-			ex1 := g.Ex{"uid": user.UID, "created_at": g.Op{"gte": time.Now().Unix() - 18000}}
+			ex1 := g.Ex{"uid": user.UID, "state": g.Op{"neq": DepositSuccess}, "created_at": g.Op{"gte": time.Now().Unix() - 18000}}
 			if dtss == "2" {
 				ex1["flag"] = []int{3, 4}
 			}
 			//查最近30分钟有多少条
 			total := dataTotal{}
-			countQuery, _, _ := dialect.From("tbl_deposit").Select(g.COUNT(1).As("t"), g.SUM("amount").As("s")).Where(
+			countQuery, _, _ := dialect.From("tbl_deposit").Select(g.COUNT(1).As("t"), g.MAX("created_at").As("l")).Where(
 				ex1).ToSQL()
 			err = meta.MerchantDB.Get(&total, countQuery)
+			fmt.Println(countQuery)
 			if err != nil {
 				return "data", pushLog(err, helper.DBErr)
 			}
-
-			dtom := cd["deposit_time_one_max"]
-			dto := cd["deposit_time_one"]
+			//有未成功的不能在提交
 			dcr := cd["deposit_can_repeat"]
-			dtomi, err := strconv.ParseInt(dtom, 10, 64)
-			if err != nil {
-				return "", pushLog(err, helper.DBErr)
-			}
-			dtoi, err := strconv.Atoi(dto)
-			if err != nil {
-				return "", pushLog(err, helper.DBErr)
-			}
-			fmt.Println("dcr:", dcr)
-			fmt.Println("total:", total.T.Int64)
 			if dcr == "1" {
 				if total.T.Int64 > 1 {
 					return "", errors.New(helper.EmptyOrder30MinsBlock)
 				}
 			}
+			depositTimeThreeMax := cd["deposit_time_three_max"]
+			depositTimeThree := cd["deposit_time_three"]
+			dttma, _ := strconv.ParseInt(depositTimeThreeMax, 10, 64)
+			dttb, _ := strconv.Atoi(depositTimeThree)
+			if total.T.Int64 >= dttma {
+				tts := time.Now().Unix() - total.L.Int64
+				if tts < int64(dttb) {
+					return "", errors.New(fmt.Sprintf("please wait %d sec", tts-int64(dttb)))
+				}
+			}
+			depositTimeTwoMax := cd["deposit_time_two_max"]
+			depositTimeTwoMin := cd["deposit_time_two_min"]
+			depositTimeTwo := cd["deposit_time_two"]
+			dt2a, _ := strconv.ParseInt(depositTimeTwoMax, 10, 64)
+			dt2i, _ := strconv.ParseInt(depositTimeTwoMin, 10, 64)
+			dtta, _ := strconv.Atoi(depositTimeTwo)
+			if total.T.Int64 >= dt2i && total.T.Int64 <= dt2a {
+				tts := time.Now().Unix() - total.L.Int64
+				if tts < int64(dtta) {
+					return "", errors.New(fmt.Sprintf("please wait %d sec", tts-int64(dtta)))
+				}
+			}
+			dtom := cd["deposit_time_one_max"]
+			dto := cd["deposit_time_one"]
+			dtomi, _ := strconv.ParseInt(dtom, 10, 64)
+			dtoi, _ := strconv.Atoi(dto)
 			if total.T.Int64 >= dtomi {
-				err = meta.MerchantRedis.SetNX(ctx, "deposit_wait", 1, time.Duration(dtoi)*time.Second).Err()
-				if err != nil {
-					return "", errors.New(fmt.Sprintf(`Bạn Đã Gửi %d Đơn, Tạm Thời Không Thể Gửi Tiếp, Vui Lòng Liên Hệ CSKH`, dtomi))
+				tts := time.Now().Unix() - total.L.Int64
+				if tts < int64(dtoi) {
+					return "", errors.New(fmt.Sprintf("please wait %d sec", tts-int64(dtoi)))
 				}
 			}
 		}

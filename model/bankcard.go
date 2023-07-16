@@ -263,15 +263,47 @@ func BankCardBackendById(bid string) (Bankcard_t, error) {
 	return bc, nil
 }
 
-func BankCardBackend(cid string) (Bankcard_t, error) {
+func BankCardBackend(pid string) (Bankcard_t, error) {
 
-	bc := Bankcard_t{}
-	key := meta.Prefix + ":offline:bank:" + cid
-	res, err := meta.MerchantRedis.RPopLPush(ctx, key, key).Result()
-	if err != nil {
-		return bc, errors.New(helper.RecordNotExistErr)
+	var bc Bankcard_t
+	var (
+		cid   int
+		flags string
+	)
+	switch pid {
+	case "766870294997073617":
+		cid = 2
+		flags = "1"
+	case "766870294997073618":
+		cid = 2
+		flags = "2"
+	case "766870294997073619":
+		cid = 4
+		flags = "1"
+	case "766870294997073620":
+		cid = 4
+		flags = "2"
+	case "766870294997073621":
+		cid = 3
+		flags = "1"
+	case "766870294997073616":
+		cid = 6
+		flags = "2"
 	}
 
-	helper.JsonUnmarshal([]byte(res), &bc)
+	ex := g.Ex{
+		"cid":   cid,
+		"flags": flags,
+		"state": 1,
+	}
+	query, _, _ := dialect.From("f2_bankcards").Select(colsBankCard...).Where(ex).ToSQL()
+	err := meta.MerchantDB.Get(&bc, query)
+	if err != nil && err != sql.ErrNoRows {
+		return bc, pushLog(err, helper.DBErr)
+	}
+
+	if err == sql.ErrNoRows {
+		return bc, errors.New(helper.BankCardNotExist)
+	}
 	return bc, nil
 }

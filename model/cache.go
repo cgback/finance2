@@ -247,7 +247,7 @@ func CacheRefreshPayment(id string) error {
 	if err != nil {
 		return pushLog(err, helper.RedisErr)
 	}
-
+	CacheRefreshLevel()
 	return nil
 }
 

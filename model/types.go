@@ -172,6 +172,7 @@ type FDepositData struct {
 type dataTotal struct {
 	T sql.NullInt64   `json:"t"`
 	S sql.NullFloat64 `json:"s"`
+	L sql.NullInt64   `json:"l"`
 }
 
 type Tunnel_t struct {

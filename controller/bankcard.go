@@ -60,6 +60,7 @@ func (that *BankCardController) Insert(ctx *fasthttp.RequestCtx) {
 	accountName := string(ctx.PostArgs().Peek("account_name"))
 	banklcardName := string(ctx.PostArgs().Peek("banklcard_name"))
 	banklcardNo := string(ctx.PostArgs().Peek("banklcard_no"))
+	channel_bank_id := string(ctx.PostArgs().Peek("channel_bank_id"))
 	dailyMaxAmount := ctx.PostArgs().GetUintOrZero("daily_max_amount")
 	fmin := string(ctx.PostArgs().Peek("fmin"))
 	fmax := string(ctx.PostArgs().Peek("fmax"))
@@ -157,7 +158,7 @@ func (that *BankCardController) Insert(ctx *fasthttp.RequestCtx) {
 	bc := model.Bankcard_t{
 
 		Id:                helper.GenId(),
-		ChannelBankId:     "0",
+		ChannelBankId:     channel_bank_id,
 		BanklcardName:     banklcardName,
 		BanklcardNo:       banklcardNo,
 		AccountName:       accountName,
@@ -407,6 +408,9 @@ func (that *BankCardController) Update(ctx *fasthttp.RequestCtx) {
 	}
 	if fmax != "" {
 		fields["fmax"] = fmax
+	}
+	if state != "" {
+		fields["state"] = state
 	}
 	if seq != 0 {
 		fields["sort"] = fmt.Sprintf(`%d`, seq)
