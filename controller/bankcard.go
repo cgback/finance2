@@ -225,6 +225,18 @@ func (that *BankCardController) Insert(ctx *fasthttp.RequestCtx) {
 	if isFast != 0 {
 		fields["is_fast"] = fmt.Sprintf(`%d`, isFast)
 	}
+	if fmin != "" && fmin != "0" {
+		fields["fmin"] = fmin
+	}
+	if fmax != "" && fmax != "0" {
+		fields["fmax"] = fmax
+	}
+	if seq != 0 {
+		fields["sort"] = fmt.Sprintf(`%d`, seq)
+	}
+	if amountList != "" {
+		fields["amount_list"] = amountList
+	}
 	err = model.ChannelUpdatePaymentName(fields)
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
@@ -417,6 +429,16 @@ func (that *BankCardController) Update(ctx *fasthttp.RequestCtx) {
 	if seq != 0 {
 		fields["sort"] = fmt.Sprintf(`%d`, seq)
 	}
+	if fmin != "" && fmin != "0" {
+		fields["fmin"] = fmin
+	}
+	if fmax != "" && fmax != "0" {
+		fields["fmax"] = fmax
+	}
+	if amountList != "" {
+		fields["amount_list"] = amountList
+	}
+
 	fields["updated_at"] = fmt.Sprintf(`%d`, ctx.Time().Unix())
 	fields["updated_uid"] = admin["id"]
 	fields["updated_name"] = admin["name"]

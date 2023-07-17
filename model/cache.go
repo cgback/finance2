@@ -247,6 +247,7 @@ func CacheRefreshPayment(id string) error {
 	if err != nil {
 		return pushLog(err, helper.RedisErr)
 	}
+
 	CacheRefreshLevel()
 	return nil
 }
@@ -655,6 +656,8 @@ func Tunnel(fctx *fasthttp.RequestCtx, id string) (string, error) {
 		if err = rs[i].Scan(&m); err != nil {
 			return "", pushLog(err, helper.RedisErr)
 		}
+		fmt.Println("paymentIds key:", m.ID, m.Sort)
+
 		obj := fastjson.MustParse(`{"id":"0","bank":[], "fmin":"0","fmax":"0", "amount_list": "","sort":"0","payment_name":"","discount":"0","name":"","is_zone":"0","is_fast":"0","flag":"1","web_img":"","h5_img":"","app_img":""}`)
 		obj.Set("id", fastjson.MustParse(fmt.Sprintf(`"%s"`, m.ID)))
 		obj.Set("fmin", fastjson.MustParse(fmt.Sprintf(`"%s"`, m.Fmin)))
