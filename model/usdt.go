@@ -163,7 +163,7 @@ func UsdtPay(fctx *fasthttp.RequestCtx, pid, amount, rate, addr, protocolType, h
 			if total.T.Int64 >= dttma {
 				tts := time.Now().Unix() - total.L.Int64
 				if tts < int64(dttb) {
-					return "", errors.New(fmt.Sprintf("please wait %d sec", tts-int64(dttb)))
+					return "", errors.New(fmt.Sprintf("please wait %d sec", int64(dttb)-tts))
 				}
 			}
 			depositTimeTwoMax := cd["deposit_time_two_max"]
@@ -175,7 +175,7 @@ func UsdtPay(fctx *fasthttp.RequestCtx, pid, amount, rate, addr, protocolType, h
 			if total.T.Int64 >= dt2i && total.T.Int64 <= dt2a {
 				tts := time.Now().Unix() - total.L.Int64
 				if tts < int64(dtta) {
-					return "", errors.New(fmt.Sprintf("please wait %d sec", tts-int64(dtta)))
+					return "", errors.New(fmt.Sprintf("please wait %d sec", int64(dtta)-tts))
 				}
 			}
 			dtom := cd["deposit_time_one_max"]
@@ -185,7 +185,7 @@ func UsdtPay(fctx *fasthttp.RequestCtx, pid, amount, rate, addr, protocolType, h
 			if total.T.Int64 >= dtomi {
 				tts := time.Now().Unix() - total.L.Int64
 				if tts < int64(dtoi) {
-					return "", errors.New(fmt.Sprintf("please wait %d sec", tts-int64(dtoi)))
+					return "", errors.New(fmt.Sprintf("please wait %d sec", int64(dtoi)-tts))
 				}
 			}
 		}

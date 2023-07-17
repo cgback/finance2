@@ -154,7 +154,9 @@ func (that *BankCardController) Insert(ctx *fasthttp.RequestCtx) {
 	if discount == "" {
 		discount = "0"
 	}
-
+	if channel_bank_id == "" {
+		channel_bank_id = "0"
+	}
 	bc := model.Bankcard_t{
 
 		Id:                helper.GenId(),

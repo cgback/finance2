@@ -64,7 +64,7 @@ func OfflinePay(fctx *fasthttp.RequestCtx, paymentID, amount, bid string) (strin
 			if total.T.Int64 >= dttma {
 				tts := time.Now().Unix() - total.L.Int64
 				if tts < int64(dttb) {
-					return "", errors.New(fmt.Sprintf("please wait %d sec", tts-int64(dttb)))
+					return "", errors.New(fmt.Sprintf("please wait %d sec", int64(dttb)-tts))
 				}
 			}
 			depositTimeTwoMax := cd["deposit_time_two_max"]
@@ -76,7 +76,7 @@ func OfflinePay(fctx *fasthttp.RequestCtx, paymentID, amount, bid string) (strin
 			if total.T.Int64 >= dt2i && total.T.Int64 <= dt2a {
 				tts := time.Now().Unix() - total.L.Int64
 				if tts < int64(dtta) {
-					return "", errors.New(fmt.Sprintf("please wait %d sec", tts-int64(dtta)))
+					return "", errors.New(fmt.Sprintf("please wait %d sec", int64(dtta)-tts))
 				}
 			}
 			dtom := cd["deposit_time_one_max"]
@@ -86,7 +86,7 @@ func OfflinePay(fctx *fasthttp.RequestCtx, paymentID, amount, bid string) (strin
 			if total.T.Int64 >= dtomi {
 				tts := time.Now().Unix() - total.L.Int64
 				if tts < int64(dtoi) {
-					return "", errors.New(fmt.Sprintf("please wait %d sec", tts-int64(dtoi)))
+					return "", errors.New(fmt.Sprintf("please wait %d sec", int64(dtoi)-tts))
 				}
 			}
 		}
@@ -195,7 +195,7 @@ func OfflinePay(fctx *fasthttp.RequestCtx, paymentID, amount, bid string) (strin
 		"manualRemark": code,
 		"ts":           fmt.Sprintf("%d", ts),
 		"bid":          bc.Id,
-		"useink":       "0",
+		"useLink":      "0",
 		"is_qr":        bc.Flags, //1有二维码 2 没有二维码
 	}
 

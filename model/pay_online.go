@@ -96,7 +96,7 @@ func PayOnline(fctx *fasthttp.RequestCtx, pid, amount, bid string) (map[string]s
 			if total.T.Int64 >= dttma {
 				tts := time.Now().Unix() - total.L.Int64
 				if tts < int64(dttb) {
-					return res, errors.New(fmt.Sprintf("please wait %d sec", tts-int64(dttb)))
+					return res, errors.New(fmt.Sprintf("please wait %d sec", int64(dttb)-tts))
 				}
 			}
 			depositTimeTwoMax := cd["deposit_time_two_max"]
@@ -108,7 +108,7 @@ func PayOnline(fctx *fasthttp.RequestCtx, pid, amount, bid string) (map[string]s
 			if total.T.Int64 >= dt2i && total.T.Int64 <= dt2a {
 				tts := time.Now().Unix() - total.L.Int64
 				if tts < int64(dtta) {
-					return res, errors.New(fmt.Sprintf("please wait %d sec", tts-int64(dtta)))
+					return res, errors.New(fmt.Sprintf("please wait %d sec", int64(dtta)-tts))
 				}
 			}
 			dtom := cd["deposit_time_one_max"]
@@ -118,7 +118,7 @@ func PayOnline(fctx *fasthttp.RequestCtx, pid, amount, bid string) (map[string]s
 			if total.T.Int64 >= dtomi {
 				tts := time.Now().Unix() - total.L.Int64
 				if tts < int64(dtoi) {
-					return res, errors.New(fmt.Sprintf("please wait %d sec", tts-int64(dtoi)))
+					return res, errors.New(fmt.Sprintf("please wait %d sec", int64(dtoi)-tts))
 				}
 			}
 		}
@@ -216,6 +216,8 @@ func PayOnline(fctx *fasthttp.RequestCtx, pid, amount, bid string) (map[string]s
 
 	res["id"] = data.OrderID
 	res["url"] = data.Addr
+	res["is_qr"] = "2"
+
 	if data.QrCode != "" {
 		res["qr_code"] = data.QrCode
 	}
@@ -235,7 +237,6 @@ func PayOnline(fctx *fasthttp.RequestCtx, pid, amount, bid string) (map[string]s
 		res["card_holder"] = data.CardHolder
 	}
 	res["useLink"] = strconv.Itoa(data.UseLink)
-	res["is_qr"] = "2"
 	//1.QRBanking充值方式支持试玩账号自动上分，订单不需要到三方以及审核；
 	//2.上分时间需要随机在发起时间的X秒后，X为每笔订单从55、59、66、69、73五个数中，随机一个（离线充值也需要同步调整）；
 	//例如：试玩账号11:01:50发起订单，则系统在11:02:45，订单自动审核通过完成上分（随机到55秒的情况）；

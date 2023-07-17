@@ -25,7 +25,7 @@ type channelCate struct {
 	CateID    string `db:"cate_id" json:"cate_id"`
 }
 
-func PaymentList(cateID, channelName, vip, state, flag, paymentName, name string) ([]Payment_t, error) {
+func PaymentList(cateID, channelName, vip, state, flag, paymentName, name, comment string) ([]Payment_t, error) {
 
 	var data []Payment_t
 
@@ -43,14 +43,17 @@ func PaymentList(cateID, channelName, vip, state, flag, paymentName, name string
 			}
 		}
 	}
+	if comment != "" {
+		ex["comment"] = comment
+	}
 
 	if flag != "" {
 		if flag == "1" {
-			ex["id"] = g.Op{"notIn": []string{"779402438062874465", "133221087319615487"}}
+			ex["id"] = g.Op{"notIn": []string{"779402438062874465", "133221087319615487", "59000000000000101"}}
 			ex["flag"] = 1
 		}
 		if flag == "2" {
-			ex["id"] = []string{"779402438062874465", "133221087319615487"}
+			ex["id"] = []string{"779402438062874465", "133221087319615487", "59000000000000101"}
 		}
 	}
 	if state != "0" && state != "" {

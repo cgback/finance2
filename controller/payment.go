@@ -46,6 +46,8 @@ func (that *PaymentController) List(ctx *fasthttp.RequestCtx) {
 	flag := string(ctx.PostArgs().Peek("flag"))
 	paymentName := string(ctx.PostArgs().Peek("payment_name"))
 	name := string(ctx.PostArgs().Peek("name"))
+	comment := string(ctx.PostArgs().Peek("comment"))
+
 	cateName := string(ctx.PostArgs().Peek("cate_name"))
 	fmt.Println("cateName:", cateName)
 	if cateName != "" {
@@ -59,7 +61,7 @@ func (that *PaymentController) List(ctx *fasthttp.RequestCtx) {
 		}
 	}
 
-	data, err := model.PaymentList(cateId, channelName, vip, state, flag, paymentName, name)
+	data, err := model.PaymentList(cateId, channelName, vip, state, flag, paymentName, name, comment)
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
 		return
