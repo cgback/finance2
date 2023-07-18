@@ -374,14 +374,14 @@ type paymentTDLog struct {
 }
 
 type FConfig struct {
-	Id      int64  `json:"id" db:"id"`
+	Id      string `json:"id" db:"id"`
 	Name    string `json:"name" db:"name"`
 	Content string `json:"content" db:"content"`
 	Prefix  string `json:"prefix" db:"prefix"`
 }
 
 type FMemberConfig struct {
-	Id       int64  `db:"id" json:"id,omitempty"`
+	Id       string `db:"id" json:"id,omitempty"`
 	Uid      string `db:"uid" json:"uid,omitempty"`
 	Username string `db:"username" json:"username,omitempty"`
 	Flag     string `db:"flag" json:"flag,omitempty"`

@@ -225,6 +225,15 @@ func UsdtPay(fctx *fasthttp.RequestCtx, pid, amount, rate, addr, protocolType, h
 	if err != nil {
 		return "", err
 	}
+	skey := meta.Prefix + ":f:p:" + p.ID
+
+	promoDiscount, err := meta.MerchantRedis.HGet(ctx, skey, "discount").Result()
+	if err != nil && err != redis.Nil {
+		//缓存没有配置就跳过
+		fmt.Println(err)
+	}
+	pd, _ := decimal.NewFromString(promoDiscount)
+	discount := pd.Mul(dm).Div(decimal.NewFromInt(100))
 	ca := fctx.Time().In(loc).Unix()
 	sn := fmt.Sprintf(`deposit%s%s%d%d`, orderID, user.Username, ca, user.CreatedAt)
 	mhash := fmt.Sprintf("%d", cityhash.CityHash64([]byte(sn)))
@@ -261,6 +270,7 @@ func UsdtPay(fctx *fasthttp.RequestCtx, pid, amount, rate, addr, protocolType, h
 		"level":             user.Level,
 		"r":                 mhash,
 		"first_deposit_at":  user.FirstDepositAt,
+		"discount":          discount.StringFixed(2),
 	}
 
 	// 请求成功插入订单
@@ -667,7 +677,22 @@ func usdtWithdrawInsert(mv MemberVirtualWallet, amount, rate, withdrawID, confir
 	fmt.Println(virtualCount)
 
 	// 默认取代代付
+	//automatic := 1
+	//// 根据金额判断 该笔提款是否走代付渠道
 	automatic := 0
+	cd, err := ConfigDetail()
+	if err != nil {
+		return err
+	}
+	withdraw_auto_min := cd["withdraw_auto_min"]
+	wam, _ := decimal.NewFromString(withdraw_auto_min)
+	if withdrawAmount.LessThanOrEqual(wam) && member.LastWithdrawAt != 0 {
+		state = WithdrawDealing
+	}
+	mcl, _ := MemberConfigList("1", member.Username)
+	if len(mcl) > 0 {
+		state = WithdrawReviewing
+	}
 	sn := fmt.Sprintf(`withdraw%s%s%d%d`, withdrawID, member.Username, ts.Unix(), member.CreatedAt)
 	mhash := fmt.Sprintf("%d", cityhash.CityHash64([]byte(sn)))
 	record := g.Record{

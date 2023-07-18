@@ -12,7 +12,10 @@ import (
 	"finance/contrib/session"
 )
 
-var allows = map[string]bool{}
+var allows = map[string]bool{
+	"/f2/callback/nvnd": true,
+	"/f2/callback/nvnw": true,
+}
 
 // 哪些路由不用动态密码验证
 var otpIgnore = map[string]bool{}

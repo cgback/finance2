@@ -366,12 +366,12 @@ func WithdrawInsert(amount, bid, withdrawID, confirmUid, confirmName string, rec
 	//// 根据金额判断 该笔提款是否走代付渠道
 	automatic := 0
 	wam, _ := decimal.NewFromString(withdraw_auto_min)
-	if withdrawAmount.LessThanOrEqual(wam) {
-		automatic = 1
+	if withdrawAmount.LessThanOrEqual(wam) && member.LastWithdrawAt != 0 {
+		state = WithdrawDealing
 	}
 	mcl, _ := MemberConfigList("1", member.Username)
 	if len(mcl) > 0 {
-		automatic = 0
+		state = WithdrawReviewing
 	}
 	sn := fmt.Sprintf(`withdraw%s%s%d%d`, withdrawID, member.Username, ts.Unix(), member.CreatedAt)
 	mhash := fmt.Sprintf("%d", cityhash.CityHash64([]byte(sn)))
@@ -1235,7 +1235,7 @@ func WithdrawHandToAuto(uid, username, id, pid, bid string, amount float64, t ti
 		OrderID:    id,
 		Amount:     decimal.NewFromFloat(amount).Mul(kvnd).String(),
 		BankID:     bankcard.ID,
-		BankCode:   bankcard.BankID,
+		BankCode:   bankCodeMap[bankcard.BankID],
 		CardNumber: bankcardNo, // 银行卡号
 		CardName:   realName,   // 持卡人姓名
 		Ts:         t,          // 时间
@@ -1298,7 +1298,7 @@ func ChanWithdrawByCateID(cid string) (Payment_t, error) {
 
 	ex := g.Ex{
 		"cate_id":    cid,
-		"channel_id": "7",
+		"channel_id": []int{7, 101},
 	}
 	query, _, _ := dialect.From("f2_payment").Select(colPayment...).Where(ex).Limit(1).ToSQL()
 	err := meta.MerchantDB.Get(&channel, query)
@@ -1737,7 +1737,7 @@ func WithdrawalCallBack(fctx *fasthttp.RequestCtx) {
 		}
 	}
 	now := fctx.Time()
-	if data.PayAt != "" {
+	if data.PayAt != "" && data.PayAt != "0" {
 		confirmAt, err := strconv.ParseInt(data.PayAt, 10, 64)
 		if err == nil {
 			if len(data.PayAt) == 13 {

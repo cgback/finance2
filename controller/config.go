@@ -159,6 +159,10 @@ func (that *ConfigController) Insert(ctx *fasthttp.RequestCtx) {
 func (that *ConfigController) Delete(ctx *fasthttp.RequestCtx) {
 
 	id := string(ctx.PostArgs().Peek("id"))
+	if !helper.CtypeDigit(id) {
+		helper.Print(ctx, false, helper.IDErr)
+		return
+	}
 	err := model.MemberConfigDelete(id)
 	if err != nil {
 		helper.Print(ctx, false, err.Error())

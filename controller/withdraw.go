@@ -418,6 +418,8 @@ func (that *WithdrawController) RiskHistory(ctx *fasthttp.RequestCtx) {
 	ty := string(ctx.PostArgs().Peek("ty"))
 	sortField := string(ctx.PostArgs().Peek("sort_field"))
 	isAsc := string(ctx.PostArgs().Peek("is_asc"))
+	isFirst := ctx.PostArgs().GetUintOrZero("is_first") //是否首提 0全部1首提
+	pid := string(ctx.PostArgs().Peek("pid"))           //提现渠道 全部为'' cgpay ：59000000000000101
 
 	page, err := strconv.ParseUint(string(ctx.PostArgs().Peek("page")), 10, 64)
 	if err != nil {
@@ -452,6 +454,12 @@ func (that *WithdrawController) RiskHistory(ctx *fasthttp.RequestCtx) {
 	}
 
 	ex := g.Ex{}
+	if isFirst > 0 {
+		ex["last_withdraw_at"] = 0
+	}
+	if pid != "" {
+		ex["pid"] = pid
+	}
 	if realName != "" {
 		if len([]rune(id)) > 30 {
 			helper.Print(ctx, false, helper.RealNameFMTErr)

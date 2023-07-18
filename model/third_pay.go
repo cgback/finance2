@@ -70,8 +70,8 @@ func (that *NvnPayment) New() {
 		Name:           "vnPay",
 		Api:            meta.Finance["nvn"]["api"].(string),
 		QrType:         meta.Finance["nvn"]["qr_type"].(string),
-		PayNotify:      "%s/finance/callback/nvnd",
-		WithdrawNotify: "%s/finance/callback/nvnw",
+		PayNotify:      "%s/f2/callback/nvnd",
+		WithdrawNotify: "%s/f2/callback/nvnw",
 		Channel: map[string]string{
 			"1": QRBanking,
 			"2": MomoPay,
