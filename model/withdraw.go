@@ -684,7 +684,7 @@ func WithdrawDealListData(data FWithdrawData) (WithdrawListData, error) {
 
 		wat := wm[v.UID]
 		w := withdrawCols{
-			Withdraw:           v,
+			mWithdraw:          v,
 			MemberBankNo:       recs[v.UID]["bankcard"+v.BID],
 			MemberBankRealName: recs[v.UID]["realname"],
 			MemberRealName:     recs[v.UID]["realname"],
@@ -766,12 +766,30 @@ func WithdrawList(ex g.Ex, ty uint8, startTime, endTime string, isBig, firstWd i
 			Amount: total.Agg.Float64,
 		}
 	}
-
+	orderTemp := "created_at"
+	cols := colsWithdraw
+	cd, err := ConfigDetail()
+	if err != nil {
+		return data, pushLog(err, helper.DBErr)
+	}
+	depositListFirst := cd["withdraw_list_first"]
+	if isBig == 1 && firstWd == 1 {
+		cols = append(cols, g.L("case when last_withdraw_at = 0 then 2000000000+created_at  when amount > "+depositListFirst+" then (created_at+1000000000) else created_at end as sort_num"))
+		orderTemp = "sort_num"
+	}
+	if isBig == 1 {
+		cols = append(cols, g.L("case when amount > "+depositListFirst+" then (created_at+1000000000) else created_at end as sort_num"))
+		orderTemp = "sort_num"
+	}
+	if firstWd == 1 {
+		cols = append(cols, g.L("case when last_withdraw_at = 0 then 2000000000+created_at else created_at end as sort_num"))
+		orderTemp = "sort_num"
+	}
 	offset := (page - 1) * pageSize
 	query, _, _ := dialect.From("tbl_withdraw").
-		Select(colsWithdraw...).Where(ex).Order(g.C("created_at").Desc()).Offset(offset).Limit(pageSize).ToSQL()
+		Select(cols...).Where(ex).Order(g.C(orderTemp).Desc()).Offset(offset).Limit(pageSize).ToSQL()
 	//fmt.Println(query)
-	err := meta.MerchantDB.Select(&data.D, query)
+	err = meta.MerchantDB.Select(&data.D, query)
 	if err != nil {
 		return data, pushLog(err, helper.DBErr)
 	}
@@ -1281,7 +1299,6 @@ func ChanWithdrawByCateID(cid string) (Payment_t, error) {
 	ex := g.Ex{
 		"cate_id":    cid,
 		"channel_id": "7",
-		"prefix":     meta.Prefix,
 	}
 	query, _, _ := dialect.From("f2_payment").Select(colPayment...).Where(ex).Limit(1).ToSQL()
 	err := meta.MerchantDB.Get(&channel, query)
@@ -1417,13 +1434,19 @@ func WithDrawDailyLimit(date, username string) (map[string]string, error) {
 
 func WithdrawInProcessing(ctx *fasthttp.RequestCtx) (map[string]interface{}, error) {
 
-	var data map[string]interface{}
+	data := map[string]interface{}{}
 
 	member, err := MemberCache(ctx)
 	if err != nil {
 		return data, err
 	}
-
+	cd, err := ConfigDetail()
+	if err != nil {
+		return data, pushLog(err, helper.DBErr)
+	}
+	//存款订单配置开启
+	dts := cd["withdraw_min"]
+	data["min_amount"] = dts
 	order := Withdraw{}
 	ex := g.Ex{
 		"uid":   member.UID,
@@ -1432,11 +1455,11 @@ func WithdrawInProcessing(ctx *fasthttp.RequestCtx) (map[string]interface{}, err
 	query, _, _ := dialect.From("tbl_withdraw").Select(colsWithdraw...).Where(ex).Limit(1).ToSQL()
 	err = meta.MerchantDB.Get(&order, query)
 	if err != nil && err != sql.ErrNoRows {
-		return nil, pushLog(err, helper.DBErr)
+		return data, pushLog(err, helper.DBErr)
 	}
 
 	if err == sql.ErrNoRows {
-		return nil, nil
+		return data, nil
 	}
 
 	data = map[string]interface{}{
@@ -1448,6 +1471,7 @@ func WithdrawInProcessing(ctx *fasthttp.RequestCtx) (map[string]interface{}, err
 		"rate":        order.VirtualRate,
 		"count":       order.VirtualCount,
 		"wallet_addr": order.WalletAddr,
+		"min_amount":  dts,
 	}
 
 	return data, nil
@@ -1625,7 +1649,7 @@ func WithdrawApplyListData(data FWithdrawData) (WithdrawListData, error) {
 
 		wat := wm[v.UID]
 		w := withdrawCols{
-			Withdraw:           v,
+			mWithdraw:          v,
 			MemberBankNo:       recs[v.UID]["bankcard"+v.BID],
 			MemberBankRealName: recs[v.UID]["realname"],
 			MemberRealName:     recs[v.UID]["realname"],

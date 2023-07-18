@@ -30,6 +30,8 @@ func (that *ManualController) List(ctx *fasthttp.RequestCtx) {
 	state := ctx.PostArgs().GetUintOrZero("state")
 	flag := ctx.PostArgs().GetUintOrZero("flag")
 	hashId := string(ctx.PostArgs().Peek("hash_id"))
+	isBig := ctx.PostArgs().GetUintOrZero("is_big")     //大额优先 0默认1大额优先
+	firstWd := ctx.PostArgs().GetUintOrZero("first_wd") //首提优先 0默认1首提优先
 	if page == 0 || pageSize == 0 {
 		helper.Print(ctx, false, helper.ParamErr)
 		return
@@ -88,7 +90,7 @@ func (that *ManualController) List(ctx *fasthttp.RequestCtx) {
 		ex["bank_no"] = cardNo
 	}
 
-	data, err := model.ManualList(ex, startTime, endTime, page, pageSize)
+	data, err := model.ManualList(ex, startTime, endTime, isBig, firstWd, page, pageSize)
 	if err != nil {
 		helper.Print(ctx, false, err.Error())
 		return

@@ -64,7 +64,7 @@ func OfflinePay(fctx *fasthttp.RequestCtx, paymentID, amount, bid string) (strin
 			if total.T.Int64 >= dttma {
 				tts := time.Now().Unix() - total.L.Int64
 				if tts < int64(dttb) {
-					return "", errors.New(fmt.Sprintf("please wait %d sec", int64(dttb)-tts))
+					return "", errors.New(fmt.Sprintf("Thao Tác quá nhanh, vui lòng thử lại sau %d giây!", int64(dttb)-tts))
 				}
 			}
 			depositTimeTwoMax := cd["deposit_time_two_max"]
@@ -76,7 +76,7 @@ func OfflinePay(fctx *fasthttp.RequestCtx, paymentID, amount, bid string) (strin
 			if total.T.Int64 >= dt2i && total.T.Int64 <= dt2a {
 				tts := time.Now().Unix() - total.L.Int64
 				if tts < int64(dtta) {
-					return "", errors.New(fmt.Sprintf("please wait %d sec", int64(dtta)-tts))
+					return "", errors.New(fmt.Sprintf("Thao Tác quá nhanh, vui lòng thử lại sau %d giây!", int64(dtta)-tts))
 				}
 			}
 			dtom := cd["deposit_time_one_max"]
@@ -86,7 +86,7 @@ func OfflinePay(fctx *fasthttp.RequestCtx, paymentID, amount, bid string) (strin
 			if total.T.Int64 >= dtomi {
 				tts := time.Now().Unix() - total.L.Int64
 				if tts < int64(dtoi) {
-					return "", errors.New(fmt.Sprintf("please wait %d sec", int64(dtoi)-tts))
+					return "", errors.New(fmt.Sprintf("Thao Tác quá nhanh, vui lòng thử lại sau %d giây!", int64(dtoi)-tts))
 				}
 			}
 		}
@@ -211,11 +211,11 @@ func OfflinePay(fctx *fasthttp.RequestCtx, paymentID, amount, bid string) (strin
 }
 
 // DepositManualList 线下转卡订单列表
-func ManualList(ex g.Ex, startTime, endTime string, page, pageSize int) (FDepositData, error) {
+func ManualList(ex g.Ex, startTime, endTime string, isBig, firstWd, page, pageSize int) (mFDepositData, error) {
 
 	ex["prefix"] = meta.Prefix
 	ex["tester"] = 1
-	data := FDepositData{}
+	data := mFDepositData{}
 
 	if startTime != "" && endTime != "" {
 
@@ -250,11 +250,30 @@ func ManualList(ex g.Ex, startTime, endTime string, page, pageSize int) (FDeposi
 		}
 		data.T = total.T.Int64
 	}
-
+	orderTemp := "created_at"
+	cols := colsDeposit
+	cd, err := ConfigDetail()
+	if err != nil {
+		return data, pushLog(err, helper.DBErr)
+	}
+	depositListFirst := cd["deposit_list_first"]
+	if isBig == 1 && firstWd == 1 {
+		cols = append(cols, g.L("case when first_deposit_at = 0 then 2000000000+created_at  when amount > "+depositListFirst+" then (created_at+1000000000) else created_at end as sort_num"))
+		orderTemp = "sort_num"
+	}
+	if isBig == 1 {
+		cols = append(cols, g.L("case when amount > "+depositListFirst+" then (created_at+1000000000) else created_at end as sort_num"))
+		orderTemp = "sort_num"
+	}
+	if firstWd == 1 {
+		cols = append(cols, g.L("case when first_deposit_at = 0 then 2000000000+created_at else created_at end as sort_num"))
+		orderTemp = "sort_num"
+	}
 	offset := uint((page - 1) * pageSize)
-	query, _, _ := dialect.From("tbl_deposit").Select(colsDeposit...).
-		Where(ex).Offset(offset).Limit(uint(pageSize)).Order(g.C("created_at").Desc()).ToSQL()
-	err := meta.MerchantDB.Select(&data.D, query)
+	query, _, _ := dialect.From("tbl_deposit").Select(cols...).
+		Where(ex).Offset(offset).Limit(uint(pageSize)).Order(g.C(orderTemp).Desc()).ToSQL()
+	fmt.Println(query)
+	err = meta.MerchantDB.Select(&data.D, query)
 	if err != nil {
 		return data, pushLog(err, helper.DBErr)
 	}

@@ -169,6 +169,19 @@ type FDepositData struct {
 	Agg map[string]string `json:"agg"`
 }
 
+// mDeposit 存款
+type mDeposit struct {
+	Deposit
+	SortNum string `db:"sort_num"`
+}
+
+// 存款数据
+type mFDepositData struct {
+	T   int64             `json:"t"`
+	D   []mDeposit        `json:"d"`
+	Agg map[string]string `json:"agg"`
+}
+
 type dataTotal struct {
 	T sql.NullInt64   `json:"t"`
 	S sql.NullFloat64 `json:"s"`
@@ -239,9 +252,9 @@ type paymentCallbackResp struct {
 
 // FWithdrawData 取款数据
 type FWithdrawData struct {
-	T   int64      `json:"t"`
-	D   []Withdraw `json:"d"`
-	Agg Withdraw   `json:"agg"`
+	T   int64       `json:"t"`
+	D   []mWithdraw `json:"d"`
+	Agg Withdraw    `json:"agg"`
 }
 
 // Withdraw 会员提款表
@@ -299,8 +312,13 @@ type WithdrawListData struct {
 	Agg Withdraw       `json:"agg"`
 }
 
-type withdrawCols struct {
+type mWithdraw struct {
 	Withdraw
+	SortNum string `db:"sort_num"`
+}
+
+type withdrawCols struct {
+	mWithdraw
 	CateID             string  `json:"cate_id"`
 	CateName           string  `json:"cate_name"`
 	MemberBankName     string  `json:"member_bank_name"`

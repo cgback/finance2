@@ -234,6 +234,7 @@ func (that *BankCardController) Insert(ctx *fasthttp.RequestCtx) {
 	if seq != 0 {
 		fields["sort"] = fmt.Sprintf(`%d`, seq)
 	}
+
 	if amountList != "" {
 		fields["amount_list"] = amountList
 	}
@@ -423,11 +424,22 @@ func (that *BankCardController) Update(ctx *fasthttp.RequestCtx) {
 	if fmax != "" {
 		fields["fmax"] = fmax
 	}
-	if state != "" {
-		fields["state"] = state
-	}
 	if seq != 0 {
 		fields["sort"] = fmt.Sprintf(`%d`, seq)
+	}
+	if state == "1" {
+		fields["state"] = state
+	}
+	if state == "0" {
+		ex1 := g.Ex{
+			"cid":   bankCard.Cid,
+			"flags": bankCard.Flags,
+			"state": "1",
+		}
+		bl, _ := model.BankCardList(ex1, "")
+		if len(bl) == 0 {
+			fields["state"] = state
+		}
 	}
 	if fmin != "" && fmin != "0" {
 		fields["fmin"] = fmin

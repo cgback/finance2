@@ -70,57 +70,57 @@ func PayOnline(fctx *fasthttp.RequestCtx, pid, amount, bid string) (map[string]s
 		if len(mcl) == 0 {
 			dtss := cd["deposit_third_switch"]
 			ex1 := g.Ex{"uid": user.UID, "state": g.Op{"neq": DepositSuccess}, "created_at": g.Op{"gte": time.Now().Unix() - 18000}}
-			if dtss == "2" {
-				ex1["flag"] = []int{3, 4}
-			}
-			//查最近30分钟有多少条
-			total := dataTotal{}
-			countQuery, _, _ := dialect.From("tbl_deposit").Select(g.COUNT(1).As("t"), g.MAX("created_at").As("l")).Where(
-				ex1).ToSQL()
-			err = meta.MerchantDB.Get(&total, countQuery)
-			fmt.Println(countQuery)
-			if err != nil {
-				return res, pushLog(err, helper.DBErr)
-			}
-			//有未成功的不能在提交
-			dcr := cd["deposit_can_repeat"]
-			if dcr == "1" {
-				if total.T.Int64 > 1 {
-					return res, errors.New(helper.EmptyOrder30MinsBlock)
+			if dtss == "1" {
+				//查最近30分钟有多少条
+				total := dataTotal{}
+				countQuery, _, _ := dialect.From("tbl_deposit").Select(g.COUNT(1).As("t"), g.MAX("created_at").As("l")).Where(
+					ex1).ToSQL()
+				err = meta.MerchantDB.Get(&total, countQuery)
+				fmt.Println(countQuery)
+				if err != nil {
+					return res, pushLog(err, helper.DBErr)
+				}
+				//有未成功的不能在提交
+				dcr := cd["deposit_can_repeat"]
+				if dcr == "1" {
+					if total.T.Int64 > 1 {
+						return res, errors.New(helper.EmptyOrder30MinsBlock)
+					}
+				}
+				depositTimeThreeMax := cd["deposit_time_three_max"]
+				depositTimeThree := cd["deposit_time_three"]
+				dttma, _ := strconv.ParseInt(depositTimeThreeMax, 10, 64)
+				dttb, _ := strconv.Atoi(depositTimeThree)
+				if total.T.Int64 >= dttma {
+					tts := time.Now().Unix() - total.L.Int64
+					if tts < int64(dttb) {
+						return res, errors.New(fmt.Sprintf("Thao Tác quá nhanh, vui lòng thử lại sau %d giây!", int64(dttb)-tts))
+					}
+				}
+				depositTimeTwoMax := cd["deposit_time_two_max"]
+				depositTimeTwoMin := cd["deposit_time_two_min"]
+				depositTimeTwo := cd["deposit_time_two"]
+				dt2a, _ := strconv.ParseInt(depositTimeTwoMax, 10, 64)
+				dt2i, _ := strconv.ParseInt(depositTimeTwoMin, 10, 64)
+				dtta, _ := strconv.Atoi(depositTimeTwo)
+				if total.T.Int64 >= dt2i && total.T.Int64 <= dt2a {
+					tts := time.Now().Unix() - total.L.Int64
+					if tts < int64(dtta) {
+						return res, errors.New(fmt.Sprintf("Thao Tác quá nhanh, vui lòng thử lại sau %d giây!", int64(dtta)-tts))
+					}
+				}
+				dtom := cd["deposit_time_one_max"]
+				dto := cd["deposit_time_one"]
+				dtomi, _ := strconv.ParseInt(dtom, 10, 64)
+				dtoi, _ := strconv.Atoi(dto)
+				if total.T.Int64 >= dtomi {
+					tts := time.Now().Unix() - total.L.Int64
+					if tts < int64(dtoi) {
+						return res, errors.New(fmt.Sprintf("Thao Tác quá nhanh, vui lòng thử lại sau %d giây!", int64(dtoi)-tts))
+					}
 				}
 			}
-			depositTimeThreeMax := cd["deposit_time_three_max"]
-			depositTimeThree := cd["deposit_time_three"]
-			dttma, _ := strconv.ParseInt(depositTimeThreeMax, 10, 64)
-			dttb, _ := strconv.Atoi(depositTimeThree)
-			if total.T.Int64 >= dttma {
-				tts := time.Now().Unix() - total.L.Int64
-				if tts < int64(dttb) {
-					return res, errors.New(fmt.Sprintf("please wait %d sec", int64(dttb)-tts))
-				}
-			}
-			depositTimeTwoMax := cd["deposit_time_two_max"]
-			depositTimeTwoMin := cd["deposit_time_two_min"]
-			depositTimeTwo := cd["deposit_time_two"]
-			dt2a, _ := strconv.ParseInt(depositTimeTwoMax, 10, 64)
-			dt2i, _ := strconv.ParseInt(depositTimeTwoMin, 10, 64)
-			dtta, _ := strconv.Atoi(depositTimeTwo)
-			if total.T.Int64 >= dt2i && total.T.Int64 <= dt2a {
-				tts := time.Now().Unix() - total.L.Int64
-				if tts < int64(dtta) {
-					return res, errors.New(fmt.Sprintf("please wait %d sec", int64(dtta)-tts))
-				}
-			}
-			dtom := cd["deposit_time_one_max"]
-			dto := cd["deposit_time_one"]
-			dtomi, _ := strconv.ParseInt(dtom, 10, 64)
-			dtoi, _ := strconv.Atoi(dto)
-			if total.T.Int64 >= dtomi {
-				tts := time.Now().Unix() - total.L.Int64
-				if tts < int64(dtoi) {
-					return res, errors.New(fmt.Sprintf("please wait %d sec", int64(dtoi)-tts))
-				}
-			}
+
 		}
 	}
 
