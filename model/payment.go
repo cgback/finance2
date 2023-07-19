@@ -56,7 +56,7 @@ func PaymentList(cateID, channelName, vip, state, flag, paymentName, name, comme
 			ex["id"] = []string{"779402438062874465", "133221087319615487", "59000000000000101"}
 		}
 	}
-	if state != "0" && state != "" {
+	if state != "" {
 		ex["state"] = state
 	}
 	if paymentName != "" {

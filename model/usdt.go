@@ -680,19 +680,7 @@ func usdtWithdrawInsert(mv MemberVirtualWallet, amount, rate, withdrawID, confir
 	//automatic := 1
 	//// 根据金额判断 该笔提款是否走代付渠道
 	automatic := 0
-	cd, err := ConfigDetail()
-	if err != nil {
-		return err
-	}
-	withdraw_auto_min := cd["withdraw_auto_min"]
-	wam, _ := decimal.NewFromString(withdraw_auto_min)
-	if withdrawAmount.LessThanOrEqual(wam) && member.LastWithdrawAt != 0 {
-		state = WithdrawDealing
-	}
-	mcl, _ := MemberConfigList("1", member.Username)
-	if len(mcl) > 0 {
-		state = WithdrawReviewing
-	}
+
 	sn := fmt.Sprintf(`withdraw%s%s%d%d`, withdrawID, member.Username, ts.Unix(), member.CreatedAt)
 	mhash := fmt.Sprintf("%d", cityhash.CityHash64([]byte(sn)))
 	record := g.Record{

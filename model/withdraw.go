@@ -313,6 +313,7 @@ func WithdrawInsert(amount, bid, withdrawID, confirmUid, confirmName string, rec
 	lk := fmt.Sprintf("w:%s", member.Username)
 	err := withLock(lk)
 	if err != nil {
+		fmt.Println("WithdrawInsert withLock err:", err)
 		return err
 	}
 
@@ -368,10 +369,12 @@ func WithdrawInsert(amount, bid, withdrawID, confirmUid, confirmName string, rec
 	wam, _ := decimal.NewFromString(withdraw_auto_min)
 	if withdrawAmount.LessThanOrEqual(wam) && member.LastWithdrawAt != 0 {
 		state = WithdrawDealing
+		automatic = 1
 	}
 	mcl, _ := MemberConfigList("1", member.Username)
 	if len(mcl) > 0 {
 		state = WithdrawReviewing
+		automatic = 0
 	}
 	sn := fmt.Sprintf(`withdraw%s%s%d%d`, withdrawID, member.Username, ts.Unix(), member.CreatedAt)
 	mhash := fmt.Sprintf("%d", cityhash.CityHash64([]byte(sn)))
@@ -500,6 +503,17 @@ func WithdrawInsert(amount, bid, withdrawID, confirmUid, confirmName string, rec
 		return pushLog(err, helper.DBErr)
 	}
 	MemberUpdateCache(member.Username)
+
+	if automatic == 1 {
+		withdraw, err := WithdrawFind(withdrawID)
+		if err != nil {
+			return pushLog(err, helper.DBErr)
+		}
+		err = WithdrawHandToAuto(withdraw.UID, withdraw.Username, withdraw.ID, "59000000000000101", withdraw.BID, withdraw.Amount, time.Now())
+		if err != nil {
+			return pushLog(err, helper.DBErr)
+		}
+	}
 	return nil
 }
 
