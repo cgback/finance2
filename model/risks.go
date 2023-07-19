@@ -1,10 +1,12 @@
 package model
 
 import (
+	"database/sql"
 	"errors"
 	"finance/contrib/helper"
 	"fmt"
 	"strconv"
+	"time"
 
 	g "github.com/doug-martin/goqu/v9"
 	"github.com/go-redis/redis/v8"
@@ -338,4 +340,53 @@ func MemberSmsEnableMod(enable bool, adminName string) error {
 	contentLog := fmt.Sprintf("风控配置-策略方式:后台账号:%s【操作:%s短信验证】", adminName, StateBoolMap[enable])
 	AdminLogInsert(RiskModel, contentLog, opBoolMap[enable], adminName)
 	return nil
+}
+
+type noticeCount struct {
+	UnDeal      int64 `json:"un_deal" db:"un_deal"`           //未处理风控审核
+	UnApply     int64 `json:"un_apply" db:"un_apply"`         //未处理活动
+	DepositIng  int64 `json:"deposit_ing" db:"deposit_ing"`   //未处理存款
+	WithdrawIng int64 `json:"withdraw_ing" db:"withdraw_ing"` //未处理提现
+}
+
+func RisksCount() (noticeCount, error) {
+
+	data := noticeCount{}
+	var unDeal sql.NullInt64
+	query, _, _ := dialect.From("tbl_withdraw").Select(g.COUNT(1)).Where(g.Ex{"created_at": g.Op{"gte": time.Now().Unix() - 7*24*3600}, "state": WithdrawReviewing}).ToSQL()
+	//fmt.Println(query)
+	err := meta.MerchantDB.Get(&unDeal, query)
+	if err != nil {
+		return data, pushLog(err, helper.DBErr)
+	}
+	data.UnDeal = unDeal.Int64
+
+	var unApply sql.NullInt64
+	query, _, _ = dialect.From("tbl_promo_record").Select(g.COUNT(1)).Where(g.Ex{"created_at": g.Op{"gte": time.Now().Unix() - 7*24*3600}, "state": 1, "flag": "deposit"}).ToSQL()
+	//fmt.Println(query)
+	err = meta.MerchantDB.Get(&unApply, query)
+	if err != nil {
+		return data, pushLog(err, helper.DBErr)
+	}
+	data.UnApply = unApply.Int64
+
+	var depositIng sql.NullInt64
+	query, _, _ = dialect.From("tbl_deposit").Select(g.COUNT(1)).Where(g.Ex{"created_at": g.Op{"gte": time.Now().Unix() - 7*24*3600}, "state": DepositConfirming, "flag": g.Op{"gt": 1}}).ToSQL()
+	//fmt.Println(query)
+	err = meta.MerchantDB.Get(&unDeal, query)
+	if err != nil {
+		return data, pushLog(err, helper.DBErr)
+	}
+	data.DepositIng = depositIng.Int64
+
+	var withdrawIng sql.NullInt64
+	query, _, _ = dialect.From("tbl_withdraw").Select(g.COUNT(1)).Where(g.Ex{"created_at": g.Op{"gte": time.Now().Unix() - 7*24*3600}, "state": WithdrawDealing}).ToSQL()
+	//fmt.Println(query)
+	err = meta.MerchantDB.Get(&withdrawIng, query)
+	if err != nil {
+		return data, pushLog(err, helper.DBErr)
+	}
+	data.WithdrawIng = withdrawIng.Int64
+
+	return data, nil
 }

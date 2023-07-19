@@ -255,6 +255,9 @@ func SetupRouter(b BuildInfo) *router.Router {
 	// [商户后台] 财务管理-渠道管理-通道类型管理-列表
 	get("/merchant/f2/tunnel/list", channelTypeCtl.List)
 
+	// 统计待审核订单数量
+	get("/merchant/f2/finance/num", risksCtl.Count)
+
 	return route
 }
 
