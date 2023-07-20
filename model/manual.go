@@ -200,7 +200,9 @@ func OfflinePay(fctx *fasthttp.RequestCtx, paymentID, amount, bid string) (strin
 	}
 
 	bytes, _ := helper.JsonMarshal(res)
-	_ = pushWithdrawNotify(depositReviewFmt, user.Username, amount)
+
+	// 发送消息通知
+	_ = PushWithdrawNotify(depositReviewFmt, user.Username, amount)
 
 	if user.Tester == "0" && user.TopName != "p32015" && user.TopName != "nanfeng001" {
 		msg := map[string]string{}

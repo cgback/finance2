@@ -373,25 +373,24 @@ func RisksCount() (noticeCount, error) {
 	data.UnApply = unApply.Int64
 
 	var depositIng sql.NullInt64
-	query, _, _ = dialect.From("tbl_deposit").Select(g.COUNT(1)).Where(g.Ex{"created_at": g.Op{"gte": time.Now().Unix() - 7*24*3600}, "state": DepositConfirming, "flag": g.Op{"gt": 1}}).ToSQL()
+	query, _, _ = dialect.From("tbl_deposit").Select(g.COUNT(1)).Where(g.Ex{"created_at": g.Op{"gte": time.Now().Unix() - 7*24*3600}, "state": DepositConfirming, "flag": []int{3, 4}}).ToSQL()
 	//fmt.Println(query)
-	err = meta.MerchantDB.Get(&unDeal, query)
+	err = meta.MerchantDB.Get(&depositIng, query)
 	if err != nil {
 		return data, pushLog(err, helper.DBErr)
 	}
 	data.DepositIng = depositIng.Int64
 
 	var usdtDepositIng sql.NullInt64
-	query, _, _ = dialect.From("tbl_deposit").Select(g.COUNT(1)).Where(g.Ex{"created_at": g.Op{"gte": time.Now().Unix() - 7*24*3600}, "state": DepositConfirming, "pid": 766870294997073616}).ToSQL()
+	query, _, _ = dialect.From("tbl_deposit").Select(g.COUNT(1)).Where(g.Ex{"created_at": g.Op{"gte": time.Now().Unix() - 7*24*3600}, "state": DepositConfirming, "flag": 4}).ToSQL()
 	//fmt.Println(query)
 	err = meta.MerchantDB.Get(&usdtDepositIng, query)
 	if err != nil {
 		return data, pushLog(err, helper.DBErr)
 	}
-	data.UsdtDeposit = usdtDepositIng.Int64
 
 	var offlineDepositIng sql.NullInt64
-	query, _, _ = dialect.From("tbl_deposit").Select(g.COUNT(1)).Where(g.Ex{"created_at": g.Op{"gte": time.Now().Unix() - 7*24*3600}, "state": DepositConfirming, "pid": 779402438062874469}).ToSQL()
+	query, _, _ = dialect.From("tbl_deposit").Select(g.COUNT(1)).Where(g.Ex{"created_at": g.Op{"gte": time.Now().Unix() - 7*24*3600}, "state": DepositConfirming, "flag": 3}).ToSQL()
 	//fmt.Println(query)
 	err = meta.MerchantDB.Get(&offlineDepositIng, query)
 	if err != nil {

@@ -30,6 +30,8 @@ func PushMerchantNotify(format, applyName, username, amount string) error {
 		return err
 	}
 
+	fmt.Println("merchantNats.Publish:", topic, msg)
+
 	return nil
 }
 
