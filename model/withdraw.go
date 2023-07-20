@@ -1228,7 +1228,7 @@ func WithdrawHandToAuto(uid, username, id, pid, bid string, amount float64, t ti
 		return err
 	}
 
-	p, err := ChanWithdrawByCateID(pid)
+	p, err := ChanByID(pid)
 	if err != nil {
 		return err
 	}
@@ -1354,6 +1354,7 @@ func withdrawUpdateInfo(ex g.Ex, record g.Record) error {
 
 	ex["prefix"] = meta.Prefix
 	query, _, _ := dialect.Update("tbl_withdraw").Set(record).Where(ex).ToSQL()
+	fmt.Println("withdrawUpdateInfo:", query)
 	_, err := meta.MerchantDB.Exec(query)
 	return err
 }

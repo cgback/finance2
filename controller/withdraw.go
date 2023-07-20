@@ -1042,7 +1042,7 @@ func (that *WithdrawController) Review(ctx *fasthttp.RequestCtx) {
 	if param.Ty == 2 { // 人工出款
 
 		if withdraw.PID != "779402438062874465" {
-			record["pid"] = "0"
+			record["pid"] = "133221087319615487"
 		}
 		//record["bid"] = param.BankId
 		record["automatic"] = "0"

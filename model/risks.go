@@ -343,10 +343,12 @@ func MemberSmsEnableMod(enable bool, adminName string) error {
 }
 
 type noticeCount struct {
-	UnDeal      int64 `json:"un_deal" db:"un_deal"`           //未处理风控审核
-	UnApply     int64 `json:"un_apply" db:"un_apply"`         //未处理活动
-	DepositIng  int64 `json:"deposit_ing" db:"deposit_ing"`   //未处理存款
-	WithdrawIng int64 `json:"withdraw_ing" db:"withdraw_ing"` //未处理提现
+	UnDeal         int64 `json:"un_deal" db:"un_deal"`                 //未处理风控审核
+	UnApply        int64 `json:"un_apply" db:"un_apply"`               //未处理活动
+	DepositIng     int64 `json:"deposit_ing" db:"deposit_ing"`         //未处理存款
+	WithdrawIng    int64 `json:"withdraw_ing" db:"withdraw_ing"`       //未处理提现
+	UsdtDeposit    int64 `json:"usdt_deposit" db:"usdt_deposit"`       //usdt充值
+	OfflineDeposit int64 `json:"offline_deposit" db:"offline_deposit"` //offline充值
 }
 
 func RisksCount() (noticeCount, error) {
@@ -378,6 +380,24 @@ func RisksCount() (noticeCount, error) {
 		return data, pushLog(err, helper.DBErr)
 	}
 	data.DepositIng = depositIng.Int64
+
+	var usdtDepositIng sql.NullInt64
+	query, _, _ = dialect.From("tbl_deposit").Select(g.COUNT(1)).Where(g.Ex{"created_at": g.Op{"gte": time.Now().Unix() - 7*24*3600}, "state": DepositConfirming, "pid": 766870294997073616}).ToSQL()
+	//fmt.Println(query)
+	err = meta.MerchantDB.Get(&usdtDepositIng, query)
+	if err != nil {
+		return data, pushLog(err, helper.DBErr)
+	}
+	data.UsdtDeposit = usdtDepositIng.Int64
+
+	var offlineDepositIng sql.NullInt64
+	query, _, _ = dialect.From("tbl_deposit").Select(g.COUNT(1)).Where(g.Ex{"created_at": g.Op{"gte": time.Now().Unix() - 7*24*3600}, "state": DepositConfirming, "pid": 779402438062874469}).ToSQL()
+	//fmt.Println(query)
+	err = meta.MerchantDB.Get(&offlineDepositIng, query)
+	if err != nil {
+		return data, pushLog(err, helper.DBErr)
+	}
+	data.OfflineDeposit = offlineDepositIng.Int64
 
 	var withdrawIng sql.NullInt64
 	query, _, _ = dialect.From("tbl_withdraw").Select(g.COUNT(1)).Where(g.Ex{"created_at": g.Op{"gte": time.Now().Unix() - 7*24*3600}, "state": WithdrawDealing}).ToSQL()

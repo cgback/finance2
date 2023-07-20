@@ -170,7 +170,11 @@ func (that *RisksController) EnableMod(ctx *fasthttp.RequestCtx) {
 
 func (that *RisksController) Count(ctx *fasthttp.RequestCtx) {
 
-	num, _ := model.RisksCount()
+	num, err := model.RisksCount()
+	if err != nil {
+		helper.Print(ctx, false, err.Error())
+		return
+	}
 
 	helper.Print(ctx, true, num)
 }
