@@ -80,6 +80,7 @@ func SetupRouter(b BuildInfo) *router.Router {
 	cbCtl := new(controller.CallBackController)
 	//存款订单配置
 	cfCtl := new(controller.ConfigController)
+	lockCtl := new(controller.LockController)
 
 	get("/f2/version", Version)
 	// [callback] NVN 代付回调
@@ -192,6 +193,13 @@ func SetupRouter(b BuildInfo) *router.Router {
 	post("/merchant/f2/deposit/manual", depositCtl.Manual)
 	// [商户后台] 财务管理-存款管理-补单审核
 	post("/merchant/f2/deposit/review", depositCtl.Review)
+
+	// [商户后台] 财务管理-渠道管理-会员锁定-新增
+	post("//merchant/f2memberlock/insert", lockCtl.MemberInsert)
+	// [商户后台] 财务管理-渠道管理-会员锁定-列表
+	post("/merchant/f2/memberlock/list", lockCtl.MemberList)
+	// [商户后台] 财务管理-渠道管理-会员锁定-启用
+	post("/merchant/f2/memberlock/update/state", lockCtl.UpdateState)
 
 	// [商户后台] 财务管理-存款管理-USDT存款
 	post("/merchant/f2/deposit/usdt/list", depositCtl.USDTList)
