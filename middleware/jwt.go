@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"errors"
+	"finance/model"
 	"strconv"
 	"strings"
 
@@ -50,11 +51,11 @@ func CheckTokenMiddleware(ctx *fasthttp.RequestCtx) error {
 			// return errors.New(`{"status":false,"data":"otp"}`)
 		}
 
-		//gid := fastjson.GetString(data, "group_id")
-		//permission := model.PrivCheck(path, gid)
-		//if permission != nil {
-		//	return errors.New(`{"status":false,"data":"permission denied"}`)
-		//}
+		gid := fastjson.GetString(data, "group_id")
+		permission := model.PrivCheck(path, gid)
+		if permission != nil {
+			return errors.New(`{"status":false,"data":"permission denied"}`)
+		}
 	} else {
 		data, err = session.Get(ctx)
 		if err != nil {
