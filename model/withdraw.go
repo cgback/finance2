@@ -631,7 +631,7 @@ func WithdrawDealListData(data FWithdrawData) (WithdrawListData, error) {
 		userMap     = make(map[string]MBBalance)
 		namesMap    = make(map[string]string)
 		uidMap      = make(map[string]bool)
-		//recs        = make(map[string]map[string]string)
+		recs        = make(map[string]map[string]string)
 	)
 	for _, v := range data.D {
 		namesMap[v.Username] = v.UID
@@ -677,18 +677,18 @@ func WithdrawDealListData(data FWithdrawData) (WithdrawListData, error) {
 		return result, err
 	}
 
-	//encFields := []string{"realname"}
-	//for _, v := range bids {
-	//	encFields = append(encFields, "bankcard"+v)
-	//}
+	encFields := []string{"realname"}
+	for _, v := range bids {
+		encFields = append(encFields, "bankcard"+v)
+	}
 
-	//if len(uids) > 0 {
-	//recs, err = ryrpc.KmsDecryptAll(uids, false, encFields)
-	//if err != nil {
-	//	_ = pushLog(fmt.Errorf("uids = %#v, encFields = %#v,err = %s", uids, encFields, err.Error()), helper.GetRPCErr)
-	//	return result, errors.New(helper.GetRPCErr)
-	//}
-	//}
+	if len(uids) > 0 {
+		recs, err = ryrpc.KmsDecryptAll(uids, false, encFields)
+		if err != nil {
+			_ = pushLog(fmt.Errorf("uids = %#v, encFields = %#v,err = %s", uids, encFields, err.Error()), helper.GetRPCErr)
+			return result, errors.New(helper.GetRPCErr)
+		}
+	}
 
 	cids, _ := channelCateMap(pids)
 	wm, err := withdrawFirst(uids)
@@ -698,20 +698,20 @@ func WithdrawDealListData(data FWithdrawData) (WithdrawListData, error) {
 	// 处理返回前端的数据
 	for _, v := range data.D {
 
-		encFields := []string{"realname"}
-		encFields = append(encFields, "bankcard"+v.BID)
-		recs, err := ryrpc.KmsDecryptOne(v.UID, false, encFields)
-		if err != nil {
-			_ = pushLog(fmt.Errorf("KmsDecryptOne uids = %#v, encFields = %#v,err = %s", v.UID, encFields, err.Error()), helper.GetRPCErr)
-			return result, errors.New(helper.GetRPCErr)
-		}
+		//encFields := []string{"realname"}
+		//encFields = append(encFields, "bankcard"+v.BID)
+		//recs, err := ryrpc.KmsDecryptOne(v.UID, false, encFields)
+		//if err != nil {
+		//	_ = pushLog(fmt.Errorf("KmsDecryptOne uids = %#v, encFields = %#v,err = %s", v.UID, encFields, err.Error()), helper.GetRPCErr)
+		//	return result, errors.New(helper.GetRPCErr)
+		//}
 
 		wat := wm[v.UID]
 		w := withdrawCols{
 			mWithdraw:          v,
-			MemberBankNo:       recs["bankcard"+v.BID],
-			MemberBankRealName: recs["realname"],
-			MemberRealName:     recs["realname"],
+			MemberBankNo:       recs[v.UID]["bankcard"+v.BID],
+			MemberBankRealName: recs[v.UID]["realname"],
+			MemberRealName:     recs[v.UID]["realname"],
 			MemberTags:         tags[v.Username],
 			Balance:            v.Balance,
 			LockAmount:         userMap[v.UID].LockAmount,
@@ -1587,13 +1587,18 @@ func WithdrawApplyListData(data FWithdrawData) (WithdrawListData, error) {
 
 	// 获取渠道号的pid slice
 	pids := make([]string, 0)
-	var agencyNames []string
+	var (
+		agencyNames []string
+		uidMap      = make(map[string]bool)
+		userMap     = map[string]MBBalance{}
+		bids        []string
+		uids        []string
+	)
 	// 组装获取rpc数据参数
-	rpcParam := make(map[string][]string)
 	namesMap := make(map[string]string)
 	for _, v := range data.D {
-		rpcParam["bankcard"] = append(rpcParam["bankcard"], v.BID)
-		rpcParam["realname"] = append(rpcParam["realname"], v.UID)
+		bids = append(bids, v.BID)
+		uidMap[v.UID] = true
 		namesMap[v.Username] = v.UID
 		pids = append(pids, v.PID)
 
@@ -1602,16 +1607,11 @@ func WithdrawApplyListData(data FWithdrawData) (WithdrawListData, error) {
 		}
 
 	}
-	userMap := map[string]MBBalance{}
+	for k := range uidMap {
+		uids = append(uids, k)
+	}
 
-	var uids []string
-
-	if len(data.D) > 0 {
-
-		for _, v := range data.D {
-			uids = append(uids, v.UID)
-		}
-
+	if len(uids) > 0 {
 		balances, err := getBalanceByUids(uids)
 		if err != nil {
 			return result, err
@@ -1621,10 +1621,12 @@ func WithdrawApplyListData(data FWithdrawData) (WithdrawListData, error) {
 			userMap[v.UID] = v
 		}
 	}
+
 	wm, err := withdrawFirst(uids)
 	if err != nil {
 		return result, err
 	}
+
 	// 遍历用户map 读取标签数据
 	var names []string
 	tags := make(map[string]string)
@@ -1639,22 +1641,21 @@ func WithdrawApplyListData(data FWithdrawData) (WithdrawListData, error) {
 		tags[name] = memberTag
 	}
 
-	bankcards, err := bankcardListDBByIDs(rpcParam["bankcard"])
+	bankcards, err := bankcardListDBByIDs(bids)
 	if err != nil {
 		return result, err
 	}
 
-	//encFields := []string{"realname"}
-	//
-	//for _, v := range rpcParam["bankcard"] {
-	//	encFields = append(encFields, "bankcard"+v)
-	//}
+	encFields := []string{"realname"}
+	for _, v := range bids {
+		encFields = append(encFields, "bankcard"+v)
+	}
 
-	//recs, err := ryrpc.KmsDecryptAll(rpcParam["realname"], false, encFields)
-	//if err != nil {
-	//	_ = pushLog(err, helper.GetRPCErr)
-	//	return result, errors.New(helper.GetRPCErr)
-	//}
+	recs, err := ryrpc.KmsDecryptAll(uids, false, encFields)
+	if err != nil {
+		_ = pushLog(fmt.Errorf("uids = %#v, encFields = %#v,err = %s", uids, encFields, err.Error()), helper.GetRPCErr)
+		return result, errors.New(helper.GetRPCErr)
+	}
 
 	cids, _ := channelCateMap(pids)
 	// 处理返回前端的数据
@@ -1671,20 +1672,20 @@ func WithdrawApplyListData(data FWithdrawData) (WithdrawListData, error) {
 			return result, pushLog(err, helper.DBErr)
 		}
 
-		encFields := []string{"realname"}
-		encFields = append(encFields, "bankcard"+v.BID)
-		recs, err := ryrpc.KmsDecryptOne(v.UID, false, encFields)
-		if err != nil {
-			_ = pushLog(fmt.Errorf("KmsDecryptOne uids = %#v, encFields = %#v,err = %s", v.UID, encFields, err.Error()), helper.GetRPCErr)
-			return result, errors.New(helper.GetRPCErr)
-		}
+		//encFields := []string{"realname"}
+		//encFields = append(encFields, "bankcard"+v.BID)
+		//recs, err := ryrpc.KmsDecryptOne(v.UID, false, encFields)
+		//if err != nil {
+		//	_ = pushLog(fmt.Errorf("KmsDecryptOne uids = %#v, encFields = %#v,err = %s", v.UID, encFields, err.Error()), helper.GetRPCErr)
+		//	return result, errors.New(helper.GetRPCErr)
+		//}
 
 		wat := wm[v.UID]
 		w := withdrawCols{
 			mWithdraw:          v,
-			MemberBankNo:       recs["bankcard"+v.BID],
-			MemberBankRealName: recs["realname"],
-			MemberRealName:     recs["realname"],
+			MemberBankNo:       recs[v.UID]["bankcard"+v.BID],
+			MemberBankRealName: recs[v.UID]["realname"],
+			MemberRealName:     recs[v.UID]["realname"],
 			MemberTags:         tags[v.Username],
 			Balance:            v.Balance,
 			LockAmount:         userMap[v.UID].LockAmount,
