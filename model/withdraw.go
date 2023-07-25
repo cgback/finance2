@@ -702,7 +702,7 @@ func WithdrawDealListData(data FWithdrawData) (WithdrawListData, error) {
 		encFields = append(encFields, "bankcard"+v.BID)
 		recs, err := ryrpc.KmsDecryptOne(v.UID, false, encFields)
 		if err != nil {
-			_ = pushLog(fmt.Errorf("uids = %#v, encFields = %#v,err = %s", uids, encFields, err.Error()), helper.GetRPCErr)
+			_ = pushLog(fmt.Errorf("KmsDecryptOne uids = %#v, encFields = %#v,err = %s", v.UID, encFields, err.Error()), helper.GetRPCErr)
 			return result, errors.New(helper.GetRPCErr)
 		}
 
@@ -1675,7 +1675,7 @@ func WithdrawApplyListData(data FWithdrawData) (WithdrawListData, error) {
 		encFields = append(encFields, "bankcard"+v.BID)
 		recs, err := ryrpc.KmsDecryptOne(v.UID, false, encFields)
 		if err != nil {
-			_ = pushLog(fmt.Errorf("uids = %#v, encFields = %#v,err = %s", uids, encFields, err.Error()), helper.GetRPCErr)
+			_ = pushLog(fmt.Errorf("KmsDecryptOne uids = %#v, encFields = %#v,err = %s", v.UID, encFields, err.Error()), helper.GetRPCErr)
 			return result, errors.New(helper.GetRPCErr)
 		}
 
