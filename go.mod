@@ -27,7 +27,7 @@ require (
 	github.com/olivere/elastic/v7 v7.0.32
 	github.com/pelletier/go-toml v1.9.5
 	github.com/qiniu/qmgo v1.1.8
-	github.com/ryrpc/client v0.0.0-20230725125211-5fe50ffcc015
+	github.com/ryrpc/client v0.0.0-20230725131557-84d1914a8ffe
 	github.com/shopspring/decimal v1.3.1
 	github.com/silenceper/pool v1.0.0
 	github.com/spaolacci/murmur3 v1.1.0
