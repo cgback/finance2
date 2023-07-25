@@ -631,7 +631,7 @@ func WithdrawDealListData(data FWithdrawData) (WithdrawListData, error) {
 		userMap     = make(map[string]MBBalance)
 		namesMap    = make(map[string]string)
 		uidMap      = make(map[string]bool)
-		recs        = make(map[string]map[string]string)
+		//recs        = make(map[string]map[string]string)
 	)
 	for _, v := range data.D {
 		namesMap[v.Username] = v.UID
@@ -682,13 +682,13 @@ func WithdrawDealListData(data FWithdrawData) (WithdrawListData, error) {
 		encFields = append(encFields, "bankcard"+v)
 	}
 
-	if len(uids) > 0 {
-		recs, err = ryrpc.KmsDecryptAll(uids, false, encFields)
-		if err != nil {
-			_ = pushLog(fmt.Errorf("uids = %#v, encFields = %#v,err = %s", uids, encFields, err.Error()), helper.GetRPCErr)
-			return result, errors.New(helper.GetRPCErr)
-		}
-	}
+	//if len(uids) > 0 {
+	//recs, err = ryrpc.KmsDecryptAll(uids, false, encFields)
+	//if err != nil {
+	//	_ = pushLog(fmt.Errorf("uids = %#v, encFields = %#v,err = %s", uids, encFields, err.Error()), helper.GetRPCErr)
+	//	return result, errors.New(helper.GetRPCErr)
+	//}
+	//}
 
 	cids, _ := channelCateMap(pids)
 	wm, err := withdrawFirst(uids)
@@ -698,12 +698,18 @@ func WithdrawDealListData(data FWithdrawData) (WithdrawListData, error) {
 	// 处理返回前端的数据
 	for _, v := range data.D {
 
+		recs, err := ryrpc.KmsDecryptOne(v.UID, false, encFields)
+		if err != nil {
+			_ = pushLog(fmt.Errorf("uids = %#v, encFields = %#v,err = %s", uids, encFields, err.Error()), helper.GetRPCErr)
+			return result, errors.New(helper.GetRPCErr)
+		}
+
 		wat := wm[v.UID]
 		w := withdrawCols{
 			mWithdraw:          v,
-			MemberBankNo:       recs[v.UID]["bankcard"+v.BID],
-			MemberBankRealName: recs[v.UID]["realname"],
-			MemberRealName:     recs[v.UID]["realname"],
+			MemberBankNo:       recs["bankcard"+v.BID],
+			MemberBankRealName: recs["realname"],
+			MemberRealName:     recs["realname"],
 			MemberTags:         tags[v.Username],
 			Balance:            v.Balance,
 			LockAmount:         userMap[v.UID].LockAmount,
