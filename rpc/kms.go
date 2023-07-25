@@ -1,5 +1,7 @@
 package ryrpc
 
+import "errors"
+
 func KmsHistory(uid, field string, hide bool) (string, error) {
 
 	var ret string
@@ -41,6 +43,10 @@ func KmsDecryptOne(uid string, hide bool, field []string) (map[string]string, er
 func KmsDecryptAll(uids []string, hide bool, field []string) (map[string]map[string]string, error) {
 
 	var ret map[string]map[string]string
+
+	if len(uids) == 0 {
+		return ret, errors.New("uids = nil")
+	}
 
 	vv := kms_decrypt_all_t{
 		Uids:  uids,
