@@ -623,30 +623,30 @@ func WithdrawDealListData(data FWithdrawData) (WithdrawListData, error) {
 	}
 
 	// 获取渠道号的pid slice
-	pids := make([]string, 0)
-	var agencyNames []string
-	// 组装获取rpc数据参数
-	rpcParam := make(map[string][]string)
-	namesMap := make(map[string]string)
+	var (
+		agencyNames []string
+		pids        []string
+		uids        []string
+		bids        []string
+		userMap     = make(map[string]MBBalance)
+		namesMap    = make(map[string]string)
+		uidMap      = make(map[string]bool)
+	)
 	for _, v := range data.D {
-		rpcParam["bankcard"] = append(rpcParam["bankcard"], v.BID)
-		rpcParam["realname"] = append(rpcParam["realname"], v.UID)
 		namesMap[v.Username] = v.UID
+		uidMap[v.UID] = true
 		pids = append(pids, v.PID)
-
+		bids = append(bids, v.BID)
 		if v.ParentName != "" && v.ParentName != "root" {
 			agencyNames = append(agencyNames, v.ParentName)
 		}
-
 	}
-	userMap := map[string]MBBalance{}
-	var uids []string
-	if len(data.D) > 0 {
 
-		for _, v := range data.D {
-			uids = append(uids, v.UID)
-		}
+	for k := range uidMap {
+		uids = append(uids, k)
+	}
 
+	if len(uids) > 0 {
 		balances, err := getBalanceByUids(uids)
 		if err != nil {
 			return result, err
@@ -671,14 +671,13 @@ func WithdrawDealListData(data FWithdrawData) (WithdrawListData, error) {
 		tags[name] = memberTag
 	}
 
-	bankcards, err := bankcardListDBByIDs(rpcParam["bankcard"])
+	bankcards, err := bankcardListDBByIDs(bids)
 	if err != nil {
 		return result, err
 	}
 
 	encFields := []string{"realname"}
-
-	for _, v := range rpcParam["bankcard"] {
+	for _, v := range bids {
 		encFields = append(encFields, "bankcard"+v)
 	}
 
