@@ -685,10 +685,7 @@ func WithdrawDealListData(data FWithdrawData) (WithdrawListData, error) {
 	if len(uids) > 0 {
 		recs, err = ryrpc.KmsDecryptAll(uids, false, encFields)
 		if err != nil {
-			fmt.Println("KmsDecryptAll err = ", err)
-			fmt.Println("KmsDecryptAll uids = ", uids)
-			fmt.Println("KmsDecryptAll encFields = ", encFields)
-			_ = pushLog(err, helper.GetRPCErr)
+			_ = pushLog(fmt.Errorf("uids = %#v, encFields = %#v,err = %s", uids, encFields, err.Error()), helper.GetRPCErr)
 			return result, errors.New(helper.GetRPCErr)
 		}
 	}
