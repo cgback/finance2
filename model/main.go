@@ -39,7 +39,6 @@ type MetaTable struct {
 	MerchantRPC    *rycli.Client
 	Program        string
 	Prefix         string
-	PayRPC         string
 	Finance        map[string]map[string]interface{}
 	FcallbackInner string
 	IsDirect       int

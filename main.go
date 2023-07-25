@@ -47,7 +47,6 @@ func main() {
 
 	mt := new(model.MetaTable)
 	mt.Prefix = cfg.Prefix
-	mt.PayRPC = cfg.RPC
 	conn.Use(validateKey)
 	mt.MerchantDB = conn.InitDB(cfg.Db.Masteren.Addr, cfg.Db.Masteren.MaxIdleConn, cfg.Db.Masteren.MaxOpenConn)
 	mt.MerchantRedis = conn.InitRedisSentinel(cfg.Redis.Addr, cfg.Redis.Password, cfg.Redis.Sentinel, 0)
