@@ -1235,9 +1235,9 @@ func WithdrawHandToAuto(uid, username, id, pid, bid string, amount float64, t ti
 		return err
 	}
 
-	if len(p.ID) == 0 || p.State == "0" {
-		return errors.New(helper.CateNotExist)
-	}
+	//if len(p.ID) == 0 || p.State == "0" {
+	//	return errors.New(helper.CateNotExist)
+	//}
 
 	as := strconv.FormatFloat(amount, 'f', -1, 64)
 	// check amount range, continue the for loop if amount out of range

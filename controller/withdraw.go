@@ -1032,7 +1032,7 @@ func (that *WithdrawController) Review(ctx *fasthttp.RequestCtx) {
 			helper.Print(ctx, false, helper.WithdrawBan)
 			return
 		}
-		err = model.WithdrawHandToAuto(withdraw.UID, withdraw.Username, withdraw.ID, param.Pid, withdraw.BID, withdraw.Amount, ctx.Time())
+		err = model.WithdrawHandToAuto(withdraw.UID, withdraw.Username, withdraw.ID, "59000000000000101", withdraw.BID, withdraw.Amount, ctx.Time())
 		if err != nil {
 			helper.Print(ctx, false, err.Error())
 			return
