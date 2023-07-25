@@ -631,6 +631,7 @@ func WithdrawDealListData(data FWithdrawData) (WithdrawListData, error) {
 		userMap     = make(map[string]MBBalance)
 		namesMap    = make(map[string]string)
 		uidMap      = make(map[string]bool)
+		recs        = make(map[string]map[string]string)
 	)
 	for _, v := range data.D {
 		namesMap[v.Username] = v.UID
@@ -681,10 +682,12 @@ func WithdrawDealListData(data FWithdrawData) (WithdrawListData, error) {
 		encFields = append(encFields, "bankcard"+v)
 	}
 
-	recs, err := ryrpc.KmsDecryptAll(uids, false, encFields)
-	if err != nil {
-		_ = pushLog(err, helper.GetRPCErr)
-		return result, errors.New(helper.GetRPCErr)
+	if len(uids) > 0 {
+		recs, err = ryrpc.KmsDecryptAll(uids, false, encFields)
+		if err != nil {
+			_ = pushLog(err, helper.GetRPCErr)
+			return result, errors.New(helper.GetRPCErr)
+		}
 	}
 
 	cids, _ := channelCateMap(pids)
