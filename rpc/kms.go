@@ -1,6 +1,6 @@
 package ryrpc
 
-func KmsHistory(uid string, hide bool, field string) (string, error) {
+func KmsHistory(uid, field string, hide bool) (string, error) {
 
 	var ret string
 	vv := kms_history_t{
