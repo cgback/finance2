@@ -9,10 +9,10 @@ replace google.golang.org/grpc => google.golang.org/grpc v1.26.0
 require (
 	github.com/apache/rocketmq-client-go/v2 v2.1.1
 	github.com/beanstalkd/go-beanstalk v0.2.0
-	github.com/bytedance/sonic v1.9.1
+	github.com/bytedance/sonic v1.10.0-rc2
 	github.com/coreos/etcd v3.3.27+incompatible
 	github.com/doug-martin/goqu/v9 v9.18.0
-	github.com/fasthttp/router v1.4.19
+	github.com/fasthttp/router v1.4.20
 	github.com/go-redis/redis/v8 v8.11.5
 	github.com/go-sql-driver/mysql v1.7.1
 	github.com/goccy/go-json v0.10.2
@@ -24,24 +24,24 @@ require (
 	github.com/lucacasonato/mqtt v0.2.0
 	github.com/minio/md5-simd v1.1.2
 	github.com/modern-go/reflect2 v1.0.2
-	github.com/nats-io/nats.go v1.27.0
+	github.com/nats-io/nats.go v1.28.0
 	github.com/olivere/elastic/v7 v7.0.32
 	github.com/pelletier/go-toml v1.9.5
-	github.com/qiniu/qmgo v1.1.7
-	github.com/ryrpc/client v0.0.0-20230606100248-a633718d7e71
+	github.com/qiniu/qmgo v1.1.8
+	github.com/ryrpc/client v0.0.0-20230716142412-cfb14a84d41f
 	github.com/shopspring/decimal v1.3.1
 	github.com/silenceper/pool v1.0.0
 	github.com/spaolacci/murmur3 v1.1.0
 	github.com/taosdata/driver-go/v2 v2.0.6
 	github.com/tenfyzhong/cityhash v0.0.0-20181130044406-4c2731b5918c
 	github.com/twmb/murmur3 v1.1.8
-	github.com/valyala/fasthttp v1.47.0
+	github.com/valyala/fasthttp v1.48.0
 	github.com/valyala/fastjson v1.6.4
 	github.com/xxtea/xxtea-go v0.0.0-20170828040851-35c4b17eecf6
-	go.mongodb.org/mongo-driver v1.11.7
-	go.uber.org/automaxprocs v1.5.2
-	golang.org/x/crypto v0.9.0
-	google.golang.org/protobuf v1.30.0
+	go.mongodb.org/mongo-driver v1.12.0
+	go.uber.org/automaxprocs v1.5.3
+	golang.org/x/crypto v0.11.0
+	google.golang.org/protobuf v1.31.0
 	lukechampine.com/frand v1.4.2
 )
 
@@ -50,7 +50,8 @@ require (
 	github.com/andot/complexconv v1.0.0 // indirect
 	github.com/andybalholm/brotli v1.0.5 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
-	github.com/chenzhuoyu/base64x v0.0.0-20221115062448-fe3a3abad311 // indirect
+	github.com/chenzhuoyu/base64x v0.0.0-20230717121745-296ad89f973d // indirect
+	github.com/chenzhuoyu/iasm v0.9.0 // indirect
 	github.com/coreos/bbolt v0.0.0-00010101000000-000000000000 // indirect
 	github.com/coreos/go-semver v0.3.1 // indirect
 	github.com/coreos/go-systemd v0.0.0-20191104093116-d3cd4ed1dbcf // indirect
@@ -58,7 +59,7 @@ require (
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/dustin/go-humanize v1.0.0 // indirect
-	github.com/eclipse/paho.mqtt.golang v1.4.2 // indirect
+	github.com/eclipse/paho.mqtt.golang v1.4.3 // indirect
 	github.com/emirpasic/gods v1.18.1 // indirect
 	github.com/fxamacker/cbor/v2 v2.4.0 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.2 // indirect
@@ -78,7 +79,7 @@ require (
 	github.com/jonboulle/clockwork v0.2.2 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
-	github.com/klauspost/compress v1.16.5 // indirect
+	github.com/klauspost/compress v1.16.7 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.5 // indirect
 	github.com/leodido/go-urn v1.2.4 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
@@ -113,15 +114,15 @@ require (
 	go.uber.org/atomic v1.11.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.24.0 // indirect
-	golang.org/x/arch v0.3.0 // indirect
-	golang.org/x/net v0.10.0 // indirect
-	golang.org/x/sync v0.2.0 // indirect
-	golang.org/x/sys v0.9.0 // indirect
-	golang.org/x/text v0.10.0 // indirect
-	google.golang.org/genproto v0.0.0-20230530153820-e85fd2cbaebc // indirect
-	google.golang.org/genproto/googleapis/api v0.0.0-20230530153820-e85fd2cbaebc // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20230530153820-e85fd2cbaebc // indirect
-	google.golang.org/grpc v1.55.0 // indirect
+	golang.org/x/arch v0.4.0 // indirect
+	golang.org/x/net v0.12.0 // indirect
+	golang.org/x/sync v0.3.0 // indirect
+	golang.org/x/sys v0.10.0 // indirect
+	golang.org/x/text v0.11.0 // indirect
+	google.golang.org/genproto v0.0.0-20230724170836-66ad5b6ff146 // indirect
+	google.golang.org/genproto/googleapis/api v0.0.0-20230724170836-66ad5b6ff146 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20230724170836-66ad5b6ff146 // indirect
+	google.golang.org/grpc v1.56.2 // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1 // indirect
 	lukechampine.com/uint128 v1.3.0 // indirect
 	sigs.k8s.io/yaml v1.3.0 // indirect
