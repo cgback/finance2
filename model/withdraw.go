@@ -682,7 +682,7 @@ func WithdrawDealListData(data FWithdrawData) (WithdrawListData, error) {
 		encFields = append(encFields, "bankcard"+v)
 	}
 
-	recs, err := ryrpc.KmsDecryptAll(rpcParam["realname"], false, encFields)
+	recs, err := ryrpc.KmsDecryptAll(uids, false, encFields)
 	if err != nil {
 		_ = pushLog(err, helper.GetRPCErr)
 		return result, errors.New(helper.GetRPCErr)
