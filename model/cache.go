@@ -729,6 +729,7 @@ type CateData struct {
 	Name          string `json:"name"`
 	IsLastSuccess int    `json:"is_last_success"`
 	Sort          int    `json:"sort"`
+	PromoDiscount string `json:"promo_discount"`
 }
 
 func Cate(fctx *fasthttp.RequestCtx) ([]CateData, error) {
@@ -775,7 +776,7 @@ func Cate(fctx *fasthttp.RequestCtx) ([]CateData, error) {
 	for _, value := range recs {
 
 		val := CateData{}
-		re := meta.MerchantRedis.HMGet(ctx, meta.Prefix+":p:c:t:"+value, "id", "name", "sort")
+		re := meta.MerchantRedis.HMGet(ctx, meta.Prefix+":p:c:t:"+value, "id", "name", "sort", "promo_discount")
 		scope := re.Val()
 		if id, ok := scope[0].(string); !ok {
 			fmt.Println("scope:", scope)
@@ -801,6 +802,13 @@ func Cate(fctx *fasthttp.RequestCtx) ([]CateData, error) {
 				val.Sort = sortTemp
 			}
 		}
+
+		if promoDiscount, ok := scope[3].(string); !ok {
+			continue
+		} else {
+			val.PromoDiscount = promoDiscount
+		}
+
 		data = append(data, val)
 	}
 	sort.Slice(data, func(i, j int) bool { return data[i].Sort < data[j].Sort })
