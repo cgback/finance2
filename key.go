@@ -1,15 +1,16 @@
 package main
 
 var (
+	username        = ""
 	gitReversion    = ""
 	buildTime       = ""
 	buildGoVersion  = ""
-	ETCDName        = "admin"
-	ETCDPass        = "admin@2023!"
-	validateH5      = "2085999532"
-	validateHT      = "3693378124"
-	validateWEB     = "3468719701"
-	validateAndroid = "6822655235"
-	validateIOS     = "6822655236"
-	validateKey     = "0Yoo4LxSbMo64MbD3G4ICjnU"
+	ETCDName        = "root"
+	ETCDPass        = "9lpgz9CQv4vVtZe"
+	validateH5      = "2085999535"
+	validateHT      = "7165518947"
+	validateWEB     = "3468719700"
+	validateAndroid = "6822655233"
+	validateIOS     = "3693378128"
+	validateKey     = "2GBxP2cfObU0zhmHIn3RU8z6UYA0e9"
 )

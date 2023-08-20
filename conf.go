@@ -1,6 +1,7 @@
 package main
 
 type conf struct {
+	Env            string   `toml:"env"`
 	Lang           string   `toml:"lang"`
 	SmsPrefix      string   `toml:"sms_prefix"`
 	Prefix         string   `toml:"prefix"`
@@ -121,4 +122,8 @@ type conf struct {
 		Password string `toml:"password"`
 		Db       string `toml:"db"`
 	} `toml:"mongodb"`
+	Tg struct {
+		BotID         string `toml:"bot_id"`
+		NoticeGroupID int64  `toml:"notice_group_id"`
+	} `toml:"tg"`
 }

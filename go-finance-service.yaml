@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: go-finance-service
+  namespace: p3
+  labels:
+    app: go-finance
+spec:
+  selector:
+    app: go-finance
+  ports:
+  - port: 80
+    targetPort: 6012
+  type: ClusterIP
+

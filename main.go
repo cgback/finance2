@@ -10,13 +10,14 @@ import (
 	"finance/model"
 	"finance/router"
 	"fmt"
-	"github.com/lucacasonato/mqtt"
-	rycli "github.com/ryrpc/client"
 	"log"
 	"os"
 	"path"
 	"path/filepath"
 	"strings"
+
+	"github.com/lucacasonato/mqtt"
+	rycli "github.com/ryrpc/client"
 
 	"github.com/apache/rocketmq-client-go/v2"
 	"github.com/apache/rocketmq-client-go/v2/producer"
@@ -120,6 +121,11 @@ func main() {
 	}
 	fmt.Printf("gitReversion = %s\r\nbuildGoVersion = %s\r\nbuildTime = %s\r\n", gitReversion, buildGoVersion, buildTime)
 	fmt.Println("finance2 running", cfg.Port.Finance2)
+	// 启动小飞机推送版本信息
+	if !cfg.IsDev {
+		model.TelegramBotNotice(mt.Program, username, gitReversion, buildTime, buildGoVersion, "rpc", cfg.Prefix, cfg.Sock5, cfg.Env, cfg.Tg.BotID, cfg.Tg.NoticeGroupID)
+	}
+
 	helper.Use(validateH5, validateHT, validateWEB, validateAndroid, validateIOS, true)
 	if err := srv.ListenAndServe(cfg.Port.Finance2); err != nil {
 		log.Fatalf("Error in ListenAndServe: %s", err)
