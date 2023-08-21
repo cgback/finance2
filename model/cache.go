@@ -525,6 +525,8 @@ func CacheRefreshLevel() {
 			"app_img":      val.AppImg,
 			"h5_img":       val.H5Img,
 		}
+
+		// 這邊寫入chnnel資料
 		pipe.HMSet(ctx, meta.Prefix+":f:p:"+val.ID, value)
 		pipe.Persist(ctx, meta.Prefix+":f:p:"+val.ID)
 
@@ -610,7 +612,7 @@ func Tunnel(fctx *fasthttp.RequestCtx, id string) (string, error) {
 	lastDepositPaymentKey := fmt.Sprintf("%s:uldp:%s", meta.Prefix, u.Username)
 	var lastDepositPayment string
 
-	paymentIds, err := meta.MerchantRedis.LRange(ctx, key, 0, -1).Result()
+	paymentIds, err := meta.MerchantRedis.LRange(ctx, key, 0, -1).Result() // 59000000000000001
 	if err != nil {
 		fmt.Println("SMembers = ", err.Error())
 		return "[]", nil
@@ -625,8 +627,8 @@ func Tunnel(fctx *fasthttp.RequestCtx, id string) (string, error) {
 	exists := pipe.Exists(ctx, fmt.Sprintf("%s:DL:%s", meta.Prefix, u.UID))
 	for i, v := range paymentIds {
 		fmt.Println("paymentIds key:", meta.Prefix+":f:p:"+v)
-
-		rs[i] = pipe.HMGet(ctx, meta.Prefix+":f:p:"+v, "id", "fmin", "fmax", "et", "st", "amount_list", "payment_name", "sort", "name", "is_zone", "is_fast", "flag", "web_img", "h5_img", "app_img")
+		// 這邊讀取支付相關資料
+		rs[i] = pipe.HMGet(ctx, meta.Prefix+":f:p:"+v, "id", "fmin", "discount", "fmax", "et", "st", "amount_list", "payment_name", "sort", "name", "is_zone", "is_fast", "flag", "web_img", "h5_img", "app_img") // 應該是這邊可以抓到資料
 		bk[i] = pipe.Get(ctx, meta.Prefix+":BK:"+v)
 	}
 	exists2 := pipe.Exists(ctx, lastDepositPaymentKey)
