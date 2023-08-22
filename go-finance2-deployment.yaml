@@ -1,22 +1,22 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: go-finance
+  name: go-finance2
   namespace: p3
   labels:
-    app: go-finance
+    app: go-finance2
 spec:
   selector:
     matchLabels:
-      app: go-finance
+      app: go-finance2
   replicas: {{REPLICAS}}
   template:
     metadata:
       labels:
-        app: go-finance
+        app: go-finance2
     spec:
       containers:
-      - name: go-finance
+      - name: go-finance2
         image: {{IMAGE_NAME}}
         command: ["./{{PROJECT_NAME}}"]
         args: ["{{ETCD}}","{{JSON}}","{{SOCK5}}"]
