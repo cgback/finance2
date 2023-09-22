@@ -5,7 +5,7 @@
 *.o
 *.a
 *.so
-finance
+finance2
 # Folders
 _obj
 _test
