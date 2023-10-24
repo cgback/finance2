@@ -5,15 +5,14 @@ import (
 	"errors"
 	"finance/contrib/helper"
 	"fmt"
-	"sort"
-	"strconv"
-	"strings"
-	"time"
-
 	g "github.com/doug-martin/goqu/v9"
 	"github.com/go-redis/redis/v8"
 	"github.com/valyala/fasthttp"
 	"github.com/valyala/fastjson"
+	"sort"
+	"strconv"
+	"strings"
+	"time"
 )
 
 func getBankTypeByCode(bankCode string) (TblBankTypes, error) {
@@ -660,9 +659,6 @@ func Tunnel(fctx *fasthttp.RequestCtx, id string) (string, error) {
 			return "", pushLog(err, helper.RedisErr)
 		}
 		fmt.Println("paymentIds key:", m.ID, m.Sort)
-		if m.ID == "779402438062874465" {
-			continue
-		}
 
 		obj := fastjson.MustParse(`{"id":"0","bank":[], "fmin":"0","fmax":"0", "amount_list": "","sort":"0","payment_name":"","discount":"0","name":"","is_zone":"0","is_fast":"0","flag":"1","web_img":"","h5_img":"","app_img":""}`)
 		obj.Set("id", fastjson.MustParse(fmt.Sprintf(`"%s"`, m.ID)))
