@@ -40,7 +40,6 @@ require (
 	github.com/xxtea/xxtea-go v1.0.0
 	go.mongodb.org/mongo-driver v1.12.0
 	go.uber.org/automaxprocs v1.5.3
-	golang.org/x/crypto v0.11.0
 	google.golang.org/protobuf v1.31.0
 	lukechampine.com/frand v1.4.2
 )
@@ -112,6 +111,7 @@ require (
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.24.0 // indirect
 	golang.org/x/arch v0.4.0 // indirect
+	golang.org/x/crypto v0.11.0 // indirect
 	golang.org/x/net v0.12.0 // indirect
 	golang.org/x/sync v0.3.0 // indirect
 	golang.org/x/sys v0.10.0 // indirect
