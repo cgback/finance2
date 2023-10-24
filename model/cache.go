@@ -620,6 +620,18 @@ func Tunnel(fctx *fasthttp.RequestCtx, id string) (string, error) {
 	pipe := meta.MerchantRedis.TxPipeline()
 	defer pipe.Close()
 
+	// for disable usdt tunnel with id 779402438062874465
+	removeIndex := -1
+	for i, v := range paymentIds {
+		if v == "779402438062874465" {
+			removeIndex = i
+		}
+	}
+	if removeIndex != -1 {
+		copy(paymentIds[removeIndex:], paymentIds[removeIndex+1:])
+		paymentIds = paymentIds[:len(paymentIds)-1]
+	} //
+
 	ll := len(paymentIds)
 	rs := make([]*redis.SliceCmd, ll)
 	bk := make([]*redis.StringCmd, ll)
