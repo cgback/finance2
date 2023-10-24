@@ -31,7 +31,7 @@ run:
 
 init:
 	git submodule init
-	git submodule update
+	git submodule update --remote
 	go mod tidy
 
 # run-docker:  build-image
