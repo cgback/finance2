@@ -1,13 +1,13 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: go-finance-service
+  name: go-finance2-service
   namespace: p3
   labels:
-    app: go-finance
+    app: go-finance2
 spec:
   selector:
-    app: go-finance
+    app: go-finance2
   ports:
   - port: 80
     targetPort: 6012
