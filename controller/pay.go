@@ -3,6 +3,7 @@ package controller
 import (
 	"finance/contrib/helper"
 	"finance/model"
+
 	"github.com/valyala/fasthttp"
 )
 
@@ -34,7 +35,7 @@ func (that *PayController) Pay(ctx *fasthttp.RequestCtx) {
 
 	id := string(ctx.PostArgs().Peek("id"))
 	amount := string(ctx.PostArgs().Peek("amount"))
-	bid := string(ctx.PostArgs().Peek("bankid"))
+	bid := string(ctx.PostArgs().Peek("bid"))
 
 	if !helper.CtypeDigit(amount) {
 		helper.Print(ctx, false, helper.AmountErr)
